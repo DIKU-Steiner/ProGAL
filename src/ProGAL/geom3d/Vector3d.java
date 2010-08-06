@@ -6,150 +6,148 @@ package ProGAL.geom3d;
 public class Vector3d {
 	protected double x,y,z;
 		
-	public Vector3d() { x = 0.0; y = 0.0; z = 0.0; }
+	/** Construct a vector with the specified coordinates. */
 	public Vector3d(double x, double y, double z) { this.x = x; this.y = y; this.z = z; }
-	public Vector3d(Point3d p, Point3d q) { x = q.x - p.x; y = q.y - p.y; z = q.z - p.z; }
+	
+	/** Construct a vector pointing from origo to p. */
 	public Vector3d(Point3d p) { x = p.x; y = p.y; z = p.z; }
-	public Vector3d(Segment3d s) { x = s.b.x-s.a.x; y = s.b.y-s.a.y; z = s.b.z - s.a.z; }
+	
+	/** Construct a vector that is a clone of v. */
 	public Vector3d(Vector3d v) { x = v.x; y = v.y; z = v.z; }	
 	
+	///// Getters and setters /////
 	
-	public double getX() { return x; }     public void setX(double x) { this.x = x; }
-	public double getY() { return y; }     public void setY(double y) { this.y = y; }
-	public double getZ() { return z; }     public void setZ(double z) { this.z = z; }
-	
-	public void set(Point3d p) { x = p.x; y = p.y; z = p.z; }
-	
-	public double getSquaredLength() { return x*x + y*y + z*z; }
-		
-	public double getLength() {return Math.sqrt(getSquaredLength()); }
-	
-	public static double getAngle(Vector3d u, Vector3d v) { return Math.acos(dotProduct(u,v)/(u.getLength()*v.getLength())); }
-		
-	/*
-	 * returns dihedral angle between 3 non-colinear vectors v12, v23, v34.
-	 */
-	public static double getDihedralAngle(Vector3d v12, Vector3d v23, Vector3d v34) {
-		return Math.atan2(dotProduct(v12.createScaledVector3d(v23.getLength()), crossProduct(v23,v34)),
-				dotProduct(crossProduct(v12,v23),crossProduct(v23,v34)));
-	}
-
-	public boolean isZeroVector() { return ((x == 0.0) && (y == 0.0) && (z == 0.0)); }
-
-	public void negative() { scale(-1); }
-	
-	/*
-	 * scale by factor a
-	 */
-	//public void scale(double a) { x *= a; y *= a; z *= a; }
-	
-	/**
-	 * scale to specified length
-	 */
-	public Vector3d scaleToLength(double length) { scale(length/getLength()); return this; }
-	
-	public void makeUnitVector() { scale(1/getLength()); }
-	
-	//public void normalize() { makeUnitVector(); }
-	
-	public void addVector(Vector3d v) { x += v.x; y += v.y; z += v.z; }
-	
-	public void subtractVector(Vector3d v) { x -= v.x; y -= v.y; z -= v.z; }
-
-	public Vector3d add(Vector3d v){ return new Vector3d(x+v.x, y+v.y, z+v.z); }
-	public Vector3d addIn(Vector3d v){ x+=v.x; y+=v.y; z+=v.z; return this; }
-	public Vector3d multiply(double s){ return new Vector3d(x*s, y*s, z*s); }
-	public Vector3d multiplyIn(double s){ x*=s;y*=s;z*=s;return this; }
-	public Vector3d norm(){ return this.multiply(1/length()); }
-	public Vector3d normIn(){ return this.multiplyIn(1/length()); }
-	
-	public Vector3d createNegativeVector3d() { return createScaledVector3d(-1); }
-	
-	/*
-	 * create scaled vector
-	 */
-	public Vector3d createScaledVector3d(double a) { return new Vector3d(a*x, a*y, a*z); }
-	public Vector3d mult(double a) { return new Vector3d(a*x, a*y, a*z); }
-	
-	/*
-	 * creates the vector with the opposite direction
-	 */
-	public Vector3d createReverseVector3d() { return createScaledVector3d(-1); }
-	
-	/*
-	 * create vector scaled to given length
-	 */
-	public Vector3d createScaledToLengthVector3d(double length) { return createScaledVector3d(length/getLength()); }
-	
-	public Vector3d createUnitVector() { return createScaledVector3d(1/getLength()); }
-	
-	public Point3d toPoint() { return new Point3d(x, y, z); }
-	
-	public String toString() {
-		return toString(2);
-		//return "(" + x + " , " + y + " , " + z + ")"; 
-	}
-	public String toString(int dec) {
-		return String.format("Vector3d[%."+dec+"f,%."+dec+"f,%."+dec+"f]",x, y,z);
-//		return "(" + Functions.toString(x,dec) + " , " + Functions.toString(y,dec) + " , " + Functions.toString(z,dec) + ")";
-	}	
-	
-	public void toConsole() { System.out.println(toString()); }
-	public void toConsole(int dec) { System.out.println(toString(dec)); }
-
-	public static Vector3d createSum(Vector3d u, Vector3d v) { 
-		return new Vector3d(u.x+v.x, u.y+v.y, u.z+v.z); }
-	
-	public static Vector3d createSum(Vector3d u, Vector3d v, Vector3d w) { 
-		return new Vector3d(u.x+v.x+w.x, u.y+v.y+w.y, u.z+v.z+w.z); }
-	
-	public static Vector3d createDiff(Vector3d u, Vector3d v) { 
-		return new Vector3d(u.x-v.x, u.y-v.y, u.z-v.z); }
-	
-	public static Vector3d createUnitVector(Point3d p, Point3d q) {
-		double dist = Point3d.getDistance(p, q);
-		return new Vector3d((q.getX()-p.getX())/dist, (q.getY()-p.getY())/dist, (q.getZ()-p.getZ())/dist);
-	}
-	
-	public static Vector3d crossProduct(Vector3d u, Vector3d v) {
-		return new Vector3d(u.y*v.z - u.z*v.y, u.z*v.x - u.x*v.z, u.x*v.y - u.y*v.x); }
-	
-	public Vector3d cross(Vector3d v) {
-		return crossProduct(this,v);
-	}
-	
-	public static double dotProduct(Vector3d u, Vector3d v) { return u.x*v.x + u.y*v.y + u.z*v.z; }
-	public        double dotProduct(Vector3d v)             { return x*v.x   + y*v.y   + z*v.z;   }
-	
-	public static double dotProduct(Vector3d u, Point3d p)  { return Vector3d.dotProduct(u,new Vector3d(p)); }
-	
-	public static double dotProduct(Point3d  p, Vector3d u) { return Vector3d.dotProduct(u, p); }
-	
-	public static double dotProduct(Point3d  p, Point3d q)  { 
-		//Edited by Rasmus ... for performance
-		//return Vector3d.dotProduct(new Vector3d(p), new Vector3d(q));
-		return p.x*q.x + p.y*q.y + p.z*q.z;
-	}
-	
-	public Vector3d clone(){ return new Vector3d(x, y, z); }
-	
-	public static void main(String[] args) {
-	}
-	public double angle(Vector3d v2) {
-		return Math.acos(Math.min(  1, this.dot(v2)/(this.length()*v2.length())  ));
-	}
-	public double get(int i) {
+	/** Get the i'th coordinate. */
+	public double getCoord(int i) {
 		switch(i){
 		case 0: return x;
 		case 1: return y;
 		case 2: return z;
 		}
-		throw new Error("Illegal coordinate referenced: "+i);
-	}
-	public Vector3d reverse() {
-		return new Vector3d(-x,-y,-z);
+		throw new Error("Trying to get invalid coordinate");
 	}
 	
+	/** Get the i'th coordinate. */
+	public double get(int i) { return getCoord(i); }
 
+	/** Get the first coordinate. */
+	public double getX() { return x; }
+	
+	/** Get the second coordinate. */
+	public double getY() { return y; }
+	
+	/** Get the third coordinate. */
+	public double getZ() { return z; }
+	
+	/** Set the i'th coordinate to v */
+	public void setCoord(int i, double v){
+		switch(i){
+		case 0: this.x = v;return;
+		case 1: this.y = v;return;
+		case 2: this.z = v;return;
+		}
+	}
+	
+	/** Set the i'th coordinate to v */
+	public void set(int i, double v){ setCoord(i,v); }
+
+	/** Set the first coordinate */
+	public void setX(double x) { this.x = x; }
+	/** Set the second coordinate */
+	public void setY(double y) { this.y = y; }
+	/** Set the third coordinate */
+	public void setZ(double z) { this.z = z; }
+
+
+	/** Get the squared length of this vector. */
+	public double getSquaredLength() { return x*x + y*y + z*z; }
+
+	/** Get the length of this vector. */
+	public double getLength() {return Math.sqrt(getSquaredLength()); }
+	/** Get the length of this vector. */
+	public double length() {return getLength(); }
+	
+	
+	/** Return true if the length of this vector is 0. */
+	public boolean isZeroVector() { 
+		return ((x == 0.0) && (y == 0.0) && (z == 0.0)); 
+	}
+	
+	/** Get the dot-product of this vector and v. */
+	public double dot(Vector3d v){ 
+		return x*v.x+y*v.y+z*v.z; 
+	}
+
+	/** Get the angle between this vector and v. */
+	public double angle(Vector3d v) {
+		return Math.acos(Math.min(  1, this.dot(v)/(this.getLength()*v.getLength())  ));
+	}
+	
+	/** Add v to this vector and return the result (without changing this object). */
+	public Vector3d add(Vector3d v){ return new Vector3d(x+v.x, y+v.y, z+v.z); }
+	
+	/** Add v to this vector and return the result (changing this object). */ 
+	public Vector3d addThis(Vector3d v){ x+=v.x; y+=v.y; z+=v.z; return this; }
+	
+	/** Multiply this vector by s and return the result (without changing this object). */
+	public Vector3d multiply(double s){ return new Vector3d(x*s, y*s, z*s); }
+	
+	/** Multiply this vector by s and return the result (changing this object). */
+	public Vector3d multiplyThis(double s){ x*=s;y*=s;z*=s;return this; }
+	
+	/** Normalize this vector and return the result (without changing this object). */
+	public Vector3d normalize(){ return this.multiply(1/getLength()); }
+	
+	/** Normalize this vector and return the result (changing this object). */
+	public Vector3d normalizeThis(){ return this.multiplyThis(1/getLength()); }
+
+	/** Scale this vector to a certain length (returns new object and does not change this object). */
+	public Vector3d scaleToLength(double length) { return multiply(length/getLength()); }
+	
+	/** Scale this vector to a certain length (changes this object). */
+	public Vector3d scaleToLengthThis(double length) { return multiplyThis(length/getLength()); }
+	
+	/** Get the cross-product of this vector and v (without changing this object). */
+	public Vector3d cross(Vector3d v){ return new Vector3d(y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x); }
+	
+	/** Get the cross-product of this vector and v and store the result in this vector (changes this object). */
+	public Vector3d crossThis(Vector3d v){ 
+		double newX = y*v.z - z*v.y, newY = z*v.x - x*v.z, newZ = x*v.y - y*v.x;
+		this.x = newX;this.y = newY;this.z = newZ;
+		return this;
+	}
+	
+	/** Convert this vector to a point. */
+	public Point3d toPoint() { return new Point3d(x, y, z); }
+	
+	/** Returns a string-representation of this vector formatted with two decimals precision. */
+	public String toString() { return toString(2); }
+	
+	/** Returns a string-representation of this vector formatted with <code>dec</code> decimals precision. */
+	public String toString(int dec) {
+		return String.format("Vector3d[%."+dec+"f,%."+dec+"f,%."+dec+"f]",x,y,z);
+	}	
+	
+	/** Writes this point to <code>System.out</code>. */
+	public void toConsole() { toConsole(2); }
+	
+	/** Writes this point to <code>System.out</code> with <code>dec</code> decimals precision. */
+	public void toConsole(int dec) { System.out.println(toString(dec)); }
+
+	/** Return true if this vector equals v. */
+	public boolean equals(Vector3d v){ return x==v.x && y==v.y && z==v.z; }
+	
+	/** Create a clone of this vector. */
+	public Vector3d clone(){ return new Vector3d(x, y, z); }
+	
+
+	/** Get the angle between vector u and v. */
+	public static double getAngle(Vector3d u, Vector3d v) { return u.angle(v); }
+	
+	/** Get the dihedral angle between 3 non-colinear vectors v12, v23, v34. */
+	public static double getDihedralAngle(Vector3d v12, Vector3d v23, Vector3d v34) {
+		return Math.atan2( v12.scaleToLength(v23.getLength()).dot(v23.cross(v34)),
+				v12.cross(v23).dot(v23.cross(v34)));
+	}
 }
 

@@ -6,9 +6,11 @@ package ProGAL.geom3d;
 public class Point3d {
 	protected double x,y,z;
 
-	public Point3d() { x = y = z = 0.0; }
+	/** Construct a point with the specified coordinates. */
 	public Point3d(double x, double y, double z) { this.x = x; this.y = y; this.z = z; }
-	public Point3d(Point3d p) { x = p.x; y = p.y; z = p.z; } 
+	/** Construct a point that is a clone of p. */
+	public Point3d(Point3d p) { x = p.x; y = p.y; z = p.z; }
+	/** Construct a point at the coordinates of v. */
 	public Point3d(Vector3d v) { x = v.x; y = v.y; z = v.z; }
 
 	
@@ -58,9 +60,9 @@ public class Point3d {
 
 	/** Returns true if three points are on the same line. */
 	public static boolean colinear(Point3d p0, Point3d p1, Point3d p2) {
-		Vector3d v1v0 = new Vector3d(p1, p0);
-		Vector3d v1v2 = new Vector3d(p1, p2);
-		return Vector3d.crossProduct(v1v0,v1v2).isZeroVector();
+		Vector3d v1v0 = p1.vectorTo(p0);
+		Vector3d v1v2 = p1.vectorTo(p2);
+		return v1v0.cross(v1v2).length()==0;
 	}
 
 	/** Returns true if four specified points are in the same plane	 */
@@ -77,19 +79,15 @@ public class Point3d {
 		-ay*cx*dz + by*cx*dz + ax*cy*dz - bx*cy*dz == 0.0; 
 	}
 
-	/**
-	 * Returns true if the half-plane with normal vector nv and point p0 is beind p.
-	 */
+	/** Returns true if the half-plane with normal vector nv and point p0 is beind p. */
 	public static boolean isBehind(Point3d p, Point3d p0, Vector3d nv) {
-		Vector3d v = new Vector3d(p, p0);
-		return Vector3d.dotProduct(nv, v) < 0.0;
+		Vector3d v = p.vectorTo(p0);
+		return nv.dot(v) < 0.0;
 	}
 
-	/**
-	 * Returns true if the half-plane through p0, p1, p2 (forming a counterclockwise triangle) is behind p
-	 */
+	/** Returns true if the half-plane through p0, p1, p2 (forming a counterclockwise triangle) is behind p. */
 	public static boolean isBehind(Point3d p, Point3d p0, Point3d p1, Point3d p2) {
-		return Vector3d.dotProduct(Point3d.getNormal(p0, p1, p2), new Vector3d(p0,p)) < 0.0;
+		return Point3d.getNormal(p0, p1, p2).dot(p0.vectorTo(p)) < 0.0;
 	}
 
 	/**
@@ -118,12 +116,9 @@ public class Point3d {
 		return true;
 	}
 
-
-	/**
-	 * Returns vector orthogonal to the triangle formed by p0, p1, p2 
-	 */
+	/** Returns vector orthogonal to the triangle formed by p0, p1, p2. */
 	public static Vector3d getNormal(Point3d p0, Point3d p1, Point3d p2) {
-		return Vector3d.crossProduct(new Vector3d(p0, p1), new Vector3d(p0, p2));
+		return p0.vectorTo(p1).cross(p0.vectorTo(p2));
 	}
 
 	/** Translates this point by (x,y,z). */
@@ -132,20 +127,26 @@ public class Point3d {
 		this.y += y;
 		this.z += z;
 	}
+	
 	/** Scale this point by a factor s */
 	public void scale(double s){
 		this.x*=s;
 		this.y*=s;
 		this.z*=s;
 	}
+	
 	/** Returns p added to this (changing this object). */
 	public Point3d addThis(Vector3d p) { translate(p.x,p.y,p.z); return this; }
+	
 	/** Returns p added to this (without changing this object). */
 	public Point3d add(Vector3d p) { return new Point3d(x+p.x, y+p.y, z+p.z); }
+	
 	/** Returns p subtracted from this (changing this object). */
 	public Point3d subtractThis(Vector3d p) { x-=p.x; y-=p.y; z-=p.z; return this;	}
+	
 	/** Returns p subtracted from this (without changing this object). */
 	public Point3d subtract(Vector3d p) {return new Point3d(x-p.x,y-p.y,z-p.z);	}
+	
 	/** Reflects this point through origo. */
 	public void reflectThroughOrigo() { scale(-1); }
 
@@ -178,12 +179,12 @@ public class Point3d {
 
 	/** Get the angle between the line segments p2-->p1 and p2-->p3. */
 	public static double getAngle(Point3d p1, Point3d p2, Point3d p3) {
-		return Vector3d.getAngle(new Vector3d(p1,p2), new Vector3d(p2,p3));
+		return p1.vectorTo(p2).angle(p2.vectorTo(p3));
 	}
 
 	/** Get the dihedral angle defined by the 4 non-colinear points p1, p2, p3, p4. */
 	public static double getDihedralAngle(Point3d p1, Point3d p2, Point3d p3, Point3d p4) {
-		return Vector3d.getDihedralAngle(new Vector3d(p1,p2), new Vector3d(p2,p3), new Vector3d(p3,p4));
+		return Vector3d.getDihedralAngle(p1.vectorTo(p2), p2.vectorTo(p3), p3.vectorTo(p4));
 
 	}
 
@@ -229,9 +230,7 @@ public class Point3d {
 	}
 
 	/** Returns a string-representation of this point formatted with two decimals precision. */ 
-	public String toString() { 
-		return String.format("Point3d[%.2f,%.2f,%.2f]", x,y,z); 
-	}
+	public String toString() {	return toString(2); }
 
 	/** Returns a string-representation of this point formatted with <code>dec</code> decimals precision. */ 
 	public String toString(int dec) {
@@ -240,7 +239,6 @@ public class Point3d {
 
 	/** Writes this point to <code>System.out</code>. */
 	public void toConsole() { System.out.println(toString()); }
-	
 	/** Writes this point to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 
