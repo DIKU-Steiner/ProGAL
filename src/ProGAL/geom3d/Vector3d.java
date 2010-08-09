@@ -1,7 +1,11 @@
 package ProGAL.geom3d;
 
 /** 
- *  A vector in (x,y,z)-space represented with double precision. 
+ *  A vector in (x,y,z)-space represented with double precision.
+ *  @todo cache the length so several calls to getLengthSquared and getLength
+ *  takes less time. This can be relevant e.g. in Line3d for multiple 
+ *  projections, but can also cause serious problems if anyone chooses to extend the 
+ *  Vector3d object.
  */
 public class Vector3d {
 	protected double x,y,z;
@@ -60,12 +64,17 @@ public class Vector3d {
 
 
 	/** Get the squared length of this vector. */
-	public double getSquaredLength() { return x*x + y*y + z*z; }
+	public double getLengthSquared() { return x*x + y*y + z*z; }
 
 	/** Get the length of this vector. */
-	public double getLength() {return Math.sqrt(getSquaredLength()); }
+	public double getLength() {return Math.sqrt(getLengthSquared()); }
+
+	/** Get the squared length of this vector. */
+	public double lengthSquared() {return getLengthSquared(); }
+	
 	/** Get the length of this vector. */
 	public double length() {return getLength(); }
+
 	
 	
 	/** Return true if the length of this vector is 0. */

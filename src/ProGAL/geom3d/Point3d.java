@@ -151,7 +151,7 @@ public class Point3d {
 	public void reflectThroughOrigo() { scale(-1); }
 
 	/** Get the squared distance from this point to point q. */
-	public double getSquaredDistance(Point3d q) {
+	public double getDistanceSquared(Point3d q) {
 		double dx = x-q.x;
 		double dy = y-q.y;
 		double dz = z-q.z;
@@ -160,7 +160,7 @@ public class Point3d {
 
 	/** Get the distance from this point to point q */
 	public double getDistance(Point3d q) { 
-		return Math.sqrt(getSquaredDistance(q)); 
+		return Math.sqrt(getDistanceSquared(q)); 
 	}
 
 	/** Creates a bisector between points p and q */
