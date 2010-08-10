@@ -19,7 +19,7 @@ public class Vector3d {
 	/** Construct a vector that is a clone of v. */
 	public Vector3d(Vector3d v) { x = v.x; y = v.y; z = v.z; }	
 	
-	///// Getters and setters /////
+	//////// Getters and setters /////////
 	
 	/** Get the i'th coordinate. */
 	public double getCoord(int i) {
@@ -148,7 +148,8 @@ public class Vector3d {
 	
 	/** Create a clone of this vector. */
 	public Vector3d clone(){ return new Vector3d(x, y, z); }
-	
+
+	///////// Static methods and fields ////////
 
 	/** Get the angle between vector u and v. */
 	public static double getAngle(Vector3d u, Vector3d v) { return u.angle(v); }
@@ -158,5 +159,39 @@ public class Vector3d {
 		return Math.atan2( v12.scaleToLength(v23.getLength()).dot(v23.cross(v34)),
 				v12.cross(v23).dot(v23.cross(v34)));
 	}
+	
+
+	/** An immutable vector pointing in the (1,0,0)-direction. */
+	public static Vector3d X = new ImmutableVector3d(1,0,0);
+	
+	/** An immutable vector pointing in the (0,1,0)-direction. */
+		public static Vector3d Y = new ImmutableVector3d(0,1,0);
+		
+	/** An immutable vector pointing in the (0,0,1)-direction. */
+	public static Vector3d Z = new ImmutableVector3d(0,0,1);
+	
+	///////// Inner classes ////////
+	
+	/** 
+	 * A wrapper class for <code>Vector3d</code> which makes the vector immutable. 
+	 * All methods that can change the x, y and z-coordinates are overwritten. If 
+	 * e.g. <code>setX(0.1)</code> is called a RuntimeException is thrown. If any of the 
+	 * arithmetic methods such as <code>multiplyThis</code> are called, the result of 
+	 * their corresponding non-mutating variant (<code>multiply</code>) is returned instead.
+	 */
+	public static class ImmutableVector3d extends Vector3d{
+		public ImmutableVector3d(double x, double y, double z) { super(x,y,z);	}
+		public void setCoord(int i, double v){throw new RuntimeException("This vector is immutable");}
+		public void set(int i, double v){throw new RuntimeException("This vector is immutable");}
+		public void setX(double x) { throw new RuntimeException("This vector is immutable"); }
+		public void setY(double y) { throw new RuntimeException("This vector is immutable"); }
+		public void setZ(double z) { throw new RuntimeException("This vector is immutable"); }
+		public Vector3d addThis(Vector3d v){ return add(v); }
+		public Vector3d multiplyThis(double s){ return multiply(s); }
+		public Vector3d normalizeThis(){ return multiply(1/getLength()); }
+		public Vector3d scaleToLengthThis(double length) { return multiply(length/getLength()); }
+		public Vector3d crossThis(Vector3d v){ return cross(v); }
+	}
+	
 }
 

@@ -12,153 +12,57 @@ public class Matrix {
 		coords[r][c] = v;
 	}
 
-	/*public static Matrix createColumnMatrix(Vector v1, Vector v2, Vector v3){
-		Matrix ret = new Matrix(3,3);
-		ret.coords[0][0] = v1.x;
-		ret.coords[1][0] = v1.y;
-		ret.coords[2][0] = v1.z;
-		ret.coords[0][1] = v2.x;
-		ret.coords[1][1] = v2.y;
-		ret.coords[2][1] = v2.z;
-		ret.coords[0][2] = v3.x;
-		ret.coords[1][2] = v3.y;
-		ret.coords[2][2] = v3.z;
-		return ret;
-	}
-	public static Matrix create4x4ColumnMatrix(Vector v1, Vector v2, Vector v3, Vector v4){
-		Matrix ret = new Matrix(4,4);
-		ret.coords[0][0] = v1.x;
-		ret.coords[1][0] = v1.y;
-		ret.coords[2][0] = v1.z;
-		ret.coords[3][0] = 0;
-		ret.coords[0][1] = v2.x;
-		ret.coords[1][1] = v2.y;
-		ret.coords[2][1] = v2.z;
-		ret.coords[3][1] = 0;
-		ret.coords[0][2] = v3.x;
-		ret.coords[1][2] = v3.y;
-		ret.coords[2][2] = v3.z;
-		ret.coords[3][2] = 0;
-		ret.coords[0][3] = v4.x;
-		ret.coords[1][3] = v4.y;
-		ret.coords[2][3] = v4.z;
-		ret.coords[3][3] = 1;
-		return ret;
-	}
-	public static Matrix createRowMatrix(Vector v1, Vector v2, Vector v3){
-		Matrix ret = new Matrix(3,3);
-		ret.coords[0][0] = v1.x;
-		ret.coords[0][1] = v1.y;
-		ret.coords[0][2] = v1.z;
-		ret.coords[1][0] = v2.x;
-		ret.coords[1][1] = v2.y;
-		ret.coords[1][2] = v2.z;
-		ret.coords[2][0] = v3.x;
-		ret.coords[2][1] = v3.y;
-		ret.coords[2][2] = v3.z;
-		return ret;
-	}
 
-	public static Matrix createRotationMatrix(float angle, Vector v){
-		float ux = v.x;
-		float uy = v.y;
-		float uz = v.z;
-		float cosA = (float)Math.cos(angle);
-		float sinA = (float)Math.sin(angle);
 
-		Matrix ret = new Matrix(3,3);
-		ret.coords[0][0] = ux*ux + cosA*(1.0f-ux*ux);
-		ret.coords[1][0] = ux*uy*(1.0f-cosA) + uz*sinA;
-		ret.coords[2][0] = uz*ux*(1.0f-cosA) - uy*sinA;
-
-		ret.coords[0][1] = ux*uy*(1.0f-cosA) - uz*sinA;
-		ret.coords[1][1] = uy*uy + cosA*(1.0f-uy*uy);
-		ret.coords[2][1] = uy*uz*(1.0f-cosA) + ux*sinA;
-
-		ret.coords[0][2] = uz*ux*(1.0f-cosA) + uy*sinA;
-		ret.coords[1][2] = uy*uz*(1.0f-cosA) - ux*sinA;
-		ret.coords[2][2] = uz*uz + cosA*(1.0f-uz*uz);
-		return ret;
-	}
-
-	public static Matrix createCovarianceMatrix(List<Vector> points){
-		Matrix ret = new Matrix(3,3);
-		double[] means = {0,0,0};
-		for(int d=0;d<3;d++){
-			double mean = 0;
-			for(Vector p: points) mean+=p.get(d);
-			means[d] = mean/points.size();
-		}
-		//System.out.println("Mean "+means[0]+" .. "+means[1]+" .. "+means[2]);
-		for(int i=0;i<3;i++){
-			for(int j=i;j<3;j++){
-				ret.coords[i][j] = (float)covariance(points, means, i,j);
-				ret.coords[j][i] = ret.coords[i][j];
+	/** Apply this matrix to the vector v and return the result (this will change v). 
+	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
+	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
+	public Vector3d applyToIn(Vector3d v){
+		if(coords.length==3 && coords[0].length==3){
+			double[] ret = new double[3];
+			for(int i=0;i<3;i++) {
+				for(int j=0;j<3;j++)
+					ret[i] += v.get(j)*coords[i][j];
 			}
-		}
-
-		return ret;
-	}
-
-	private static double covariance(List<Vector> points, double[] means, int dim1, int dim2){
-		double ret = 0;
-		for(Vector v: points){
-			ret+=(v.get(dim1)-means[dim1])*(v.get(dim2)-means[dim2]);
-		}
-
-		return ret/points.size();
-	}
-	 */
-
-	/** Apply this matrix to the vector v. The vector v is changed and then returned. */
-	/*
-	public Vector applyToIn(Vector v){
-		assert(N==M);
-		if(N==M && N==3){
-			float newX = v.x*coords[0][0] + v.y*coords[0][1] + v.z*coords[0][2];
-			float newY = v.x*coords[1][0] + v.y*coords[1][1] + v.z*coords[1][2];
-			float newZ = v.x*coords[2][0] + v.y*coords[2][1] + v.z*coords[2][2];
-			v.x = newX;
-			v.y = newY;
-			v.z = newZ;
-			return v;
-		}else if(N==4){
-			float newX = v.x*coords[0][0] + v.y*coords[0][1] + v.z*coords[0][2];
-			float newY = v.x*coords[1][0] + v.y*coords[1][1] + v.z*coords[1][2];
-			float newZ = v.x*coords[2][0] + v.y*coords[2][1] + v.z*coords[2][2];
-			v.x = newX+coords[0][3];
-			v.y = newY+coords[1][3];
-			v.z = newZ+coords[2][3];
+			for(int i=0;i<3;i++) v.set(i, ret[i]);
 			return v;
 		}
-		return null;
-	}
-	 */
-	/** Apply this matrix to the vector v. A new vector is returned. */
-	/*
-	public Vector applyTo(Vector p){
-		Vector v = p.clone(); 
-		assert(N==M);
-		if(N==M && N==3){
-			float newX = v.x*coords[0][0] + v.y*coords[0][1] + v.z*coords[0][2];
-			float newY = v.x*coords[1][0] + v.y*coords[1][1] + v.z*coords[1][2];
-			float newZ = v.x*coords[2][0] + v.y*coords[2][1] + v.z*coords[2][2];
-			v.x = newX;
-			v.y = newY;
-			v.z = newZ;
-			return v;
-		}else if(N==4){
-			float newX = v.x*coords[0][0] + v.y*coords[0][1] + v.z*coords[0][2];
-			float newY = v.x*coords[1][0] + v.y*coords[1][1] + v.z*coords[1][2];
-			float newZ = v.x*coords[2][0] + v.y*coords[2][1] + v.z*coords[2][2];
-			v.x = newX+coords[0][3];
-			v.y = newY+coords[1][3];
-			v.z = newZ+coords[2][3];
+		if( (coords.length==4 || coords.length==3) && coords[0].length==4){
+			double[] ret = new double[3];
+			for(int i=0;i<3;i++) {
+				for(int j=0;j<3;j++)
+					ret[i] += v.get(j)*coords[i][j];
+				ret[i] += coords[i][3];
+			}
+			for(int i=0;i<3;i++) v.set(i,ret[i]);
 			return v;
 		}
-		return null;
+		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to vectors");
 	}
-	 */
+	
+	/** Apply this matrix to the vector v and return the result (without changing v). 
+	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
+	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
+	public Vector3d applyTo(Vector3d v){
+		if(coords.length==3 && coords[0].length==3){
+			double[] ret = new double[3];
+			for(int i=0;i<3;i++) {
+				for(int j=0;j<3;j++)
+					ret[i] += v.get(j)*coords[i][j];
+			}
+			return new Vector3d(ret[0],ret[1],ret[2]);
+		}
+		if( (coords.length==4 || coords.length==3) && coords[0].length==4){//Assumes that the bottom row is (0,0,0,1)
+			double[] ret = new double[3];
+			for(int i=0;i<3;i++) {
+				for(int j=0;j<3;j++)
+					ret[i] += v.get(j)*coords[i][j];
+				ret[i] += coords[i][3];
+			}
+			return new Vector3d(ret[0],ret[1],ret[2]);
+		}
+		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to vectors");
+	}
 
 	/** Apply this matrix to another matrix. This matrix is changed and then returned */
 	public Matrix applyToThis(Matrix m){
@@ -221,7 +125,7 @@ public class Matrix {
 
 		throw new Error("Inversion not implemented for matrices of size "+coords.length+"x"+coords[0].length);
 	}
-	
+
 	/** Get the determinant of this matrix. TODO: Only works for 3x3 right now.*/
 	public double determinant(){
 		if(coords.length==3 && coords[0].length==3){
@@ -252,68 +156,6 @@ public class Matrix {
 		return ret;
 	}
 
-	/*
-	public Matrix getEigenDecomposition(){
-		double[][] array = new double[M][N];
-		for(int i=0;i<M;i++) for(int j=0;j<N;j++) array[i][j] = coords[i][j];
-		Jama.Matrix A = new Jama.Matrix(array);
-		EigenvalueDecomposition ed = new EigenvalueDecomposition(A);
-		Jama.Matrix eigenM = ed.getV();
-		Matrix ret = new Matrix(N,M);
-		double[] eigenVals = ed.getRealEigenvalues();
-		for(int r=0;r<N;r++){
-			for(int c=0;c<M;c++){
-				ret.set(r, c, (float)(eigenM.get(r, c)*eigenVals[c]));
-			}
-		}
-		return ret;
-
-	}
-
-	public Vector[] getEigenvectors(){
-		double[][] array = new double[M][N];
-		for(int i=0;i<M;i++) for(int j=0;j<N;j++) array[i][j] = coords[i][j];
-		Jama.Matrix A = new Jama.Matrix(array);
-		EigenvalueDecomposition ed = new EigenvalueDecomposition(A);
-		Jama.Matrix eigenM = ed.getV();
-		Vector[] ret = new Vector[eigenM.getColumnDimension()];
-		double[] eigenVals = ed.getRealEigenvalues();
-		for(int i=0;i<ret.length;i++){
-			ret[i] = new Vector(eigenM.get(0, i), eigenM.get(1, i), eigenM.get(2, i)).timesIn((float)eigenVals[i]);
-			//ret[i] = new Vector(eigenM.get(0, i), eigenM.get(1, i), eigenM.get(2, i));
-		}
-		return ret;
-	}
-	public double[] getEigenValues(){
-		assert M==3&&N==3;
-		double a = -1;
-		double b = coords[0][0]+coords[1][1]+coords[2][2];
-		double c = -coords[0][0]*coords[2][2]-
-		coords[1][1]*coords[2][2]-
-		coords[0][0]*coords[1][1]+
-		coords[1][2]*coords[2][1]+
-		coords[0][1]*coords[1][0]+
-		coords[0][2]*coords[2][0];
-		double d = coords[0][0]*coords[1][1]*coords[2][2]-
-		coords[0][0]*coords[1][2]*coords[2][1]+
-		coords[0][1]*coords[1][2]*coords[2][0]-
-		coords[0][1]*coords[1][0]*coords[2][2]+
-		coords[0][2]*coords[1][0]*coords[2][1]-
-		coords[0][2]*coords[1][1]*coords[2][0];
-		double[] cubePars = {a,b,c,d};
-		double[] roots = Polynomial.solve(cubePars);
-
-		if(Math.abs(roots[3])>0.000001){
-			return new double[]{roots[0]};
-		}else{
-			if(Math.abs(roots[1]-roots[2])<0.000001)
-				return new double[]{roots[0], roots[1]};
-			else
-				return new double[]{roots[0], roots[1],roots[2]};
-		}
-	}
-	 */
-
 	public String toString(){
 		StringBuilder sb = new StringBuilder();
 		for(int i=0;i<coords.length;i++) {
@@ -327,11 +169,6 @@ public class Matrix {
 		}
 		return sb.toString();
 	}
-	public static Matrix createIdentityMatrix(int n) {
-		Matrix ret = new Matrix(n,n);
-		for(int i=0;i<n;i++) ret.coords[i][i] = 1;
-		return ret;
-	}
 	public double get(int i, int j) {
 		return coords[i][j];
 	}
@@ -344,6 +181,57 @@ public class Matrix {
 	}
 
 
+	public static Matrix createIdentityMatrix(int n) {
+		Matrix ret = new Matrix(n,n);
+		for(int i=0;i<n;i++) ret.coords[i][i] = 1;
+		return ret;
+	}
+
+	public static Matrix createColumnMatrix(Vector3d v1, Vector3d v2, Vector3d v3){
+		Matrix ret = new Matrix(3,3);
+		for(int i=0;i<3;i++) ret.coords[i][0] = v1.get(i);
+		for(int i=0;i<3;i++) ret.coords[i][1] = v2.get(i);
+		for(int i=0;i<3;i++) ret.coords[i][2] = v3.get(i);
+		return ret;
+	}
+	public static Matrix create4x4ColumnMatrix(Vector3d v1, Vector3d v2, Vector3d v3, Vector3d v4){
+		Matrix ret = new Matrix(4,4);
+		for(int i=0;i<3;i++) ret.coords[i][0] = v1.get(i);
+		for(int i=0;i<3;i++) ret.coords[i][1] = v2.get(i);
+		for(int i=0;i<3;i++) ret.coords[i][2] = v3.get(i);
+		for(int i=0;i<3;i++) ret.coords[i][3] = v4.get(i);
+		ret.coords[3][3] = 1;
+		return ret;
+	}
+	public static Matrix createRowMatrix(Vector3d v1, Vector3d v2, Vector3d v3){
+		Matrix ret = new Matrix(3,3);
+		for(int i=0;i<3;i++) ret.coords[0][i] = v1.get(i);
+		for(int i=0;i<3;i++) ret.coords[1][i] = v2.get(i);
+		for(int i=0;i<3;i++) ret.coords[2][i] = v3.get(i);
+		return ret;
+	}
+
+	public static Matrix createRotationMatrix(double angle, Vector3d v){
+		double ux = v.getX();
+		double uy = v.getY();
+		double uz = v.getZ();
+		double cosA = Math.cos(angle);
+		double sinA = Math.sin(angle);
+
+		Matrix ret = new Matrix(3,3);
+		ret.coords[0][0] = ux*ux + cosA*(1.0f-ux*ux);
+		ret.coords[1][0] = ux*uy*(1.0f-cosA) + uz*sinA;
+		ret.coords[2][0] = uz*ux*(1.0f-cosA) - uy*sinA;
+
+		ret.coords[0][1] = ux*uy*(1.0f-cosA) - uz*sinA;
+		ret.coords[1][1] = uy*uy + cosA*(1.0f-uy*uy);
+		ret.coords[2][1] = uy*uz*(1.0f-cosA) + ux*sinA;
+
+		ret.coords[0][2] = uz*ux*(1.0f-cosA) + uy*sinA;
+		ret.coords[1][2] = uy*uz*(1.0f-cosA) - ux*sinA;
+		ret.coords[2][2] = uz*uz + cosA*(1.0f-uz*uz);
+		return ret;
+	}
 
 
 
@@ -798,7 +686,7 @@ public class Matrix {
 					if (iter == 10) {
 						exshift += x;
 						for (int i = low; i <= n; i++) H[i][i] -= x;
-						
+
 						s = Math.abs(H[n][n-1]) + Math.abs(H[n-1][n-2]);
 						x = y = 0.75 * s;
 						w = -0.4375 * s * s;
@@ -1057,21 +945,21 @@ public class Matrix {
 
 		/** Calculate <code>sqrt(a^2 + b^2)</code> without under/overflow. */
 		private double hypot(double a, double b) {
-		      if (Math.abs(a) > Math.abs(b)) {
-		    	  double r = b/a;
-		    	  return Math.abs(a)*Math.sqrt(1+r*r);
-		      } else if (b != 0) {
-		         double r = a/b;
-		         return Math.abs(b)*Math.sqrt(1+r*r);
-		      } else {
-		         return 0.0;
-		      }
-		   }
+			if (Math.abs(a) > Math.abs(b)) {
+				double r = b/a;
+				return Math.abs(a)*Math.sqrt(1+r*r);
+			} else if (b != 0) {
+				double r = a/b;
+				return Math.abs(b)*Math.sqrt(1+r*r);
+			} else {
+				return 0.0;
+			}
+		}
 
 
 		/** 
 		 * Check for symmetry, then construct the eigenvalue decomposition.
-	     * @param A    Square matrix
+		 * @param A    Square matrix
 		 */
 		public EigenvalueDecomposition() {
 			double[][] A = coords;//Arg.getArray();
@@ -1107,7 +995,7 @@ public class Matrix {
 					}
 				}
 
-				
+
 				orthes();	// Reduce to Hessenberg form.
 				hqr2();		// Reduce Hessenberg to real Schur form.
 			}
@@ -1117,12 +1005,15 @@ public class Matrix {
 		public double[][] getV() { 					return V; 	}
 
 		/** Return the real parts of the eigenvalues real(diag(D)). */
+		@SuppressWarnings("unused")
 		public double[] getRealEigenvalues() {		return d;	}
 
 		/** Return the imaginary parts of the eigenvalues imag(diag(D)). */
+		@SuppressWarnings("unused")
 		public double[] getImagEigenvalues() {		return e;	}
 
 		/** Return the block diagonal eigenvalue matrix. */
+		@SuppressWarnings("unused")
 		public Matrix getD() {
 			Matrix X = new Matrix(n,n);
 			double[][] D = X.coords;
