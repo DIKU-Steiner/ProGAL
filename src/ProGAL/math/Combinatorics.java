@@ -15,6 +15,8 @@ public class Combinatorics {
 	 * @return a list of all permutations of length max
 	 */
 	public static List<int[]> getAllPermutations(int max){
+		if(max<0) throw new RuntimeException("max must be nonnegative");
+		
 		int[] begin = {};
 		int[] end = new int[max];
 		for(int i=0;i<max;i++) end[i] = i;
@@ -60,6 +62,9 @@ public class Combinatorics {
 	 * @see <a href="http://www.brpreiss.com/books/opus5/html/page460.html">link</a>
 	 */
 	public static int binom(int n, int m){
+		if(n<0) return binom(-n,m);
+		if(m<0 || m>n) return 0;
+		
 		int[] b = new int[n+1];
 		b[0] = 1;
 		for(int i=1;i<=n;++i){

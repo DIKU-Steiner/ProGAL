@@ -3,14 +3,31 @@ package ProGAL.math;
 import ProGAL.geom3d.Vector3d;
 
 public class Matrix {
-	private double[][] coords;
+	protected double[][] coords;
+
+	/** Construct an N by M matrix with zeros in all entries. */
 	public Matrix(int N, int M){
 		coords = new double[N][M];
 		for(int i=0;i<N;i++) for(int j=0;j<M;j++) coords[i][j] = 0;
 	}
+
+	/** 
+	 * Construct a matrix from an array-of-array-of-double. The array should
+	 * index rows first and columns next. The results are undefined if the 
+	 * number of elements in each row-array are different.   
+	 */
+	public Matrix(double[][] coords){
+		this.coords = coords;
+	}
+
 	public void set(int r, int c, double v){
 		coords[r][c] = v;
 	}
+
+	public double get(int i, int j) {
+		return coords[i][j];
+	}
+
 
 
 
@@ -39,7 +56,7 @@ public class Matrix {
 		}
 		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to vectors");
 	}
-	
+
 	/** Apply this matrix to the vector v and return the result (without changing v). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
 	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
@@ -77,8 +94,10 @@ public class Matrix {
 		return this;
 	}
 
-	/** Apply this matrix to another matrix. The result is returned */
+	/** Apply this matrix to another matrix and return the result. */
 	public Matrix applyTo(Matrix m) {
+		if(coords[0].length!=m.coords.length)
+			throw new Error("Incompatible matrix sizes");
 		Matrix ret = new Matrix(coords.length, coords[0].length);
 		double[][] newCoords = ret.coords;
 		for(int r=0;r<coords.length;r++){
@@ -90,10 +109,26 @@ public class Matrix {
 		return ret;
 	}
 
-	/** Add the components of two matrices */
+	/** Add the components of two matrices. The result is stored in a new matrix and then returned. */
+	public Matrix add(Matrix m){
+		Matrix ret = new Matrix(coords.length, coords[0].length);
+		for(int i=0;i<coords.length;i++) for(int j=0;j<coords[0].length;j++) 
+			ret.set(i, j, coords[i][j]+m.coords[i][j]);
+		return ret;
+	}
+
+	/** Add the components of two matrices. The result is stored in this matrix and then returned. */
 	public Matrix addThis(Matrix m){
 		for(int i=0;i<coords.length;i++) for(int j=0;j<coords[0].length;j++) coords[i][j]+=m.coords[i][j];
 		return this;
+	}
+
+	/** Multiply the components of this matrix by a scalar. The result is stored in a new matrix which is returned. */
+	public Matrix multiply(double scalar){
+		Matrix ret = new Matrix(coords.length, coords[0].length);
+		for(int i=0;i<coords.length;i++) for(int j=0;j<coords[0].length;j++) 
+			ret.set(i,j,coords[i][j]*scalar);
+		return ret;
 	}
 
 	/** Multiply the components of this matrix by a scalar. Changes and then returns this */
@@ -102,66 +137,83 @@ public class Matrix {
 		return this;
 	}
 
-	/** Return the inverse of this matrix. Uses 31HOPs for 3x3 matrices.*/
-	public Matrix invertIn(){
-		if(coords.length==3 && coords[0].length==3){
-			double[][] newCoords = new double[coords.length][coords[0].length];
-			newCoords[0][0] = coords[1][1]*coords[2][2] - coords[1][2]*coords[2][1];
-			newCoords[0][1] = coords[0][2]*coords[2][1] - coords[0][1]*coords[2][2];
-			newCoords[0][2] = coords[0][1]*coords[1][2] - coords[0][2]*coords[1][1];
+	/** Return the inverse of this matrix. */
+	public Matrix invert(){
+		Matrix ret = clone();
+		return ret.invertThis();
+	}
 
-			newCoords[1][0] = coords[1][2]*coords[2][0] - coords[1][0]*coords[2][2];
-			newCoords[1][1] = coords[0][0]*coords[2][2] - coords[0][2]*coords[2][0];
-			newCoords[1][2] = coords[0][2]*coords[1][0] - coords[0][0]*coords[1][2];
-
-			newCoords[2][0] = coords[1][0]*coords[2][1] - coords[1][1]*coords[2][0];
-			newCoords[2][1] = coords[0][1]*coords[2][0] - coords[0][0]*coords[2][1];
-			newCoords[2][2] = coords[0][0]*coords[1][1] - coords[0][1]*coords[1][0];//18HOPs
-
-			double det = coords[0][0]*newCoords[0][0]+coords[0][1]*newCoords[1][0]+coords[0][2]*newCoords[2][0]; //3HOPs
-			this.coords = newCoords;
-			return multiplyThis(1/det);//10HOps
-		}
-
+	/** Invert this matrix (overwrites this and returns it). 
+	 * @todo TODO: Implement general case. */
+	public Matrix invertThis(){
 		throw new Error("Inversion not implemented for matrices of size "+coords.length+"x"+coords[0].length);
 	}
 
-	/** Get the determinant of this matrix. TODO: Only works for 3x3 right now.*/
-	public double determinant(){
-		if(coords.length==3 && coords[0].length==3){
-			double ret = coords[0][0]*(coords[1][1]*coords[2][2]-coords[1][2]*coords[2][1]);
-			ret -= 		 coords[0][1]*(coords[1][0]*coords[2][2]-coords[1][2]*coords[2][0]);
-			ret += 		 coords[0][2]*(coords[1][0]*coords[2][1]-coords[1][1]*coords[2][0]);
-			return ret;
-
-		}
-		throw new Error("Determinant not implemented for matrices of size "+coords.length+"x"+coords[0].length);
-	}
-
-	/**
-	 * Get the eigenvectors of a 3x3 matrix sorted by decreasing eigenvalue. If the 
-	 * matrix is singular ... TODO: test this.
-	 * @return an array containing eigenvectors.
-	 */
-	public Vector3d[] getEigenvectors3d(){
-		if(coords.length!=3 || coords[0].length!=3) 
-			throw new Error("Matrix is "+coords.length+"x"+coords[0].length);
-
-		EigenvalueDecomposition ed = new EigenvalueDecomposition();
-		Vector3d[] ret = new Vector3d[3];
-		double[][] V = ed.getV();
-		ret[0] = new Vector3d(V[0][0],V[1][0],V[2][0]);
-		ret[1] = new Vector3d(V[0][1],V[1][1],V[2][1]);
-		ret[2] = new Vector3d(V[0][2],V[1][2],V[2][2]);
+	/** Reduce this matrix to row canonical form (reduced row echelon form). A new 
+	 * object is returned. */
+	public Matrix reduce(){
+		Matrix ret = this.clone();
+		ret.reduceThis();
 		return ret;
 	}
 
-	public String toString(){
+	/** Reduce this matrix to row canonical form (reduced row echelon form). This 
+	 * matrix is changed and returned.
+	 * @hops For n by m matrix: 0 to m*n+(n-1)^2*m
+	 * @todo TODO Optimize loops to remove 0-nominator divisions.  */
+	public Matrix reduceThis(){
+		int rowCount = coords.length;
+		int colCount = coords[0].length;
+		int lead = 0;
+		for(int r=0;r<rowCount;r++){
+			if(lead>=colCount)	return this;
+			int i=r;
+			while(Math.abs(coords[i][lead])<=Constants.epsilon){
+				i++;
+				if(rowCount==i){
+					i=r;
+					lead++;
+					if(colCount==lead) {
+						return this;
+					}
+				}
+			}
+			//Swap rows i and r
+			if(i!=r){
+				double[] tmpArr = coords[i];
+				coords[i] = coords[r];
+				coords[r] = tmpArr;
+			}
+
+			//Divide row r by coords[r][lead]
+			double tmp = coords[r][lead];
+			for(int c=0;c<coords[r].length;c++) coords[r][c]/=tmp;
+
+			for(i=0;i<rowCount;i++){
+				if(i!=r){
+					//Subtract coords[i][lead] multiplied by row r from row i
+					tmp = coords[i][lead];
+					for(int c=0;c<coords[i].length;c++) 
+						coords[i][c]-=tmp*coords[r][c]; 
+				}
+			}
+			lead++;
+		}
+		return this;
+	}
+
+	public EigenvalueDecomposition getEigenvalueDecomposition(){
+		return new EigenvalueDecomposition();
+	}
+
+	public String toString(){ return toString(2); }
+
+	public String toString(int dec){
 		StringBuilder sb = new StringBuilder();
 		for(int i=0;i<coords.length;i++) {
 			sb.append('|');
 			for(int j=0;j<coords[0].length;j++) {
-				sb.append(String.format("% 9.2f", coords[i][j]));
+				sb.append(String.format("% 9."+dec+"f", coords[i][j]));
 				sb.append(' ');
 			}
 			sb.append('|');
@@ -169,10 +221,14 @@ public class Matrix {
 		}
 		return sb.toString();
 	}
-	public double get(int i, int j) {
-		return coords[i][j];
+
+	public void toConsole(){ toConsole(2); 	}
+
+	public void toConsole(int dec){
+		System.out.println(toString(dec));
 	}
 
+	/** Returns a clone of this matrix. */ 
 	public Matrix clone(){
 		Matrix ret = new Matrix(coords.length, coords[0].length);
 		for(int r=0;r<coords.length;r++) for(int c=0;c<coords[0].length;c++)
@@ -188,7 +244,7 @@ public class Matrix {
 	}
 
 	public static Matrix createColumnMatrix(Vector3d v1, Vector3d v2, Vector3d v3){
-		Matrix ret = new Matrix(3,3);
+		Matrix ret = new Matrix3x3();
 		for(int i=0;i<3;i++) ret.coords[i][0] = v1.get(i);
 		for(int i=0;i<3;i++) ret.coords[i][1] = v2.get(i);
 		for(int i=0;i<3;i++) ret.coords[i][2] = v3.get(i);
@@ -204,7 +260,7 @@ public class Matrix {
 		return ret;
 	}
 	public static Matrix createRowMatrix(Vector3d v1, Vector3d v2, Vector3d v3){
-		Matrix ret = new Matrix(3,3);
+		Matrix ret = new Matrix3x3();
 		for(int i=0;i<3;i++) ret.coords[0][i] = v1.get(i);
 		for(int i=0;i<3;i++) ret.coords[1][i] = v2.get(i);
 		for(int i=0;i<3;i++) ret.coords[2][i] = v3.get(i);
@@ -218,7 +274,7 @@ public class Matrix {
 		double cosA = Math.cos(angle);
 		double sinA = Math.sin(angle);
 
-		Matrix ret = new Matrix(3,3);
+		Matrix ret = new Matrix3x3();
 		ret.coords[0][0] = ux*ux + cosA*(1.0f-ux*ux);
 		ret.coords[1][0] = ux*uy*(1.0f-cosA) + uz*sinA;
 		ret.coords[2][0] = uz*ux*(1.0f-cosA) - uy*sinA;
@@ -248,7 +304,7 @@ public class Matrix {
 	 * conditioned, or even singular, so the validity of the equation 
 	 * A = V*D*inverse(V) depends upon V.cond().
 	 */
-	private class EigenvalueDecomposition {
+	public class EigenvalueDecomposition {
 
 		/** Row and column dimension (square matrix). */
 		private int n;
@@ -961,7 +1017,7 @@ public class Matrix {
 		 * Check for symmetry, then construct the eigenvalue decomposition.
 		 * @param A    Square matrix
 		 */
-		public EigenvalueDecomposition() {
+		private EigenvalueDecomposition() {
 			double[][] A = coords;//Arg.getArray();
 			n = coords[0].length;//Arg.getColumnDimension();
 			V = new double[n][n];
@@ -1001,19 +1057,16 @@ public class Matrix {
 			}
 		}
 
-		/** Return the eigenvector matrix */
-		public double[][] getV() { 					return V; 	}
+		/** Return the eigenvector matrix (immutable). */
+		public Matrix getV() { 					return new ImmutableMatrix(V); 	}
 
 		/** Return the real parts of the eigenvalues real(diag(D)). */
-		@SuppressWarnings("unused")
 		public double[] getRealEigenvalues() {		return d;	}
 
 		/** Return the imaginary parts of the eigenvalues imag(diag(D)). */
-		@SuppressWarnings("unused")
 		public double[] getImagEigenvalues() {		return e;	}
 
 		/** Return the block diagonal eigenvalue matrix. */
-		@SuppressWarnings("unused")
 		public Matrix getD() {
 			Matrix X = new Matrix(n,n);
 			double[][] D = X.coords;
@@ -1027,5 +1080,16 @@ public class Matrix {
 			}
 			return X;
 		}
+	}
+
+	public static class ImmutableMatrix extends Matrix{
+		public ImmutableMatrix(double[][] coords) {
+			super(coords);
+		}
+		public void set(int r, int c, double v){throw new RuntimeException("This matrix is immutable");}
+		public Matrix applyToThis(Matrix m){ return applyTo(m); }
+		public Matrix addThis(Matrix m){ return add(m); }
+		public Matrix multiplyThis(double s){ return multiply(s); }
+		public Matrix invertThis(){ return invert(); }
 	}
 }

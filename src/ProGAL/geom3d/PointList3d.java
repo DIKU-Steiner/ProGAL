@@ -1,8 +1,9 @@
 package ProGAL.geom3d;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
-import ProGAL.math.Matrix;
+import ProGAL.math.Matrix3x3;
 import ProGAL.math.Randomization;
 
 /**
@@ -25,6 +26,25 @@ public class PointList3d extends ArrayList<Point3d> {
 	/** Returns the i'th coordinate of k'th point. */
 	public double getCoord(int k, int i) { return get(k).getCoord(i); }
 	
+	/** 
+	 * Returns a sub-list of elements from (including) <code>from</code> to
+	 * (not including) <code>to</code>. The returned sub-list is not a 'view' 
+	 * of the sublist (such as AbstractList.subList), but a shallow copy of 
+	 * the specified range.   
+	 */
+	public PointList3d getSubList(int from, int to){
+		PointList3d ret = new PointList3d();
+		for(int i=from;i<to;i++) ret.add(get(i));
+		return ret;
+	}
+	
+	/** Returns a new point-list containing all the elements in random order. */
+	public PointList3d getRandomPermutation(){
+		PointList3d ret = this.clone();
+		Collections.shuffle(ret, Randomization.getGenerator());
+		return ret;
+	}
+	
 	/** Get the centroid of the points. */
 	public Point3d getCentroid() {
 		double x = 0.0, y = 0.0, z = 0.0;
@@ -44,8 +64,8 @@ public class PointList3d extends ArrayList<Point3d> {
 	}
 	
 	/** Get the covariance of the points. */
-	public Matrix getCovariance() {
-		Matrix cov = new Matrix(3,3);
+	public Matrix3x3 getCovariance() {
+		Matrix3x3 cov = new Matrix3x3();
 		double cv, ci, cj;
 		Point3d c = getCentroid();
 		Point3d p;
@@ -95,7 +115,6 @@ public class PointList3d extends ArrayList<Point3d> {
 		}
 		return ret;	
 	}
-	
 	
 	/**
 	 * Get the index of the extreme point. Go along axis ix first, then iy and finally iz. 
@@ -174,6 +193,13 @@ public class PointList3d extends ArrayList<Point3d> {
 		if (l0 < l1) return (l2 < l0)? seg2 : seg0;  else return (l2 < l1)?  seg2 :seg1; 
 	}
 
+	/** Get a shallow copy of this list. */
+	public PointList3d clone(){
+		PointList3d ret = new PointList3d();
+		ret.addAll(this);
+		return ret;
+	}
+	
 	/** Writes this point-list to <code>System.out</code>. */
 	public void toConsole() {
 		System.out.println("PointList3d:");

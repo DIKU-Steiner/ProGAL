@@ -165,7 +165,8 @@ public class Point3d {
 
 	/** Creates a bisector between points p and q */
 	public static Plane3d getBisector(Point3d p, Point3d q) {
-		if (!p.equals(q)) return new Plane3d(new Vector3d(p,q), new Point3d(p,q)); 
+		if (!p.equals(q)) 
+			return new Plane3d(midpoint(p, q), p.vectorTo(q).normalizeThis()); 
 		else return null;
 	}
 	

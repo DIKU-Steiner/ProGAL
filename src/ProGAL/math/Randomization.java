@@ -1,5 +1,7 @@
 package ProGAL.math;
 
+import java.util.Random;
+
 /**
  * A wrapper for static randomization functions.
  * @author rfonseca
@@ -7,6 +9,11 @@ package ProGAL.math;
 public class Randomization {
 	private static java.util.Random rand = new java.util.Random(); 
 
+	
+	public static Random getGenerator() {
+		return rand;
+	}
+	
 	/**
 	 * Return a uniform random number between (including) i1 and (not including) i2.
 	 * @param i1 lower bound of random number
@@ -61,4 +68,5 @@ public class Randomization {
 	public static void seed(long s){
 		rand = new java.util.Random(s);
 	}
+	
 }
