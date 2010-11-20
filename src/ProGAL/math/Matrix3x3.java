@@ -95,8 +95,8 @@ public class Matrix3x3 extends Matrix{
 
 			//Eigenvalues
 			double l1 =  m*cosT - pThirds;								//Eqn 29 (1HOP)
-			double l2 = -m*((cosT+Constants.sqrt3*sinT)/2) - pThirds;	//Eqn 30 (3HOPs)
-			double l3 = -m*((cosT-Constants.sqrt3*sinT)/2) - pThirds;	//Eqn 31 (3HOPs)
+			double l2 = -m*((cosT+Constants.SQRT3*sinT)/2) - pThirds;	//Eqn 30 (3HOPs)
+			double l3 = -m*((cosT-Constants.SQRT3*sinT)/2) - pThirds;	//Eqn 31 (3HOPs)
 
 
 			Matrix3x3 m1 = clone();
@@ -108,7 +108,7 @@ public class Matrix3x3 extends Matrix{
 			Vector3d v1 = new Vector3d(-m1.coords[0][2], -m1.coords[1][2], 1);
 
 			Vector3d v2=null, v3=null;
-			if(l2>Constants.epsilon){
+			if(l2>Constants.EPSILON){
 				Matrix3x3 m2 = clone();
 				m2.set(0, 0, -l2+m2.get(0, 0));
 				m2.set(1, 1, -l2+m2.get(1, 1));
@@ -118,7 +118,7 @@ public class Matrix3x3 extends Matrix{
 				v2 = new Vector3d(-m2.coords[0][2], -m2.coords[1][2], 1);
 			}
 
-			if(l3>Constants.epsilon){
+			if(l3>Constants.EPSILON){
 				Matrix3x3 m3 = clone();
 				m3.set(0, 0, -l3+m3.get(0, 0));
 				m3.set(1, 1, -l3+m3.get(1, 1));

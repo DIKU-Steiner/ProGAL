@@ -168,7 +168,7 @@ public class Matrix {
 		for(int r=0;r<rowCount;r++){
 			if(lead>=colCount)	return this;
 			int i=r;
-			while(Math.abs(coords[i][lead])<=Constants.epsilon){
+			while(Math.abs(coords[i][lead])<=Constants.EPSILON){
 				i++;
 				if(rowCount==i){
 					i=r;

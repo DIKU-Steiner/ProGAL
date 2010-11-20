@@ -1,5 +1,7 @@
 package ProGAL.geom3d;
 
+import ProGAL.math.Constants;
+
 /** 
  *  A point in (x,y,z)-space represented with double precision. 
  */
@@ -58,11 +60,14 @@ public class Point3d {
 		return new Vector3d(p.x-x, p.y-y, p.z-z);
 	}
 
-	/** Returns true if three points are on the same line. */
-	public static boolean colinear(Point3d p0, Point3d p1, Point3d p2) {
+	/** 
+	 * Returns true if three points are on the same line. This implies that
+	 * overlapping points are considered collinear.
+	 */
+	public static boolean collinear(Point3d p0, Point3d p1, Point3d p2) {
 		Vector3d v1v0 = p1.vectorTo(p0);
 		Vector3d v1v2 = p1.vectorTo(p2);
-		return v1v0.cross(v1v2).length()==0;
+		return v1v0.cross(v1v2).lengthSquared()<Constants.EPSILON;
 	}
 
 	/** Returns true if four specified points are in the same plane	 */
@@ -71,12 +76,13 @@ public class Point3d {
 		double bx = p1.x; double by = p1.y; double bz = p1.z;
 		double cx = p2.x; double cy = p2.y; double cz = p2.z;
 		double dx = p3.x; double dy = p3.y; double dz = p3.z;
-		return   -az*by*cx + ay*bz*cx + az*bx*cy - ax*bz*cy
-		-ay*bx*cz + ax*by*cz + az*by*dx - ay*bz*dx
-		-az*cy*dx + bz*cy*dx + ay*cz*dx - by*cz*dx
-		-az*bx*dy + ax*bz*dy + az*cx*dy - bz*cx*dy
-		-ax*cz*dy + bx*cz*dy + ay*bx*dz - ax*by*dz
-		-ay*cx*dz + by*cx*dz + ax*cy*dz - bx*cy*dz == 0.0; 
+		return   Math.abs(
+				-az*by*cx + ay*bz*cx + az*bx*cy - ax*bz*cy
+				-ay*bx*cz + ax*by*cz + az*by*dx - ay*bz*dx
+				-az*cy*dx + bz*cy*dx + ay*cz*dx - by*cz*dx
+				-az*bx*dy + ax*bz*dy + az*cx*dy - bz*cx*dy
+				-ax*cz*dy + bx*cz*dy + ay*bx*dz - ax*by*dz
+				-ay*cx*dz + by*cx*dz + ax*cy*dz - bx*cy*dz	) < Constants.EPSILON; 
 	}
 
 	/** Returns true if the half-plane with normal vector nv and point p0 is beind p. */
@@ -160,7 +166,10 @@ public class Point3d {
 
 	/** Get the distance from this point to point q */
 	public double getDistance(Point3d q) { 
-		return Math.sqrt(getDistanceSquared(q)); 
+		double dx = x-q.x;
+		double dy = y-q.y;
+		double dz = z-q.z;
+		return Math.sqrt(dx*dx+dy*dy+dz*dz); 
 	}
 
 	/** Creates a bisector between points p and q */

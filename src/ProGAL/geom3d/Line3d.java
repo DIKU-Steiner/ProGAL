@@ -1,7 +1,7 @@
 package ProGAL.geom3d;
 
 /**
- * A line represented by a point and a direction. Several methods work with a double 
+ * A line represented by a point and a direction. Several methods work with a  
  * parameter that can be used to specify a point on the line. For instance 
  * <pre>
  * Line3d l = new Line3d( new Point3d(0,0,0), new Vector3d(2,0,0) );
