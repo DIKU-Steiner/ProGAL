@@ -2,9 +2,9 @@ package ProGAL.math;
 
 import java.util.Arrays;
 
-import ProGAL.geom3d.Point3d;
-import ProGAL.geom3d.PointList3d;
-import ProGAL.geom3d.Vector3d;
+import ProGAL.geom3d.Point;
+import ProGAL.geom3d.PointList;
+import ProGAL.geom3d.Vector;
 
 public class Matrix3x3 extends Matrix{
 
@@ -12,11 +12,11 @@ public class Matrix3x3 extends Matrix{
 		super(3,3);
 	}
 
-	public Vector3d getColumn(int c){
-		return new Vector3d(coords[0][c],coords[1][c],coords[2][c]);
+	public Vector getColumn(int c){
+		return new Vector(coords[0][c],coords[1][c],coords[2][c]);
 	}
-	public Vector3d getRow(int r){
-		return new Vector3d(coords[r][0],coords[r][1],coords[r][2]);
+	public Vector getRow(int r){
+		return new Vector(coords[r][0],coords[r][1],coords[r][2]);
 	}
 
 	/**
@@ -56,7 +56,7 @@ public class Matrix3x3 extends Matrix{
 	 * @return an array containing eigenvectors.
 	 * @hops 84
 	 */
-	public Vector3d[] getEigenvectors3d(){
+	public Vector[] getEigenvectors3d(){
 		/*	if(coords.length!=3 || coords[0].length!=3) 
 			throw new Error("Matrix is "+coords.length+"x"+coords[0].length);
 
@@ -105,9 +105,9 @@ public class Matrix3x3 extends Matrix{
 			m1.set(2, 2, -l1+m1.get(2, 2));
 			m1.reduceThis();		//18HOps
 			m1.toConsole();
-			Vector3d v1 = new Vector3d(-m1.coords[0][2], -m1.coords[1][2], 1);
+			Vector v1 = new Vector(-m1.coords[0][2], -m1.coords[1][2], 1);
 
-			Vector3d v2=null, v3=null;
+			Vector v2=null, v3=null;
 			if(l2>Constants.EPSILON){
 				Matrix3x3 m2 = clone();
 				m2.set(0, 0, -l2+m2.get(0, 0));
@@ -115,7 +115,7 @@ public class Matrix3x3 extends Matrix{
 				m2.set(2, 2, -l2+m2.get(2, 2));
 				m2.reduceThis();		//18HOPs
 				m2.toConsole();
-				v2 = new Vector3d(-m2.coords[0][2], -m2.coords[1][2], 1);
+				v2 = new Vector(-m2.coords[0][2], -m2.coords[1][2], 1);
 			}
 
 			if(l3>Constants.EPSILON){
@@ -125,7 +125,7 @@ public class Matrix3x3 extends Matrix{
 				m3.set(2, 2, -l3+m3.get(2, 2));
 				m3.reduceThis();//18HOPs
 				m3.toConsole();
-				v3 = new Vector3d(-m3.coords[0][2], -m3.coords[1][2], 1);
+				v3 = new Vector(-m3.coords[0][2], -m3.coords[1][2], 1);
 			}
 		}
 
@@ -133,8 +133,8 @@ public class Matrix3x3 extends Matrix{
 	}
 
 	public static void main(String[] args){
-		PointList3d points = PointList3d.genPointsInCube(9);
-		for(Point3d p: points) { for(int i=1;i<3;i++) p.set(i, p.get(i)*0.3); }
+		PointList points = PointList.genPointsInCube(9);
+		for(Point p: points) { for(int i=1;i<3;i++) p.set(i, p.get(i)*0.3); }
 		Matrix3x3 m = points.getCovariance();
 		System.out.println("m: ");
 		m.toConsole();

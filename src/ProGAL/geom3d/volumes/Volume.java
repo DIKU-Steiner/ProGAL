@@ -1,6 +1,6 @@
 package ProGAL.geom3d.volumes;
 
-import ProGAL.geom3d.Shape3d;
+import ProGAL.geom3d.Shape;
 
 /**
  * An interface for 3d volumes such as spheres and boxes. Implementing classes should consider 
@@ -10,8 +10,16 @@ import ProGAL.geom3d.Shape3d;
  * 
  * If only the shell should be considered use the VolumeShell3d interface.
  */
-public interface Volume3d extends Shape3d{
-	public boolean overlaps(Volume3d vol);
+public interface Volume extends Shape{
+	
+	/** Determine if this volume overlaps vol. Two volumes overlap if their surfaces touch 
+	 * or if the union of interiors is non-empty.
+	 */
+	public boolean overlaps(Volume vol);
+	
+	/** Get the volume. */ 
 	public double getVolume();
-	public Volume3d clone();
+
+	/** Make a deep clone this volume. */
+	public Volume clone();
 }

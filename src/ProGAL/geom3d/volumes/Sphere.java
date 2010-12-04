@@ -1,22 +1,27 @@
-package ProGAL.geom3d;
+package ProGAL.geom3d.volumes;
 
-import ProGAL.geom3d.volumes.Volume3d;
+import ProGAL.geom3d.Circle;
+import ProGAL.geom3d.Line;
+import ProGAL.geom3d.Point;
+import ProGAL.geom3d.PointList;
+import ProGAL.geom3d.Segment;
+import ProGAL.geom3d.Vector;
 
 /** 
  * A sphere represented by a center-point and a radius. 
  */
-public class Sphere3d implements Volume3d{
-	protected Point3d center;
+public class Sphere implements Volume{
+	protected Point center;
 	protected double radius;
 	
 	/** Constructs a sphere with the specified center and the specified radius. */
-	public Sphere3d(Point3d center, double radius) {
+	public Sphere(Point center, double radius) {
 		this.center = center;
 		this.radius = radius;
 	}
 
 	/** Get the center */
-	public Point3d getCenter() { return center; }
+	public Point getCenter() { return center; }
 	/** Get the radius */
 	public double getRadius() { return radius; }
 	/** Get the squared radius */
@@ -26,28 +31,28 @@ public class Sphere3d implements Volume3d{
 	/** Get the volume */
 	public double getVolume() { return getSurfaceArea()*radius/3; }
 	/** Returns true if the point is inside this sphere */
-	public boolean isInside(Point3d p) { 
+	public boolean isInside(Point p) { 
 		return center.getDistanceSquared(p) < getRadiusSquared(); 
 	}
 	
 	/** Returns true if this sphere is intersected or touched by another sphere. */
-	public boolean isIntersected (Sphere3d sphere) {	return overlaps(sphere);	}
+	public boolean isIntersected (Sphere sphere) {	return overlaps(sphere);	}
 	
 	/** Gets the secant on the line. TODO: Rename.*/
-	public Segment3d getIntersection(Line3d line) {
-		Point3d p1 = line.p;
-		Point3d p2 = line.getPoint(1.0);
-		double dx = p2.x - p1.x;
-		double dy = p2.y - p1.y;
-		double dz = p2.z - p1.z;
-		double ex = p1.x - center.x;
-		double ey = p1.y - center.y;
-		double ez = p1.z - center.z;
+	public Segment getIntersection(Line line) {
+		Point p1 = line.getP();
+		Point p2 = line.getPoint(1.0);
+		double dx = p2.getX() - p1.getX();
+		double dy = p2.getY() - p1.getY();
+		double dz = p2.getZ() - p1.getZ();
+		double ex = p1.getX() - center.getX();
+		double ey = p1.getY() - center.getY();
+		double ez = p1.getZ() - center.getZ();
 		double a = dx*dx + dy*dy + dz*dz;
 		double b = 2*(dx*ex + dy*ey + dz*ez);
-		double c = center.x*center.x + center.y*center.y + center.z*center.z + 
-		           p1.x*p1.x + p1.y*p1.y + p1.z*p1.z - 
-		           2*(center.x*p1.x + center.y*p1.y + center.z*p1.z) - radius*radius;
+		double c = center.getX()*center.getX() + center.getY()*center.getY() + center.getZ()*center.getZ() + 
+		           p1.getX()*p1.getX() + p1.getY()*p1.getY() + p1.getZ()*p1.getZ() - 
+		           2*(center.getX()*p1.getX() + center.getY()*p1.getY() + center.getZ()*p1.getZ()) - radius*radius;
 		double delta = b*b - 4*a*c; 
 		if (delta < 0) return null;
 		double u1, u2;
@@ -57,8 +62,8 @@ public class Sphere3d implements Volume3d{
 			u1 = (-b + sqr)/(2*a);
 			u2 = (-b - sqr)/(2*a);
 		}
-		return new Segment3d(new Point3d(p1.x + u1*dx, p1.y + u1*dy, p1.z + u1*dz),
-							 new Point3d(p1.x + u2*dx, p1.y + u2*dy, p1.z + u2*dz));
+		return new Segment(new Point(p1.getX() + u1*dx, p1.getY() + u1*dy, p1.getZ() + u1*dz),
+							 new Point(p1.getX() + u2*dx, p1.getY() + u2*dy, p1.getZ() + u2*dz));
 	}
 	
 
@@ -67,9 +72,9 @@ public class Sphere3d implements Volume3d{
 	 * Returns the two line-parameters that indicate where <code>line</code> intersects 
 	 * this sphere. TODO: Coordinate line-intersection methods (see above). 
 	 */
-	public double[] intersectionParameters(Line3d line) {
-		Vector3d l = line.getDir();//.norm();
-		Vector3d c = line.getP().vectorTo(center);
+	public double[] intersectionParameters(Line line) {
+		Vector l = line.getDir();//.norm();
+		Vector c = line.getP().vectorTo(center);
 		double lc = l.dot(c);
 		double cc = c.dot(c);
 		double rr = radius*radius;
@@ -86,9 +91,9 @@ public class Sphere3d implements Volume3d{
 	
 	
 	/** Returns true if none of the given points is in the sphere. */
-	public boolean containsNone(PointList3d points) {
+	public boolean containsNone(PointList points) {
 		double rr = radius*radius-0.000000001;
-		for(Point3d p: points)
+		for(Point p: points)
 			if(p.getDistanceSquared(center)<rr) return false;
 		return true;
 	}
@@ -96,7 +101,7 @@ public class Sphere3d implements Volume3d{
 	
 	/** Gets the squared distance of a point from a sphere surface 
 	 * (negative if the point is inside the sphere). */
-	public double powerDistance(Point3d p) {
+	public double powerDistance(Point p) {
 		return center.getDistanceSquared(p) - radius*radius; 
 	}
 	
@@ -117,37 +122,37 @@ public class Sphere3d implements Volume3d{
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 
 	/** Returns true if the sphere overlaps with <code>vol</code>. TODO: Implement for all volumes. */
-	public boolean overlaps(Volume3d vol) {
-		if(vol instanceof Sphere3d) 
-			return ((Sphere3d)vol).center.getDistance(this.center)<=((Sphere3d)vol).radius+radius;
+	public boolean overlaps(Volume vol) {
+		if(vol instanceof Sphere) 
+			return ((Sphere)vol).center.getDistance(this.center)<=((Sphere)vol).radius+radius;
 		throw new IllegalArgumentException();
 	}
 
 	/** Returns a deep clone of this sphere. */
-	public Sphere3d clone(){
-		return new Sphere3d(center.clone(), radius);
+	public Sphere clone(){
+		return new Sphere(center.clone(), radius);
 	}
 
 	/** Get the sphere with the specified circle as equator */
-	public static Sphere3d getMinSphere(Circle3d c) {
-		return new Sphere3d(c.center, c.radius);
+	public static Sphere getMinSphere(Circle c) {
+		return new Sphere(c.getCenter(), c.getRadius());
 	}
 	
 	/** Get the smallest sphere through two given points. */
-	public static Sphere3d getMinSphere(Point3d p1, Point3d p2) {
-		return new Sphere3d( Point3d.midpoint(p1,p2), p1.getDistance(p2)/2 );
+	public static Sphere getMinSphere(Point p1, Point p2) {
+		return new Sphere( Point.getMidpoint(p1,p2), p1.getDistance(p2)/2 );
 	}
 	
 	/** Get the smallest sphere through three points. */
-	public static Sphere3d getMinSphere(Point3d p0, Point3d p1, Point3d p2) {
-		Point3d center = new Point3d((p0.x+p1.x+p2.x)/3, (p0.y+p1.y+p2.y)/3, (p0.z+p1.z+p2.z)/3);
+	public static Sphere getMinSphere(Point p0, Point p1, Point p2) {
+		Point center = new Point((p0.getX()+p1.getX()+p2.getX())/3, (p0.getY()+p1.getY()+p2.getY())/3, (p0.getZ()+p1.getZ()+p2.getZ())/3);
 		double radius = p0.getDistance(center);
-		return new Sphere3d(center, radius);
+		return new Sphere(center, radius);
 	}
 
 	/** Constructs the smallest sphere through four points. An error is thrown 
 	 * if the points are coplanar. */ 
-	public static Sphere3d getMinSphere(Point3d p0, Point3d p1, Point3d p2, Point3d p3) {
+	public static Sphere getMinSphere(Point p0, Point p1, Point p2, Point p3) {
 		double x0 = p0.getX(); double y0 = p0.getY(); double z0 = p0.getZ();
 		double x1 = p1.getX(); double y1 = p1.getY(); double z1 = p1.getZ();
 		double x2 = p2.getX(); double y2 = p2.getY(); double z2 = p2.getZ();
@@ -196,7 +201,7 @@ public class Sphere3d implements Volume3d{
 		    double x =  0.5*m12/m11;
 		    double y = -0.5*m13/m11;
 		    double z =  0.5*m14/m11;
-		    return new Sphere3d(new Point3d(x, y, z), Math.sqrt(x*x + y*y + z*z - m15/m11));
+		    return new Sphere(new Point(x, y, z), Math.sqrt(x*x + y*y + z*z - m15/m11));
 		}
 		throw new Error("Points are coplanar");
 	}
@@ -207,12 +212,12 @@ public class Sphere3d implements Volume3d{
 	 * Gets the smallest sphere containing a set of points. Uses a 
 	 * randomized, O(n) expected time algorithm. 
 	 */
-	public static Sphere3d getMinSphere(PointList3d points) {
-		return getMinSphere(points.getRandomPermutation(), points.size(), new PointList3d());
+	public static Sphere getMinSphere(PointList points) {
+		return getMinSphere(points.getRandomPermutation(), points.size(), new PointList());
 	}
 	
-	private static Sphere3d getMinSphere(PointList3d points, int n, PointList3d boundaryPoints) {
-		Sphere3d sphere = null;
+	private static Sphere getMinSphere(PointList points, int n, PointList boundaryPoints) {
+		Sphere sphere = null;
 		int k = 0;
 		switch (boundaryPoints.size()) {
 			case 0: sphere = getMinSphere(points.get(0), points.get(1)); k = 2; break;
@@ -222,7 +227,7 @@ public class Sphere3d implements Volume3d{
 		}
 		
 		for (int i = k; i < n + boundaryPoints.size(); i++) {
-			Point3d p = (Point3d)points.get(i);
+			Point p = (Point)points.get(i);
 			if (!boundaryPoints.contains(p)) {
 				if (!sphere.isInside(p)) {
 					if (boundaryPoints.size() < 3) {

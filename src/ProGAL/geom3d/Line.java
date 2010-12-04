@@ -15,18 +15,18 @@ package ProGAL.geom3d;
  * </pre>
  * will return the point (1,0,0) and the parameter 0.5 respectively. 
  */
-public class Line3d {
-	protected Point3d p;
-	protected Vector3d dir;
+public class Line {
+	protected Point p;
+	protected Vector dir;
 	
 	/** Constructs a line through origo with direction d. */
-	public Line3d(Vector3d d) {
-		p = new Point3d(0, 0, 0);
+	public Line(Vector d) {
+		p = new Point(0, 0, 0);
 		dir = d;
 	}
 	
 	/** Constructs a line through p with direction d.*/
-	public Line3d(Point3d p, Vector3d d) {
+	public Line(Point p, Vector d) {
 		this.p = p;
 		dir = d;
 	}
@@ -35,54 +35,54 @@ public class Line3d {
 	 * Constructs a line through the segment s. The point will be s.getA() and the direction 
 	 * will be s.getAToB()
 	 */
-	public Line3d(Segment3d s) {
+	public Line(Segment s) {
 		p = s.a.clone();
 		dir = s.getAToB();
 	}
 	
 	/** Returns the point defining this line. */
-	public Point3d getP()   { return p; }
+	public Point getP()   { return p; }
 
 	/** Returns the direction vector defining this line. */
-	public Vector3d getDir() { return dir; }
+	public Vector getDir() { return dir; }
 
 	/** Gets the point on the line defined by the specified parameter. */
-	public Point3d getPoint(double t) {
-		return new Point3d(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z);
+	public Point getPoint(double t) {
+		return new Point(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z);
 	}
 	
 	/** Returns the othogonal projection of the point q onto this line. */
-	public Point3d orthogonalProjection(Point3d q) {
-		Vector3d pq = p.vectorTo(q);
+	public Point orthogonalProjection(Point q) {
+		Vector pq = p.vectorTo(q);
 		double t = pq.dot(dir);
-		return new Point3d(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z);
+		return new Point(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z);
 	}
 	
 	/** Returns the line-parameter of the othogonal projection of the point q onto this line. */
-	public double orthogonalProjectionParameter(Point3d q) {
-		Vector3d pq = p.vectorTo(q);
+	public double orthogonalProjectionParameter(Point q) {
+		Vector pq = p.vectorTo(q);
 		return pq.dot(dir)/dir.lengthSquared();
 	}
 	
 	/** Returns the smallest segment that contains all orthogonol 
 	 * projections of a point set onto this line. */
-	public Segment3d orthogonalProjection(PointList3d points) {
+	public Segment orthogonalProjection(PointList points) {
 		double minT = Double.POSITIVE_INFINITY, maxT = Double.NEGATIVE_INFINITY;
-		for(Point3d q: points){
+		for(Point q: points){
 			double t = orthogonalProjectionParameter(q);
 			minT = Math.min(minT, t);
 			maxT = Math.max(maxT, t);
 		}
-		return new Segment3d(getPoint(minT), getPoint(maxT)); 
+		return new Segment(getPoint(minT), getPoint(maxT)); 
 	}
 	
 	/** Returns the line-parameters of the end-points of the smallest segment that 
 	 * contains all orthogonol projections of a point set onto this line. 
 	 * @return a double-array with two entries containing the smallest and largest 
 	 * orthogonal projection line-parameter of the point-set.*/
-	public double[] orthogonalProjectionParameters(PointList3d points) {
+	public double[] orthogonalProjectionParameters(PointList points) {
 		double minT = Double.POSITIVE_INFINITY, maxT = Double.NEGATIVE_INFINITY;
-		for(Point3d q: points){
+		for(Point q: points){
 			double t = orthogonalProjectionParameter(q);
 			minT = Math.min(minT, t);
 			maxT = Math.max(maxT, t);
@@ -91,20 +91,20 @@ public class Line3d {
 	}
 
 	/** Gets the squared orthogonal distance to a point. */
-	public double getDistanceSquared(Point3d q) { 
+	public double getDistanceSquared(Point q) { 
 		return dir.cross(q.vectorTo(p)).lengthSquared()/dir.lengthSquared();
 	}
 	
 	/** Gets the orthogonal distance to a point. */
-	public double getDistance(Point3d q) { 
+	public double getDistance(Point q) { 
 		return Math.sqrt(getDistanceSquared(q));
 	}
 
 	/** Gets the largest squared distance from the points to the line. */
-	public double getMaxDistanceSquared(PointList3d points) {
+	public double getMaxDistanceSquared(PointList points) {
 		if (points.size() == 0) throw new Error("No point");
 		double maxDist = Double.NEGATIVE_INFINITY;
-		for (Point3d q: points) {
+		for (Point q: points) {
 			double dist = getDistanceSquared(q);
 			if (dist > maxDist) maxDist = dist;
 		}
@@ -112,13 +112,13 @@ public class Line3d {
 	}
 
 	/** Gets the largest distance from the points to the line. */
-	public double getMaxDistance(PointList3d points) {
+	public double getMaxDistance(PointList points) {
 		return Math.sqrt(getMaxDistanceSquared(points));
 	}
 	
 	/** Gets the minimum squared distance to another line. 
 	 * @see [Ericsson 05, p. 147]*/
-	public double getSquaredDistance(Line3d l) {
+	public double getSquaredDistance(Line l) {
 		double a = dir.lengthSquared();
 		double b = dir.dot(l.dir);
 		double e = l.dir.lengthSquared();
@@ -127,7 +127,7 @@ public class Line3d {
 		//TODO: An epsilon should perhaps be introduced
 		if(d==0) return getDistanceSquared(l.p);
 		
-		Vector3d r = p.vectorTo(l.p);
+		Vector r = p.vectorTo(l.p);
 		double c = dir.dot(r);
 		double f = l.dir.dot(r);
 		

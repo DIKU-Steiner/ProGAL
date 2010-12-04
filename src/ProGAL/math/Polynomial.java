@@ -2,10 +2,11 @@ package ProGAL.math;
 
 import static java.lang.Math.sqrt;
 import static java.lang.Math.abs;
-import static java.lang.Math.pow;
 import static java.lang.Math.cos;
 import static java.lang.Math.acos;
 import static java.lang.Math.PI;
+
+import java.util.Arrays;
 
 /** 
  * A representation of a variable sized polynomial. To find the roots of the 
@@ -29,7 +30,7 @@ public class Polynomial {
 	}
 	
 	/**
-	 * Find the roots of the polynomial
+	 * Find the roots of the polynomial.  The imaginary part is not returned.
 	 * @return an array containing the roots of the polynomial
 	 */
 	public double[] calcRoots(){
@@ -37,7 +38,7 @@ public class Polynomial {
 	}
 	
 	/**
-	 * Find the roots of the polynomial specified by the parameters
+	 * Find the roots of the polynomial specified by the parameters. The imaginary part is not returned.
 	 * @param parameters an array representing the coefficents of the polynomial
 	 * @return an array containing the roots of the polynomial
 	 */
@@ -49,7 +50,8 @@ public class Polynomial {
 	}
 
 	/**
-	 * Find the roots of a second degree polynomial.
+	 * Find the roots of a second degree polynomial. The length of the returned array depends on 
+	 * how many roots the quadratic equation has. In other words: The imaginary part is removed completely.
 	 * @param a coefficient of the squared term
 	 * @param b coefficient of the linear term
 	 * @param c coefficient of the constant
@@ -60,7 +62,8 @@ public class Polynomial {
 	}
 
 	/**
-	 * Find the roots of a third degree polynomial.
+	 * Find the roots of a third degree polynomial. The length of the returned array depends on 
+	 * how many roots the cubic equation has. In other words: The imaginary part is removed completely. 
 	 * @param a coefficient of the cubed term
 	 * @param b coefficient of the squared term
 	 * @param c coefficient of the linear term
@@ -68,11 +71,21 @@ public class Polynomial {
 	 * @return an array containing the roots of the polynomial
 	 */
 	public static double[] calcRoots(double a, double b, double c, double d){
-		return solveThirdDegree(new double[]{a,b,c,d});
+		double[] roots = solveThirdDegree(new double[]{a,b,c,d});
+		if(roots.length<4) return roots;
+		if(roots[3]>Constants.EPSILON) return new double[]{roots[0]};
+		int l = 1;
+		for(int i=1;i<3;i++) if(!Double.isNaN(roots[i]) && roots[i-1]!=roots[i]) l++;
+		double[] ret = new double[l];
+		l=0;
+		for(int i=0;i<3;i++) if(!Double.isNaN(roots[i]) && (i==0||roots[i-1]!=roots[i])) ret[l++] = roots[i];
+		Arrays.sort(ret);
+		return ret;
 	}
 	
 	/** 
-	 * Solves quadratic equation. Uses 3 to 7 HOps.  
+	 * Solves quadratic equation. 
+	 * @hops 3 to 7.  
 	 */
 	private static double[] solveSecondDegree(double[] parameters){
 		double a = parameters[0];
@@ -88,7 +101,12 @@ public class Polynomial {
 		}
 	}
 	
+	/**
+	 * Solves qubic equation.
+	 * @hops 3 to 35
+	 */
 	private static double[] solveThirdDegree(double[] parameters){
+		if(parameters[0]==0) return solveSecondDegree(new double[]{parameters[1],parameters[2],parameters[3]});
 		double a = parameters[1]/parameters[0];
 		double b = parameters[2]/parameters[0];
 		double c = parameters[3]/parameters[0];
@@ -97,32 +115,31 @@ public class Polynomial {
 		double R = (9*a*b-27*c-2*a*a*a)/54;
 	    //Polynomial discriminant
 		double D = Q*Q*Q + R*R;
+		double aThirds = a/3;//17HOps so far
 		
 		double root1, root2, root3, im;
 		
 		if(D>=0){		//Complex or duplicate roots
-			double S = sign(R+sqrt(D))*pow(abs(R+sqrt(D)),1/3d);
-			double T = sign(R-sqrt(D))*pow(abs(R-sqrt(D)),1/3d);
+			double sqrtD = sqrt(D);
+			double S = sign(R+sqrtD)*Math.cbrt(abs(R+sqrtD));
+			double T = sign(R-sqrtD)*Math.cbrt(abs(R-sqrtD));//22HOps so far
 			
-			root1 = -(a/3) + S+T;
-			root2 = -(a/3) - (S+T)/2;
-			root3 = -(a/3) - (S+T)/2;
-			im = abs(sqrt(3)*(S-T)/2);
-		}else{
-			double th = acos(R/sqrt(-Q*Q*Q));
-	        
-			root1 = 2*sqrt(-Q)*cos(th/3)-a/3;
-			root2 = 2*sqrt(-Q)*cos((th+2*PI)/3)-a/3;
-			root3 = 2*sqrt(-Q)*cos((th+4*PI)/3)-a/3;
+			root1 = -aThirds + S+T;
+			root2 = -aThirds - (S+T)/2;
+			root3 = root2;
+			im = abs(Constants.SQRT3*(S-T)/2);//24HOps so far
+		}else {
+			double sqrtMQ = sqrt(-Q);
+			double th = acos(R/(-Q*sqrtMQ)); //acos(R/sqrt(-Q*Q*Q));//21HOps so far
+
+			root1 = 2*sqrtMQ*cos(th/3)-aThirds;
+			root2 = 2*sqrtMQ*cos((th+2*PI)/3)-aThirds;
+			root3 = 2*sqrtMQ*cos((th+4*PI)/3)-aThirds;//35HOps so far
 			im = 0;
 		}
-		
 		return new double[]{root1,root2, root3, im};
 	}
-	
-	private static double sign(double n){
-		if(n<0) return -1;
-		else return 1;
-	}
+
+	private static double sign(double n){	return n<0?-1:1;	}
 	
 }

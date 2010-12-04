@@ -7,19 +7,19 @@ package ProGAL.geom3d;
  *  projections, but can also cause serious problems if anyone chooses to extend the 
  *  Vector3d object.
  */
-public class Vector3d {
+public class Vector {
 	protected double x,y,z;
 		
 	/** Construct a vector with the specified coordinates. */
-	public Vector3d(double x, double y, double z) { this.x = x; this.y = y; this.z = z; }
+	public Vector(double x, double y, double z) { this.x = x; this.y = y; this.z = z; }
 	
 	/** Construct a vector pointing from origo to p. */
-	public Vector3d(Point3d p) { x = p.x; y = p.y; z = p.z; }
+	public Vector(Point p) { x = p.x; y = p.y; z = p.z; }
 	
 	/** Construct a vector that is a clone of v. */
-	public Vector3d(Vector3d v) { x = v.x; y = v.y; z = v.z; }	
+	public Vector(Vector v) { x = v.x; y = v.y; z = v.z; }	
 	
-	//////// Getters and setters /////////
+
 	
 	/** Get the i'th coordinate. */
 	public double getCoord(int i) {
@@ -83,51 +83,51 @@ public class Vector3d {
 	}
 	
 	/** Get the dot-product of this vector and v. */
-	public double dot(Vector3d v){ 
+	public double dot(Vector v){ 
 		return x*v.x+y*v.y+z*v.z; 
 	}
 
 	/** Get the angle between this vector and v. */
-	public double angle(Vector3d v) {
-		return Math.acos(Math.min(  1, this.dot(v)/(this.getLength()*v.getLength())  ));
+	public double angle(Vector v) {
+		return Math.acos(Math.min(  1, this.dot(v)/Math.sqrt(this.getLengthSquared()*v.getLengthSquared())  ));
 	}
 	
 	/** Add v to this vector and return the result (without changing this object). */
-	public Vector3d add(Vector3d v){ return new Vector3d(x+v.x, y+v.y, z+v.z); }
+	public Vector add(Vector v){ return new Vector(x+v.x, y+v.y, z+v.z); }
 	
 	/** Add v to this vector and return the result (changing this object). */ 
-	public Vector3d addThis(Vector3d v){ x+=v.x; y+=v.y; z+=v.z; return this; }
+	public Vector addThis(Vector v){ x+=v.x; y+=v.y; z+=v.z; return this; }
 	
 	/** Multiply this vector by s and return the result (without changing this object). */
-	public Vector3d multiply(double s){ return new Vector3d(x*s, y*s, z*s); }
+	public Vector multiply(double s){ return new Vector(x*s, y*s, z*s); }
 	
 	/** Multiply this vector by s and return the result (changing this object). */
-	public Vector3d multiplyThis(double s){ x*=s;y*=s;z*=s;return this; }
+	public Vector multiplyThis(double s){ x*=s;y*=s;z*=s;return this; }
 	
 	/** Normalize this vector and return the result (without changing this object). */
-	public Vector3d normalize(){ return this.multiply(1/getLength()); }
+	public Vector normalize(){ return this.multiply(1/getLength()); }
 	
 	/** Normalize this vector and return the result (changing this object). */
-	public Vector3d normalizeThis(){ return this.multiplyThis(1/getLength()); }
+	public Vector normalizeThis(){ return this.multiplyThis(1/getLength()); }
 
 	/** Scale this vector to a certain length (returns new object and does not change this object). */
-	public Vector3d scaleToLength(double length) { return multiply(length/getLength()); }
+	public Vector scaleToLength(double length) { return multiply(length/getLength()); }
 	
 	/** Scale this vector to a certain length (changes this object). */
-	public Vector3d scaleToLengthThis(double length) { return multiplyThis(length/getLength()); }
+	public Vector scaleToLengthThis(double length) { return multiplyThis(length/getLength()); }
 	
 	/** Get the cross-product of this vector and v (without changing this object). */
-	public Vector3d cross(Vector3d v){ return new Vector3d(y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x); }
+	public Vector cross(Vector v){ return new Vector(y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x); }
 	
 	/** Get the cross-product of this vector and v and store the result in this vector (changes this object). */
-	public Vector3d crossThis(Vector3d v){ 
+	public Vector crossThis(Vector v){ 
 		double newX = y*v.z - z*v.y, newY = z*v.x - x*v.z, newZ = x*v.y - y*v.x;
 		this.x = newX;this.y = newY;this.z = newZ;
 		return this;
 	}
 	
 	/** Convert this vector to a point. */
-	public Point3d toPoint() { return new Point3d(x, y, z); }
+	public Point toPoint() { return new Point(x, y, z); }
 	
 	/** Returns a string-representation of this vector formatted with two decimals precision. */
 	public String toString() { return toString(2); }
@@ -137,38 +137,40 @@ public class Vector3d {
 		return String.format("Vector3d[%."+dec+"f,%."+dec+"f,%."+dec+"f]",x,y,z);
 	}	
 	
-	/** Writes this point to <code>System.out</code>. */
+	/** Writes this vector to <code>System.out</code>. */
 	public void toConsole() { toConsole(2); }
 	
-	/** Writes this point to <code>System.out</code> with <code>dec</code> decimals precision. */
+	/** Writes this vector to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 
 	/** Return true if this vector equals v. */
-	public boolean equals(Vector3d v){ return x==v.x && y==v.y && z==v.z; }
+	public boolean equals(Vector v){ return x==v.x && y==v.y && z==v.z; }
 	
 	/** Create a clone of this vector. */
-	public Vector3d clone(){ return new Vector3d(x, y, z); }
+	public Vector clone(){ return new Vector(x, y, z); }
 
 	///////// Static methods and fields ////////
 
 	/** Get the angle between vector u and v. */
-	public static double getAngle(Vector3d u, Vector3d v) { return u.angle(v); }
+	public static double getAngle(Vector u, Vector v) { return u.angle(v); }
 	
-	/** Get the dihedral angle between 3 non-colinear vectors v12, v23, v34. */
-	public static double getDihedralAngle(Vector3d v12, Vector3d v23, Vector3d v34) {
-		return Math.atan2( v12.scaleToLength(v23.getLength()).dot(v23.cross(v34)),
-				v12.cross(v23).dot(v23.cross(v34)));
+	/** Get the dihedral angle between 3 non-colinear vectors b1, b2, b3. */
+	public static double getDihedralAngle(Vector b1, Vector b2, Vector b3) {
+		Vector b2xb3 = b2.cross(b3);
+		double y = b1.multiply(b2.getLength()).dot(b2xb3);
+		double x = b1.cross(b2).dot(b2xb3);
+		return Math.atan2(y,x);
 	}
 	
 
 	/** An immutable vector pointing in the (1,0,0)-direction. */
-	public static Vector3d X = new ImmutableVector3d(1,0,0);
+	public static Vector X = new ImmutableVector3d(1,0,0);
 	
 	/** An immutable vector pointing in the (0,1,0)-direction. */
-		public static Vector3d Y = new ImmutableVector3d(0,1,0);
+		public static Vector Y = new ImmutableVector3d(0,1,0);
 		
 	/** An immutable vector pointing in the (0,0,1)-direction. */
-	public static Vector3d Z = new ImmutableVector3d(0,0,1);
+	public static Vector Z = new ImmutableVector3d(0,0,1);
 	
 	///////// Inner classes ////////
 	
@@ -179,18 +181,18 @@ public class Vector3d {
 	 * arithmetic methods such as <code>multiplyThis</code> are called, the result of 
 	 * their corresponding non-mutating variant (<code>multiply</code>) is returned instead.
 	 */
-	public static class ImmutableVector3d extends Vector3d{
+	public static class ImmutableVector3d extends Vector{
 		public ImmutableVector3d(double x, double y, double z) { super(x,y,z);	}
 		public void setCoord(int i, double v){throw new RuntimeException("This vector is immutable");}
 		public void set(int i, double v){throw new RuntimeException("This vector is immutable");}
 		public void setX(double x) { throw new RuntimeException("This vector is immutable"); }
 		public void setY(double y) { throw new RuntimeException("This vector is immutable"); }
 		public void setZ(double z) { throw new RuntimeException("This vector is immutable"); }
-		public Vector3d addThis(Vector3d v){ return add(v); }
-		public Vector3d multiplyThis(double s){ return multiply(s); }
-		public Vector3d normalizeThis(){ return multiply(1/getLength()); }
-		public Vector3d scaleToLengthThis(double length) { return multiply(length/getLength()); }
-		public Vector3d crossThis(Vector3d v){ return cross(v); }
+		public Vector addThis(Vector v){ return add(v); }
+		public Vector multiplyThis(double s){ return multiply(s); }
+		public Vector normalizeThis(){ return multiply(1/getLength()); }
+		public Vector scaleToLengthThis(double length) { return multiply(length/getLength()); }
+		public Vector crossThis(Vector v){ return cross(v); }
 	}
 	
 }

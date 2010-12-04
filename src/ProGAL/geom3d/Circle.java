@@ -6,12 +6,12 @@ package ProGAL.geom3d;
  */
 
 
-public class Circle3d implements Shape3d{
-	Point3d center;
+public class Circle implements Shape{
+	Point center;
 	double radius;
-	Vector3d normal;
+	Vector normal;
 
-	public Circle3d(Point3d center, double radius, Vector3d normalVector) {
+	public Circle(Point center, double radius, Vector normalVector) {
 		this.center = center;
 		this.radius = radius;
 		this.normal = normalVector;
@@ -71,16 +71,16 @@ public class Circle3d implements Shape3d{
 		return circle2.getRadius();
 	}*/
 	
-	public Point3d getCenter() { return center; }
+	public Point getCenter() { return center; }
 	public double getRadius() { return radius; }
-	public Vector3d getNormalVector() { return normal; }
+	public Vector getNormalVector() { return normal; }
 
 	
-	public static Circle3d getEquilateralCircle(Point3d a, Point3d b) {
-		Point3d center = Point3d.midpoint(a, b);
-		Vector3d ab = a.vectorTo(b);
+	public static Circle getEquilateralCircle(Point a, Point b) {
+		Point center = Point.getMidpoint(a, b);
+		Vector ab = a.vectorTo(b);
 		double radius = Math.sqrt(3)*ab.getLength()/2;
-		return new Circle3d(center, radius, ab);
+		return new Circle(center, radius, ab);
 	}
 	
 	public String toString(){
