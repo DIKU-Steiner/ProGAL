@@ -1,7 +1,5 @@
 package ProGAL.math;
 
-import java.util.Arrays;
-
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.Vector;
@@ -56,19 +54,19 @@ public class Matrix3x3 extends Matrix{
 	 * @return an array containing eigenvectors.
 	 * @hops 84
 	 */
-	public Vector[] getEigenvectors3d(){
-		/*	if(coords.length!=3 || coords[0].length!=3) 
+	public Vector[] getEigenvectors(){
+			if(coords.length!=3 || coords[0].length!=3) 
 			throw new Error("Matrix is "+coords.length+"x"+coords[0].length);
 
 		EigenvalueDecomposition ed = new EigenvalueDecomposition();
-		Vector3d[] ret = new Vector3d[3];
-		double[][] V = ed.getV();
-		ret[0] = new Vector3d(V[0][0],V[1][0],V[2][0]);
-		ret[1] = new Vector3d(V[0][1],V[1][1],V[2][1]);
-		ret[2] = new Vector3d(V[0][2],V[1][2],V[2][2]);
-		return ret;
-		 */
+		Vector[] ret = new Vector[3];
+		double[][] V = ed.getV().coords;
+		ret[0] = new Vector(V[0][0],V[1][0],V[2][0]).multiplyThis(ed.getRealEigenvalues()[0]);
+		ret[1] = new Vector(V[0][1],V[1][1],V[2][1]).multiplyThis(ed.getRealEigenvalues()[1]);
+		ret[2] = new Vector(V[0][2],V[1][2],V[2][2]).multiplyThis(ed.getRealEigenvalues()[2]);
+		if(true)return ret;
 
+		
 		boolean issymmetric = true;
 		for (int j = 0; (j < 3) & issymmetric; j++) {
 			for (int i = 0; (i < 3) & issymmetric; i++) {
@@ -139,7 +137,7 @@ public class Matrix3x3 extends Matrix{
 		System.out.println("m: ");
 		m.toConsole();
 
-		m.getEigenvectors3d();
+		m.getEigenvectors();
 
 		m.getEigenvalueDecomposition().getV().toConsole();
 	}

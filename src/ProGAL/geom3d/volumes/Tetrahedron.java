@@ -33,6 +33,17 @@ public class Tetrahedron implements Volume {
 		if(c<0 || c>3) throw new IllegalArgumentException();
 		return corners[c];
 	}
+
+	/** TODO: Comment */
+	public void setPoint(int c, Point point) {
+		if(c<0 || c>3) throw new IllegalArgumentException();
+		corners[c] = point;
+	}
+	
+	public boolean overlaps(Volume vol) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 	
 	/** Get the volume of the tetrahedron. */
 	public double getVolume() {
@@ -54,10 +65,6 @@ public class Tetrahedron implements Volume {
 		return O.length();
 	}
 	
-	public boolean overlaps(Volume vol) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	/** Find the center of the circumscribing sphere. */
 	public Point getCircumcenter(){
@@ -87,4 +94,5 @@ public class Tetrahedron implements Volume {
 	public Volume clone(){
 		return new Tetrahedron(corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone());
 	}
+	
 }

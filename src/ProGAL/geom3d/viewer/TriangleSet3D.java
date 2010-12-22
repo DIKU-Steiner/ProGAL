@@ -11,7 +11,7 @@ import ProGAL.geom3d.*;
 /** 
  * @author R.Fonseca
  */
-public class TriangleSet3D extends Shape3D {
+class TriangleSet3D extends Shape3D {
 
 	public TriangleSet3D(Collection<Triangle> triangles, Appearance app) {
 		super();

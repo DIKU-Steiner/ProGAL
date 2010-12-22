@@ -4,7 +4,7 @@ import ProGAL.geom3d.Circle;
 import ProGAL.geom3d.Line;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.PointList;
-import ProGAL.geom3d.Segment;
+import ProGAL.geom3d.LineSegment;
 import ProGAL.geom3d.Vector;
 
 /** 
@@ -39,7 +39,7 @@ public class Sphere implements Volume{
 	public boolean isIntersected (Sphere sphere) {	return overlaps(sphere);	}
 	
 	/** Gets the secant on the line. TODO: Rename.*/
-	public Segment getIntersection(Line line) {
+	public LineSegment getIntersection(Line line) {
 		Point p1 = line.getP();
 		Point p2 = line.getPoint(1.0);
 		double dx = p2.getX() - p1.getX();
@@ -62,7 +62,7 @@ public class Sphere implements Volume{
 			u1 = (-b + sqr)/(2*a);
 			u2 = (-b - sqr)/(2*a);
 		}
-		return new Segment(new Point(p1.getX() + u1*dx, p1.getY() + u1*dy, p1.getZ() + u1*dz),
+		return new LineSegment(new Point(p1.getX() + u1*dx, p1.getY() + u1*dy, p1.getZ() + u1*dz),
 							 new Point(p1.getX() + u2*dx, p1.getY() + u2*dy, p1.getZ() + u2*dz));
 	}
 	

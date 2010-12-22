@@ -164,7 +164,7 @@ public class PointList extends ArrayList<Point> {
 	public Point getExtremeBack() { return (Point)get(getExtremeIndex(1,2,0,false)); }
 	
 	/** Get the diameter of the point set - trivial O(n^2) algorithm.*/
-	public Segment getDiameter() {
+	public LineSegment getDiameter() {
 		Point p;
 		Point q;
 		Point best1=null, best2=null;
@@ -178,15 +178,15 @@ public class PointList extends ArrayList<Point> {
 				if (pq > best) { best = pq; best1 = p; best2 = q; }
 			}
 		}
-		return new Segment(best1, best2);
+		return new LineSegment(best1, best2);
 	}
 	
 	/** Get a segment <code>seg</code> between two points in the set such that 
 	 * <code>diameter/sqrt(3) <= seg</code>. Requires O(n) time. */
-	public Segment diameterSqrt3Approx() {
-		Segment seg0 = new Segment(getExtremeLeft(), getExtremeRight());
-		Segment seg1 = new Segment(getExtremeBottom(), getExtremeTop());
-		Segment seg2 = new Segment(getExtremeFront(), getExtremeBack());
+	public LineSegment diameterSqrt3Approx() {
+		LineSegment seg0 = new LineSegment(getExtremeLeft(), getExtremeRight());
+		LineSegment seg1 = new LineSegment(getExtremeBottom(), getExtremeTop());
+		LineSegment seg2 = new LineSegment(getExtremeFront(), getExtremeBack());
 		double l0 = seg0.getSquaredLength();
 		double l1 = seg1.getSquaredLength();
 		double l2 = seg2.getSquaredLength();

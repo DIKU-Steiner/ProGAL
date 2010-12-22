@@ -1054,7 +1054,7 @@ public class Matrix {
 		 * Check for symmetry, then construct the eigenvalue decomposition.
 		 * @param A    Square matrix
 		 */
-		private EigenvalueDecomposition() {
+		protected EigenvalueDecomposition() {
 			double[][] A = coords;//Arg.getArray();
 			n = N;//Arg.getColumnDimension();
 			V = new double[n][n];

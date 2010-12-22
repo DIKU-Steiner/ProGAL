@@ -186,6 +186,12 @@ public class Point {
 		return this.getCoord(k) > q.getCoord(k);
 	}
 
+	/** Returns true iff o is a point that equals this point. */
+	public boolean equals(Object o){
+		if(o instanceof Point) return equals((Point)o);
+		else return false;
+	}
+	
 	/** Returns true iff this point and point p are overlapping. */
 	public boolean equals(Point p) { return x == p.x && y == p.y && z == p.z; }
 

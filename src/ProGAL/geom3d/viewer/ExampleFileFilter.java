@@ -64,7 +64,7 @@ import javax.swing.filechooser.*;
  * @version 1.6 01/23/03
  * @author Jeff Dinkins
  */
-public class ExampleFileFilter extends FileFilter {
+class ExampleFileFilter extends FileFilter {
 
 	private Hashtable<String, FileFilter> filters = null;
 	private String description = null;

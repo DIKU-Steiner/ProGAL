@@ -1,5 +1,7 @@
 package ProGAL.geom3d;
 
+import ProGAL.math.Constants;
+
 /**
  * A line represented by a point and a direction. Several methods work with a  
  * parameter that can be used to specify a point on the line. For instance 
@@ -33,10 +35,10 @@ public class Line {
 	
 	/** 
 	 * Constructs a line through the segment s. The point will be s.getA() and the direction 
-	 * will be s.getAToB()
+	 * will be s.getAToB(). Subsequent changes to the line segment should not change this line.
 	 */
-	public Line(Segment s) {
-		p = s.a.clone();
+	public Line(LineSegment s) {
+		p = s.getA().clone();
 		dir = s.getAToB();
 	}
 	
@@ -46,16 +48,16 @@ public class Line {
 	/** Returns the direction vector defining this line. */
 	public Vector getDir() { return dir; }
 
-	/** Gets the point on the line defined by the specified parameter. */
+	/** Gets the point on the line defined by the specified parameter. If the parameter is 
+	 * zero this method will not return a reference to the defining point (but the returned 
+	 * point will equal it). */
 	public Point getPoint(double t) {
 		return new Point(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z);
 	}
 	
 	/** Returns the othogonal projection of the point q onto this line. */
 	public Point orthogonalProjection(Point q) {
-		Vector pq = p.vectorTo(q);
-		double t = pq.dot(dir);
-		return new Point(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z);
+		return getPoint(orthogonalProjectionParameter(q));
 	}
 	
 	/** Returns the line-parameter of the othogonal projection of the point q onto this line. */
@@ -66,14 +68,14 @@ public class Line {
 	
 	/** Returns the smallest segment that contains all orthogonol 
 	 * projections of a point set onto this line. */
-	public Segment orthogonalProjection(PointList points) {
+	public LineSegment orthogonalProjection(PointList points) {
 		double minT = Double.POSITIVE_INFINITY, maxT = Double.NEGATIVE_INFINITY;
 		for(Point q: points){
 			double t = orthogonalProjectionParameter(q);
 			minT = Math.min(minT, t);
 			maxT = Math.max(maxT, t);
 		}
-		return new Segment(getPoint(minT), getPoint(maxT)); 
+		return new LineSegment(getPoint(minT), getPoint(maxT)); 
 	}
 	
 	/** Returns the line-parameters of the end-points of the smallest segment that 
@@ -100,6 +102,60 @@ public class Line {
 		return Math.sqrt(getDistanceSquared(q));
 	}
 
+	/** 
+	 * Gets the minimum squared distance to another line. 
+	 * @see [Ericsson 05, p. 147]
+	 * @hop 14-32
+	 */
+	public double getSquaredDistance(Line l) {
+		double a = dir.lengthSquared();
+		double b = dir.dot(l.dir);
+		double e = l.dir.lengthSquared();
+		double d = a*e-b*b;
+		
+		if(Math.abs(d)<Constants.EPSILON) return getDistanceSquared(l.p);
+		
+		Vector r = l.p.vectorTo(p);
+		double c = dir.dot(r);
+		double f = l.dir.dot(r);
+		
+		double s = (b*f-c*e)/d;
+		double t = (a*f-b*c)/d;
+
+		double dx = (p.x+s*dir.x) - (l.p.x+t*l.dir.x);
+		double dy = (p.y+s*dir.y) - (l.p.y+t*l.dir.y);
+		double dz = (p.z+s*dir.z) - (l.p.z+t*l.dir.z);
+		return dx*dx+dy*dy+dz*dz;
+		//return getPoint(s).getDistanceSquared(l.getPoint(t));
+	}
+	
+	/** 
+	 * Gets the intersection-point of this line with l. If the lines do not intersect 
+	 * then null is returned.
+	 */
+	public Point getIntersection(Line l){
+		double a = dir.lengthSquared();
+		double b = dir.dot(l.dir);
+		double e = l.dir.lengthSquared();
+		double d = a*e-b*b;
+		
+		if(Math.abs(d)<Constants.EPSILON) return null;
+		
+		Vector r = l.p.vectorTo(p);
+		double c = dir.dot(r);
+		double f = l.dir.dot(r);
+		
+		double s = (b*f-c*e)/d;
+		double t = (a*f-b*c)/d;
+
+		double dx = (p.x+s*dir.x) - (l.p.x+t*l.dir.x);
+		double dy = (p.y+s*dir.y) - (l.p.y+t*l.dir.y);
+		double dz = (p.z+s*dir.z) - (l.p.z+t*l.dir.z);
+		if(dx*dx+dy*dy+dz*dz>Constants.EPSILON) return null;
+		return new Point(p.x+s*dir.x, p.y+s*dir.y, p.z+s*dir.z);
+		
+	}
+
 	/** Gets the largest squared distance from the points to the line. */
 	public double getMaxDistanceSquared(PointList points) {
 		if (points.size() == 0) throw new Error("No point");
@@ -114,28 +170,6 @@ public class Line {
 	/** Gets the largest distance from the points to the line. */
 	public double getMaxDistance(PointList points) {
 		return Math.sqrt(getMaxDistanceSquared(points));
-	}
-	
-	/** Gets the minimum squared distance to another line. 
-	 * @see [Ericsson 05, p. 147]*/
-	public double getSquaredDistance(Line l) {
-		double a = dir.lengthSquared();
-		double b = dir.dot(l.dir);
-		double e = l.dir.lengthSquared();
-		double d = a*e-b*b;
-		
-		//TODO: An epsilon should perhaps be introduced
-		if(d==0) return getDistanceSquared(l.p);
-		
-		Vector r = p.vectorTo(l.p);
-		double c = dir.dot(r);
-		double f = l.dir.dot(r);
-		
-		double s = (b*f-c*e)/d;
-		double t = (a*f-b*c)/d;
-		
-		//TODO: Two point-allocations can be optimized away here, but the code would get ugly
-		return getPoint(s).getDistanceSquared(l.getPoint(t));
 	}
 
 	/** Returns a string-representation of this line.*/

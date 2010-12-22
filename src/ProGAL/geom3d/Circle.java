@@ -5,11 +5,13 @@ package ProGAL.geom3d;
  * orthogonal. The circle is then parameterized by P(t) = c + r*(cos(t)*u + sin(t)*v) for 0 <= t < 2*pi. 
  */
 
-
+/** 
+ * A circle in (x,y,z)-space represented by a center-point, a radius and a normal-vector.
+ */
 public class Circle implements Shape{
-	Point center;
-	double radius;
-	Vector normal;
+	private Point center;
+	private double radius;
+	private Vector normal;
 
 	public Circle(Point center, double radius, Vector normalVector) {
 		this.center = center;
@@ -35,14 +37,6 @@ public class Circle implements Shape{
 		normalVector = Vector3d.crossProduct(new Vector3d(p0,p1), new Vector3d(p0,p2));
 	}*/
 	
-//	/**
-//	 * circle through p0, p1, p2
-//	 */
-//	public Circle3d(Point3d p0, Point3d p1, Point3d p2) {
-//		center = new Point3d((p0.x+p1.x+p2.x)/3, (p0.y+p1.y+p2.y)/3, (p0.z+p1.z+p2.z)/3);
-//		radius = p0.getDistance(center);
-//	}
-		
 
 	/*
 	 * returns the radius of the circle through 3 given points (without creating the circle)
@@ -71,11 +65,14 @@ public class Circle implements Shape{
 		return circle2.getRadius();
 	}*/
 	
+	/** Get the center of the circle. */
 	public Point getCenter() { return center; }
+	/** Get the radius of the circle. */
 	public double getRadius() { return radius; }
+	/** Get the normal of the circle. */
 	public Vector getNormalVector() { return normal; }
 
-	
+	/** Create the equilateral circle of two points. */
 	public static Circle getEquilateralCircle(Point a, Point b) {
 		Point center = Point.getMidpoint(a, b);
 		Vector ab = a.vectorTo(b);
@@ -83,16 +80,21 @@ public class Circle implements Shape{
 		return new Circle(center, radius, ab);
 	}
 	
+
+	/** Returns a string-representation of this circle formatted with two decimals precision. */
 	public String toString(){
 		return toString(2);
 	}
 	
+	/** Returns a string-representation of this circle formatted with <code>dec</code> decimals precision. */
 	public String toString(int dec) {
-		return String.format("Circle3d[center=%s,radius=%"+dec+"f,normal=%s]",center.toString(dec),radius,normal.toString(dec));
+		return String.format("Circle[center=%s,radius=%"+dec+"f,normal=%s]",center.toString(dec),radius,normal.toString(dec));
 	}
-	
+
+	/** Writes this circle to <code>System.out</code> with 2 decimals precision. */
 	public void toConsole() { toConsole(2); }
 
+	/** Writes this circle to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) {
 		System.out.println(toString(dec)); 
 	}

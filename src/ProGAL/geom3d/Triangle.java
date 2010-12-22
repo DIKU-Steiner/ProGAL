@@ -20,13 +20,15 @@ public class Triangle implements Shape{
 	/** Get the third corner */
 	public Point getP3(){ return p3; }
 	/** Get the specified corner of this triangle */
-	public Point getCorner(int c){
+	public Point getCorner(int c){ return getPoint(c); }
+	/** Get the specified corner-point of this triangle */
+	public Point getPoint(int c){
 		switch(c){
 		case 0: return p1;
 		case 1: return p2;
 		case 2: return p3;
 		}
-		throw new Error("Badly specified corner number "+c+". Should be between 0 and 2");
+		throw new Error("Badly specified point number ("+c+"). Should be between 0 and 2");
 	}
 	
 	/** Return the center of the triangle. Here average of the corners is used.*/
@@ -41,7 +43,31 @@ public class Triangle implements Shape{
 	public Vector getNormal() {
 		return p1.vectorTo(p2).crossThis(p1.vectorTo(p3)).normalizeThis();
 	}
+	
+	/** 
+	 * Return the circumradius of the triangle. If one side has zero length this method returns 
+	 * the length of the two remaining sides.
+	 */
+	public double getCircumradius(){
+		double a = p1.getDistance(p2);
+		double b = p1.getDistance(p3);
+		double c = p2.getDistance(p3);
+		double s = (a+b+c)/2;//Semiperemiter
+		return a*b*c/(4*Math.sqrt(s*(a+b-s)*(a+c-s)*(b+c-s)));
+	}
 
+	/** Return the circumcenter of the triangle. 
+	 * TODO: Test
+	 * TODO: Make more efficient (transform to origo with n as z and use 2D formula)	 
+	 */
+	public Point getCircumcenter() {
+		Vector n = getNormal();
+		Point m1 = Point.getMidpoint(p1, p2);
+		Point m2 = Point.getMidpoint(p1, p3);
+		Line l1 = new Line(m1, p1.vectorTo(p2).crossThis(n));
+		Line l2 = new Line(m2, p1.vectorTo(p3).crossThis(n));
+		return l1.getIntersection(l2);
+	}
 
 	/** Returns a string-representation of this triangle formatted with two decimals precision. */
 	public String toString(){	return toString(2);	}
@@ -58,6 +84,8 @@ public class Triangle implements Shape{
 	public void toConsole(int dec) {
 		System.out.println(toString(dec)); 
 	}
+
+
 
  
 }

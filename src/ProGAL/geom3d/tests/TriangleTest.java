@@ -38,23 +38,23 @@ public class TriangleTest {
 	@Test
 	public void testGetCorner() {
 		Triangle t = new Triangle(new Point(1,1,1),new Point(2,1,1), new Point(1,2,1));
-		assertTrue(t.getCorner(0).equals(new Point(1,1,1)));
-		assertTrue(t.getCorner(1).equals(new Point(2,1,1)));
-		assertTrue(t.getCorner(2).equals(new Point(1,2,1)));
-		t.getCorner(0).setZ(2);
-		t.getCorner(1).setZ(2);
-		t.getCorner(2).setZ(2);
-		assertTrue(t.getCorner(0).equals(new Point(1,1,2)));
-		assertTrue(t.getCorner(1).equals(new Point(2,1,2)));
-		assertTrue(t.getCorner(2).equals(new Point(1,2,2)));
+		assertTrue(t.getPoint(0).equals(new Point(1,1,1)));
+		assertTrue(t.getPoint(1).equals(new Point(2,1,1)));
+		assertTrue(t.getPoint(2).equals(new Point(1,2,1)));
+		t.getPoint(0).setZ(2);
+		t.getPoint(1).setZ(2);
+		t.getPoint(2).setZ(2);
+		assertTrue(t.getPoint(0).equals(new Point(1,1,2)));
+		assertTrue(t.getPoint(1).equals(new Point(2,1,2)));
+		assertTrue(t.getPoint(2).equals(new Point(1,2,2)));
 	}
 
 	@Test
 	public void testGetCenter() {
 		Triangle t = new Triangle(new Point(1,1,1),new Point(2,1,1), new Point(1,2,1));
-		assertTrue(t.getCenter().getDistance(t.getCorner(0))<t.getCorner(0).getDistance(t.getCorner(1)));
-		assertTrue(t.getCenter().getDistance(t.getCorner(0))<t.getCorner(0).getDistance(t.getCorner(2)));
-		assertTrue(t.getCenter().getDistance(t.getCorner(1))<t.getCorner(1).getDistance(t.getCorner(2)));
+		assertTrue(t.getCenter().getDistance(t.getPoint(0))<t.getPoint(0).getDistance(t.getPoint(1)));
+		assertTrue(t.getCenter().getDistance(t.getPoint(0))<t.getPoint(0).getDistance(t.getPoint(2)));
+		assertTrue(t.getCenter().getDistance(t.getPoint(1))<t.getPoint(1).getDistance(t.getPoint(2)));
 		//Note .. not generally true, but true for this triangle.
 	}
 

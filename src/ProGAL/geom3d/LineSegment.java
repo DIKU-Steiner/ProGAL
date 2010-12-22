@@ -3,17 +3,17 @@ package ProGAL.geom3d;
 /**
  * A line segment spanned by two points, a and b.  
  */
-public class Segment {
+public class LineSegment {
 	protected Point a, b;
 
 	/** Constructs a segment between points a and b. */
-	public Segment(Point a, Point b) {
+	public LineSegment(Point a, Point b) {
 		this.a = a;
 		this.b = b;
 	}
 	
 	/** Constructs a segment from a to a+v. */
-	public Segment(Point a, Vector v) {
+	public LineSegment(Point a, Vector v) {
 		this.a = a;
 		this.b = a.add(v);
 	}
@@ -30,7 +30,7 @@ public class Segment {
 	/** Change the second point spanning the segment. */
 	public void setB(Point b) { this.b = b; }
 	
-	/** Get the direction of the segment. */
+	/** Get the direction of the segment. This method returns a new object. */
 	public Vector getAToB(){ return a.vectorTo(b); }
 	
 	/** Get the length of the segment. */
@@ -63,11 +63,28 @@ public class Segment {
 		return new Point( a.x + (b.x-a.x)/2 , a.y + (b.y-a.y)/2 , a.z + (b.z-a.z)/2 ); 
 	}
 
+	/** Returns true iff the argument is a line-segment and equals this. */
+	public boolean equals(Object o){
+		if(o instanceof LineSegment) return equals((LineSegment)o);
+		return false;
+	}
+	
+	/** Returns true iff this line-segment and ls are the same. Two line-segments are not 
+	 * considered equal if they have the same end-points but in different orders. */
+	public boolean equals(LineSegment ls){
+		return a.equals(ls.a)&& b.equals(ls.b);
+	}
+	
+	/** Returns a deep clone of this line segment. */
+	public LineSegment clone(){
+		return new LineSegment(a.clone(),b.clone());
+	}
+	
 	/** Returns a string representation of this segments. */
-	public String toString(){ return "Segment3d["+a+","+b+"]"; } 
+	public String toString(){ return "Segment["+a+","+b+"]"; } 
 	
 	/** Returns a string representation of this segments with <code>dec</code> decimals precision. */
-	public String toString(int dec){ return "Segment3d["+a.toString(dec)+","+b.toString(dec)+"]"; } 
+	public String toString(int dec){ return "Segment["+a.toString(dec)+","+b.toString(dec)+"]"; } 
 	
 	/** Writes this segment to <code>System.out</code>. */
 	public void toConsole(){ System.out.println(toString()); }

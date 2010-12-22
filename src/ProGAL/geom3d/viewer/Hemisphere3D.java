@@ -14,16 +14,15 @@ import ProGAL.geom3d.*;
  * along the y-axis. It is rendered using a TriangleArray and by default uses 210 triangles. 
  * @author R.Fonseca
  */
-public class Hemisphere3D extends Shape3D {
-	private int divisions = 14;
+class Hemisphere3D extends Shape3D {
 
 	/** Construct the hemisphere shape. 
 	 * @param radius The radius of the hemisphere. 
 	 * @param app Appearance of the hemisphere. 
 	 */
-	public Hemisphere3D(float radius, Appearance app) {
+	public Hemisphere3D(float radius, Appearance app, int divisions) {
 		super();
-
+		
 		List<Point> verts = new LinkedList<Point>();
 		List<Vector> normals = new LinkedList<Vector>();
 

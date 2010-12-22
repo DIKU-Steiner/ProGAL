@@ -16,15 +16,14 @@ import ProGAL.geom3d.Vector;
  * and by default uses 14 triangles. 
  * @author R.Fonseca
  */
-public class HollowCylinder3D extends Shape3D {
-	private int divisions = 14;
+class HollowCylinder3D extends Shape3D {
 
 	/** Construct the cylinder shape. 
 	 * @param height The distance between the defining points.
 	 * @param radius The radius of the cylinder. 
 	 * @param app Appearance of the cylinder. 
 	 */
-	public HollowCylinder3D(float height, float radius, Appearance app) {
+	public HollowCylinder3D(float height, float radius, Appearance app, int divisions) {
 		super();
 
 		List<Point> verts = new LinkedList<Point>();
@@ -34,7 +33,7 @@ public class HollowCylinder3D extends Shape3D {
 		double d = PI/divisions;
 
 		double dH = height;
-		for(double theta=0;theta<PI*2;theta+=d){
+		for(double theta=0;theta<PI*2-d/2;theta+=d){
 			double y=-height/2;
 			verts.add(new Point(  r*sin(theta  )  , y   , r*cos(theta  )  ));
 			verts.add(new Point(  r*sin(theta+d)  , y   , r*cos(theta+d)  ));
