@@ -21,6 +21,10 @@ public class CEdge extends LineSegment{
 	public List<CTriangle> getAdjacentTriangles() {
 		return adjacentTriangles;
 	}
+	
+	public CVertex getPoint(int i){
+		return (CVertex)super.getPoint(i);
+	}
 
 	public boolean containsPoint(Point p){
 		return a==p||b==p;

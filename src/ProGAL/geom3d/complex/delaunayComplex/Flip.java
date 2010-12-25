@@ -2,7 +2,7 @@ package ProGAL.geom3d.complex.delaunayComplex;
 
 import ProGAL.geom3d.complex.CTetrahedron;
 
-public class Flip {
+class Flip {
 	private int id;
 	private CTetrahedron t;
 	

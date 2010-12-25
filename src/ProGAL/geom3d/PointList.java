@@ -220,7 +220,7 @@ public class PointList extends ArrayList<Point> {
 
 	/** Construct a point-list containing n uniformly distributed random points in 
 	 * the unit cube. Uses the math.Randomization class.*/
-	public static PointList genPointsInCube(int n) {
+	public static PointList generatePointsInCube(int n) {
 		PointList list = new PointList();
 		for (int i = 0; i < n; i++) 
 			list.add(new Point( 

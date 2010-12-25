@@ -1,0 +1,25 @@
+<body>
+	<p>
+	A Delaunay complex for a set of d-dimensional points is a tesselation of the points such that no point is inside 
+	the circumscribing hypersphere of the d-simplices (for the 3D case: Tetrahedra). 
+	</p>
+   
+   <p>
+   This package contains classes that are all related to building three-dimensional Delaunay complexes. The only 
+   public class is DelaunayComplex which implements SimplicialComplex. A Delaunay complex is built in the constructor 
+   of DelaunayComplex and accessed using e.g. the getTetrahedra method. 
+   <pre>
+   {@code
+   		//Generate the complex
+   		List<Point> pl = PointList.generatePointsInCube(10);
+		DelaunayComplex dc = new DelaunayComplex(pl);
+		
+		//Display the complex
+		J3DScene scene = J3DScene.createJ3DSceneInFrame();
+		for(CTetrahedron t: dc.getTetrahedra()){
+			scene.addShape(t, new Color(200,100,100,100));
+		}
+   }
+   </pre>     
+   </p>
+</body>

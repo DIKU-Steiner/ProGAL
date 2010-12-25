@@ -8,13 +8,54 @@ import java.util.Map;
 
 import java.util.HashMap;
 
-import ProGAL.geom3d.PointList;
+import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Simplex;
 import ProGAL.geom3d.complex.*;
 import ProGAL.geom3d.complex.delaunayComplex.DelaunayComplex;
 import ProGAL.geom3d.predicates.*;
 import ProGAL.geom3d.predicates.Predicates.SphereConfig;
 
+/**	<p>
+ *  An alpha complex for a set of d-dimensional points and a real number alpha is a subset of the Delaunay complex 
+ *  where all simplices that can be enclosed by an alpha-probe (a hypersphere of radius alpha), without the probe 
+ *  enclosing any points, are removed. 
+ *  </p>
+ *  
+ *  <p>
+ *  This class builds the three-dimensional alpha filtration. The alpha complex is easily extracted by using the 
+ *  <code>List<Simplex> getSimplices(double alpha)</code> method. For convenience there are also methods to retrieve 
+ *  only the edges, triangles and tetrahedra of the alpha complex. The alpha complex is built in the constructor of 
+ *  <code>AlphaComplex</code>.
+ *  
+ *  
+ *  The following example displays the alpha-complex of 20 random points using an alpha probe of radius 0.2.   
+ *  <pre>
+ *  {@code
+ *  //Generate the filtration
+ *  List<Point> pl = PointList.generatePointsInCube(20);
+ *  AlphaFiltration af = new AlphaFiltration(pl);
+ *  
+ *  //Display the alpha complex
+ *  J3DScene scene = J3DScene.createJ3DSceneInFrame();
+ *  for(CTetrahedron t: af.getTetrahedra(0.2)){
+ *     scene.addShape(t, new Color(200,100,100,100));
+ *  }
+ *  }
+ *  </pre>     
+ *  </p>
+ *  
+ *  <p>
+ *  It should be noted that the simplices returned by this class are all connected as if they were in a 
+ *  <code>DelaunayComplex</code> and if one wishes e.g. to find a component in the alpha-complex then the 
+ *  breadth-first-search should be modified to only traverse simplices that enter the alpha complex 'before' the 
+ *  desired alpha-value. To determine at which time a simplex enters the alpha complex the  
+ *  <code>double getInAlpha(Simplex s)</code>-method can be used. If the result is less than the probes radius then 
+ *  the simplex is in the complex.
+ *  
+ *  <it>TODO: Describe the use of SimplexAlphaProperties and write a good example</it>
+ *  </p>
+ * @author R. Fonseca
+ */
 public class AlphaFiltration {
 
 	private final DelaunayComplex del3d;
@@ -28,12 +69,16 @@ public class AlphaFiltration {
 	private ArrayList<CVertex> vertices = new ArrayList<CVertex>();
 	private ArrayList<Simplex> simplices = new ArrayList<Simplex>();
 	
-
-	public AlphaFiltration(PointList pl){
+	/** 
+	 * Build the alpha-filtration of the specified point-list. Note that an entire Delaunay complex 
+	 * is built as part of this constructor.
+	 */
+	public AlphaFiltration(List<Point> pl){
 		this.del3d = new DelaunayComplex(pl);
 		compute();
 	}
 
+	/** Build the alpha-filtration of the specified Delaunay complex. */
 	public AlphaFiltration(DelaunayComplex d3d){
 		this.del3d = d3d;
 		compute();
@@ -55,25 +100,33 @@ public class AlphaFiltration {
 		Collections.sort(simplices,alphaOrdering);
 	}
 
-
+	/** Get a list of tetrahedra that are part of the alpha-complex with the specified probe radius. */
 	public List<CTetrahedron> getTetrahedra(double alpha){
 		List<CTetrahedron> ret = new ArrayList<CTetrahedron>();
 		for(CTetrahedron t: tetrahedra)	if(getInAlpha(t)<alpha) ret.add(t);
 		return ret;
 	}
+
+	/** Get a list of triangles that are part of the alpha-complex with the specified probe radius. */
 	public List<CTriangle> getTriangles(double alpha){
 		List<CTriangle> ret = new ArrayList<CTriangle>();
 		for(CTriangle t: triangles)	if(getInAlpha(t)<alpha) ret.add(t);
 		return ret;
 	}
+
+	/** Get a list of edges that are part of the alpha-complex with the specified probe radius. */
 	public List<CEdge> getEdges(double alpha){
 		List<CEdge> ret = new ArrayList<CEdge>();
 		for(CEdge t: edges)	if(getInAlpha(t)<alpha) ret.add(t);
 		return ret;
 	}
+
+	/** Get a list of the vertices of the complex. */
 	public List<CVertex> getVertices(){
 		return new ArrayList<CVertex>(vertices);
 	}
+
+	/** Get a list of simplices that are part of the alpha-complex with the specified probe radius. */
 	public List<Simplex> getSimplices(double alpha) {
 		List<Simplex> ret = new ArrayList<Simplex>();
 		for(Simplex s: simplices)	if(getInAlpha(s)<alpha) ret.add(s);
@@ -81,12 +134,16 @@ public class AlphaFiltration {
 	}
 
 
-	
-
-	private double getInAlpha(Simplex s){
+	/** Return the probe-radius at which the simplex <code>s</code> enters the alpha complex. */
+	public double getInAlpha(Simplex s){
 		return propertyMap.get(s).getInAlphaComplex();
 	}
-	private boolean getOnCH(Simplex s){
+	
+	/** 
+	 * Return true iff the simplex is on the convex hull. Calling this method with a CTetrahedra 
+	 * will throw an error. 
+	 */
+	public boolean getOnCH(Simplex s){
 		SimplexAlphaProperties prop = propertyMap.get(s);
 		switch(prop.getSimplexType()){
 		case 0: return ((VertexAlphaProperties)prop).getOnConvexHull();
@@ -107,10 +164,6 @@ public class AlphaFiltration {
 		}
 		Collections.sort(tetrahedra,alphaOrdering);
 	}
-
-	public ArrayList<CTriangle> getCTriangles(){
-		return triangles;
-	}	
 
 	private void computeTriangleIntervals(){
 		for(CTriangle tri: del3d.getTriangles()){

@@ -4,7 +4,7 @@ import ProGAL.geom3d.Point;
 import ProGAL.geom3d.complex.CVertex;
 import ProGAL.geom3d.complex.CTetrahedron;
 
-public class FirstTetrahedron extends CTetrahedron{
+class FirstTetrahedron extends CTetrahedron{
 
 	FirstTetrahedron(double max){
 		super();

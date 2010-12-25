@@ -131,7 +131,7 @@ public class Matrix3x3 extends Matrix{
 	}
 
 	public static void main(String[] args){
-		PointList points = PointList.genPointsInCube(9);
+		PointList points = PointList.generatePointsInCube(9);
 		for(Point p: points) { for(int i=1;i<3;i++) p.set(i, p.get(i)*0.3); }
 		Matrix3x3 m = points.getCovariance();
 		System.out.println("m: ");

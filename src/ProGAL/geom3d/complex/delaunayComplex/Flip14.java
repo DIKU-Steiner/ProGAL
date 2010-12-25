@@ -4,7 +4,7 @@ import ProGAL.geom3d.complex.CVertex;
 import ProGAL.geom3d.complex.CTetrahedron;
 
 
-public class Flip14 {
+class Flip14 {
 
 	private Flips flips;
 	

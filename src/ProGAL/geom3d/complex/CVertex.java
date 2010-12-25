@@ -77,7 +77,9 @@ public class CVertex extends Point {
 	public void addAdjacentEdge(CEdge e){
 		adjacentEdges.add(e);
 	}
-	
+	public List<CEdge> getAdjacentEdges(){
+		return adjacentEdges;
+	}
 
 	public String toString(){ return toString(2); }
 	
