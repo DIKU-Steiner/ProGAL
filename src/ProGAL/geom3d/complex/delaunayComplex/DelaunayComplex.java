@@ -16,8 +16,7 @@ import ProGAL.geom3d.complex.SimplicialComplex;
 import ProGAL.geom3d.predicates.*;
 import ProGAL.geom3d.predicates.Predicates.SphereConfig;
 
-/** 
- *  <p>
+/** <p>
  *  A Delaunay complex for a set of d-dimensional points is a tesselation of the points such that no point is inside 
  *  the circumscribing hypersphere of the d-simplices (for the 3D case: Tetrahedra). 
  *  </p>
@@ -27,18 +26,20 @@ import ProGAL.geom3d.predicates.Predicates.SphereConfig;
  *  <code>getTetrahedra</code> method. The following example displays the Delaunay complex of ten random points. 
  *  <pre>
  *  {@code
- *    //Generate the complex
- *    List<Point> pl = PointList.generatePointsInCube(10);
- *    DelaunayComplex dc = new DelaunayComplex(pl);
+ *  //Generate the complex
+ *  List<Point> pl = PointList.generatePointsInCube(10);
+ *  DelaunayComplex dc = new DelaunayComplex(pl);
  *    
- *    //Display the complex
- *    J3DScene scene = J3DScene.createJ3DSceneInFrame();
- *    for(CTetrahedron t: dc.getTetrahedra()){
- *      scene.addShape(t, new Color(200,100,100,100));
- *    }
+ *  //Display the complex
+ *  J3DScene scene = J3DScene.createJ3DSceneInFrame();
+ *  for(CTetrahedron t: dc.getTetrahedra()){
+ *    scene.addShape(t, new Color(200,100,100,100));
+ *  }
  *  }
  *  </pre>     
  *  </p>
+ *  
+ *  @author R.Fonseca
  */
 public class DelaunayComplex implements SimplicialComplex{
 
@@ -167,7 +168,7 @@ public class DelaunayComplex implements SimplicialComplex{
 		}
 	}
 
-	/** Checks that the tetrahedra comply with the Delaunay-criteria. */
+	/** Checks that all tetrahedra comply with the Delaunay-criteria. */
 	public boolean checkTetrahedra() {
 		for(CTetrahedron t: flips.getTetrahedrastack()){
 			for(CVertex p: points){
