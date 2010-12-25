@@ -24,8 +24,6 @@ import javax.vecmath.Vector3f;
 import ProGAL.math.Matrix;
 
 import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
-import com.sun.j3d.utils.geometry.Cone;
-import com.sun.j3d.utils.geometry.Cylinder;
 import com.sun.j3d.utils.geometry.Text2D;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
@@ -185,7 +183,7 @@ public class J3DScene {
 			return;
 		}
 		if(maxDist>0){
-			this.camBehavior.setScale(2/(maxDist+10));
+			this.camBehavior.setScale(4/(maxDist+10));
 			this.repaint();
 		}
 	}
