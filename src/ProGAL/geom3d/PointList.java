@@ -187,9 +187,9 @@ public class PointList extends ArrayList<Point> {
 		LineSegment seg0 = new LineSegment(getExtremeLeft(), getExtremeRight());
 		LineSegment seg1 = new LineSegment(getExtremeBottom(), getExtremeTop());
 		LineSegment seg2 = new LineSegment(getExtremeFront(), getExtremeBack());
-		double l0 = seg0.getSquaredLength();
-		double l1 = seg1.getSquaredLength();
-		double l2 = seg2.getSquaredLength();
+		double l0 = seg0.getLengthSquared();
+		double l1 = seg1.getLengthSquared();
+		double l2 = seg2.getLengthSquared();
 		if (l0 < l1) return (l2 < l0)? seg2 : seg0;  else return (l2 < l1)?  seg2 :seg1; 
 	}
 

@@ -1,6 +1,7 @@
 package ProGAL.geom3d.volumes;
 
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.Simplex;
 import ProGAL.geom3d.Vector;
 
 /** 
@@ -9,7 +10,7 @@ import ProGAL.geom3d.Vector;
  *  
  * @author R. Fonseca
  */
-public class Tetrahedron implements Volume {
+public class Tetrahedron implements Simplex, Volume {
 	protected Point[] corners = new Point[4];
 
 	public Tetrahedron(Point p1, Point p2, Point p3, Point p4){
@@ -94,5 +95,22 @@ public class Tetrahedron implements Volume {
 	public Volume clone(){
 		return new Tetrahedron(corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone());
 	}
+
+
+	/** Return a string representation of this tetrahedron. */
+	public String toString() {
+		return toString(2);
+	}
+	
+	/** Return a string representation of this tetrahedron with <code>dec</code> decimals precision */
+	public String toString(int dec) {
+		return String.format("Tetrahedron[%s,%s,%s,%s]",corners[0].toString(dec),corners[1].toString(dec),corners[2].toString(dec),corners[3].toString(dec));
+	}
+	
+	/** Writes this tetrahedron to <code>System.out</code>. */
+	public void toConsole() { System.out.println(toString()); }
+	
+	/** Writes this tetrahedron to <code>System.out</code> with <code>dec</code> decimals precision. */
+	public void toConsole(int dec) { System.out.println(toString(dec)); }
 	
 }

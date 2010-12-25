@@ -132,7 +132,8 @@ public class J3DScene {
 	public void addShape(Shape v, Color c){	
 		primitives.put(v, c);
 		Node p = genPrimitive(v, c);
-		scene.addChild(p);
+		if(p!=null)
+			scene.addChild(p);
 	}
 	/** Add a volume object with a specified color and detail-level */
 	public void addShape(Shape v, Color c, int divisions){	

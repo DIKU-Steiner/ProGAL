@@ -3,7 +3,7 @@ package ProGAL.geom3d;
 /**
  * A line segment spanned by two points, a and b.  
  */
-public class LineSegment {
+public class LineSegment implements Simplex{
 	protected Point a, b;
 
 	/** Constructs a segment between points a and b. */
@@ -34,10 +34,10 @@ public class LineSegment {
 	public Vector getAToB(){ return a.vectorTo(b); }
 	
 	/** Get the length of the segment. */
-	public double getLength() { return Math.sqrt(getSquaredLength()); }
+	public double getLength() { return Math.sqrt(getLengthSquared()); }
 	
 	/** Get the squared length of the segment. */
-	public double getSquaredLength() { 
+	public double getLengthSquared() { 
 		double bax = b.x - a.x, bay = b.y - a.y, baz = b.z - a.z;
 		return bax*bax + bay*bay + baz*baz;
 	}
@@ -63,6 +63,22 @@ public class LineSegment {
 		return new Point( a.x + (b.x-a.x)/2 , a.y + (b.y-a.y)/2 , a.z + (b.z-a.z)/2 ); 
 	}
 
+	/**
+	 * Returns the mid-point of this line-segment. Since a line-segment can be interpreted as 
+	 * a geometric shape (a 1-simplex) the Shape interface requires the getCenter method to be implemented.
+	 * TODO: Test
+	 */
+	public Point getCenter() {
+		return getMidPoint();
+	}
+	
+	/** TODO: Comment and test */
+	public Point getPoint(int i) {
+		if(i<0 || i>1) throw new IllegalArgumentException("Invalid index ("+i+") 1-simplex has two points only");
+		if(i==0) return a;
+		else return b;
+	}
+	
 	/** Returns true iff the argument is a line-segment and equals this. */
 	public boolean equals(Object o){
 		if(o instanceof LineSegment) return equals((LineSegment)o);
@@ -91,4 +107,6 @@ public class LineSegment {
 	
 	/** Writes this segment to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec){ System.out.println(toString(dec)); }
+
+
 }

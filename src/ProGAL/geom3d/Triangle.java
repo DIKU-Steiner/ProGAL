@@ -3,7 +3,7 @@ package ProGAL.geom3d;
 /**
  * A triangle in (x,y,z)-space represented by the three corner-points.
  */
-public class Triangle implements Shape{
+public class Triangle implements Simplex{
 	protected Point p1, p2, p3;
 
 	/** Construct a triangle using the three specified points as corners */

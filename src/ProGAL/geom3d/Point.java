@@ -5,7 +5,7 @@ import ProGAL.math.Constants;
 /** 
  *  A point in (x,y,z)-space represented with double precision. 
  */
-public class Point {
+public class Point implements Simplex{
 	protected double x,y,z;
 
 	/** Construct a point with the specified coordinates. */
@@ -186,6 +186,20 @@ public class Point {
 		return this.getCoord(k) > q.getCoord(k);
 	}
 
+	/** 
+	 * Returns a clone of this point. Since a point can be interpreted as a geometric shape 
+	 * (a 0-simplex) the Shape interface requires the getCenter method to be implemented.
+	 * TODO: Test
+	 */
+	public Point getCenter() {
+		return clone();
+	}
+	
+	public Point getPoint(int i){
+		if(i!=0) throw new IllegalArgumentException("Invalid index ("+i+") 0-simplex has one point only");
+		return this;
+	}
+	
 	/** Returns true iff o is a point that equals this point. */
 	public boolean equals(Object o){
 		if(o instanceof Point) return equals((Point)o);
@@ -218,6 +232,7 @@ public class Point {
 	public void toConsole() { System.out.println(toString()); }
 	/** Writes this point to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
+	
 
 
 }
