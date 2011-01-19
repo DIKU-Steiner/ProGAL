@@ -54,6 +54,20 @@ public class Tetrahedron implements Simplex, Volume {
 		return Math.abs(a.dot(b.crossThis(c)))/6.0;
 	}
 
+
+	/** Calculate the radius of the insphere. */
+	public double getInradius(){
+		Vector a = corners[3].vectorTo(corners[0]);
+		Vector b = corners[3].vectorTo(corners[1]);
+		Vector c = corners[3].vectorTo(corners[2]);
+		Vector bXc = b.cross(c);
+		double sixV = Math.abs(a.dot(bXc));
+		Vector cXa = c.crossThis(a);
+		Vector aXb = a.crossThis(b);
+		double denom = bXc.getLength()+cXa.getLength()+aXb.getLength()+( bXc.addThis(cXa).addThis(aXb).getLength() );
+		return sixV/denom;
+	}
+	
 	/** Calculate the radius of the circumsphere. */
 	public double getCircumradius(){
 		Vector a = corners[3].vectorTo(corners[0]);
@@ -63,7 +77,7 @@ public class Tetrahedron implements Simplex, Volume {
 		O.addThis(c.cross(a).multiplyThis(b.dot(b)));
 		O.addThis(a.cross(b).multiplyThis(c.dot(c)));
 		O.multiplyThis(1.0/(2*a.dot(b.crossThis(c))));
-		return O.length();
+		return O.getLength();
 	}
 	
 
@@ -78,6 +92,27 @@ public class Tetrahedron implements Simplex, Volume {
 		O.multiplyThis(1.0/(2*a.dot(b.crossThis(c))));
 		return corners[3].add(O);
 	}
+	
+
+	/** Find the center of the inscribed sphere. */
+	public Point getIncenter(){
+		Vector a = corners[3].vectorTo(corners[0]);
+		Vector b = corners[3].vectorTo(corners[1]);
+		Vector c = corners[3].vectorTo(corners[2]);
+		Vector bXc = b.cross(c);
+		Vector cXa = c.cross(a);
+		Vector aXb = a.cross(b);
+		double bXcLength = bXc.getLength();
+		double cXaLength = cXa.getLength();
+		double aXbLength = aXb.getLength();
+		double dLength = bXc.addThis(cXa).addThis(aXb).getLength();
+		Vector O = a.multiplyThis(bXcLength);
+		O.addThis(b.multiplyThis(cXaLength));
+		O.addThis(c.multiplyThis(aXbLength));
+		O.divideThis(bXcLength+cXaLength+aXbLength+dLength );
+		return corners[3].add(O);
+	}
+	
 	
 	public Point getCenter() {
 		return getCircumcenter();

@@ -40,7 +40,7 @@ public class Plane implements Shape{
 	}
 	
 	private double getD(){
-		return -normal.x*point.x - normal.y*point.y - normal.z*point.z;
+		return -normal.getX()*point.getX() - normal.getY()*point.getY() - normal.getZ()*point.getZ();
 	}
 	
 	/** Get the point defining this plane. */
@@ -56,8 +56,8 @@ public class Plane implements Shape{
 
 	/** Get the projection of p onto this plane. */
 	public Point projectPoint(Point p) {
-		double t = normal.x*p.x + normal.y*p.y + normal.z*p.z + getD();
-		return new Point(p.x - normal.x*t, p.y - normal.y*t, p.z - normal.z*t);
+		double t = normal.getX()*p.getX() + normal.getY()*p.getY() + normal.getZ()*p.getZ() + getD();
+		return new Point(p.getX() - normal.getX()*t, p.getY() - normal.getY()*t, p.getZ() - normal.getZ()*t);
 	}
 
 	/** Returns 1/0/-1 if point p is above/on/below this plane. */
@@ -92,7 +92,7 @@ public class Plane implements Shape{
 			Point a = line.getP();
 			Vector pa = point.vectorTo(a);
 			double u = normal.dot(pa)/denom;
-			return new Point(a.x + u*line.dir.x, a.y + u*line.dir.y, a.z + u*line.dir.z);
+			return new Point(a.getX() + u*line.dir.getX(), a.getY() + u*line.dir.getY(), a.getZ() + u*line.dir.getZ());
 		}
 	}
 	
@@ -120,7 +120,7 @@ public class Plane implements Shape{
 			Vector pa = point.vectorTo(sgm.a);
 			double u = normal.dot(pa)/denom;
 			if ((u < 0) || (u > 1)) return null;
-			else return new Point(sgm.a.x + u*dir.x, sgm.a.y + u*dir.y, sgm.a.z + u*dir.z);
+			else return new Point(sgm.a.getX() + u*dir.getX(), sgm.a.getY() + u*dir.getY(), sgm.a.getZ() + u*dir.getZ());
 		}
 	}
 

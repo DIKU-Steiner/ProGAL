@@ -17,10 +17,13 @@ import com.sun.image.codec.jpeg.JPEGCodec;
 import com.sun.image.codec.jpeg.JPEGEncodeParam;
 import com.sun.image.codec.jpeg.JPEGImageEncoder;
 
-/** Toolbox for performing various tasks with a J3DScene, e.g. exporting image files.
+/** 
+ * A wrapper class for exporting image files from a J3DScene. A scene is written by 
+ * passing the Canvas3D object to one of the methods in this class. The Canvas3D object 
+ * is accessed using the getCanvas() method in J3DScene. 
  * @author R. Fonseca
  */
-public class Toolbox {
+public class J3DImageFileWriter {
 
 
 	/** Writes the current view in a <code>Canvas3D</code> object to an JPG file */

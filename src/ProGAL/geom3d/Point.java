@@ -5,23 +5,29 @@ import ProGAL.math.Constants;
 /** 
  *  A point in (x,y,z)-space represented with double precision. 
  */
-public class Point implements Simplex{
-	protected double x,y,z;
+public class Point extends ProGAL.geomNd.Point implements Simplex{
+//	protected double x,y,z;
 
 	/** Construct a point with the specified coordinates. */
-	public Point(double x, double y, double z) { this.x = x; this.y = y; this.z = z; }
+	public Point(double x, double y, double z) { 
+		super(new double[]{x,y,z});
+	}
 	/** Construct a point that is a clone of p. */
-	public Point(Point p) { x = p.x; y = p.y; z = p.z; }
+	public Point(Point p) { 
+		super(new double[]{p.coords[0],p.coords[1],p.coords[2]});
+	}
 	/** Construct a point at the coordinates of v. */
-	public Point(Vector v) { x = v.x; y = v.y; z = v.z; }
+	public Point(Vector v) { 
+		super(new double[]{v.getX(),v.getY(),v.getZ()});
+	}
 
 	
 	/** Get the i'th coordinate. */
 	public double getCoord(int i) {
 		switch(i){
-		case 0: return x;
-		case 1: return y;
-		case 2: return z;
+		case 0: return coords[0];
+		case 1: return coords[1];
+		case 2: return coords[2];
 		}
 		throw new Error("Trying to get invalid coordinate");
 	}
@@ -30,34 +36,22 @@ public class Point implements Simplex{
 	public double get(int i) { return getCoord(i); }
 
 	/** Get the first coordinate. */
-	public double getX() { return x; }
+	public double getX() { return coords[0]; }
 	/** Get the second coordinate. */
-	public double getY() { return y; }
+	public double getY() { return coords[1]; }
 	/** Get the third coordinate. */
-	public double getZ() { return z; }
+	public double getZ() { return coords[2]; }
 	
-	/** Set the i'th coordinate to v */
-	public void setCoord(int i, double v){
-		switch(i){
-		case 0: this.x = v;return;
-		case 1: this.y = v;return;
-		case 2: this.z = v;return;
-		}
-	}
-	
-	/** Set the i'th coordinate to v */
-	public void set(int i, double v){ setCoord(i,v); }
-
 	/** Set the first coordinate */
-	public void setX(double x) { this.x = x; }
+	public void setX(double x) { this.coords[0] = x; }
 	/** Set the second coordinate */
-	public void setY(double y) { this.y = y; }
+	public void setY(double y) { this.coords[1] = y; }
 	/** Set the third coordinate */
-	public void setZ(double z) { this.z = z; }
+	public void setZ(double z) { this.coords[2] = z; }
 	
 	/** Get the vector that points from this point to p */
 	public Vector vectorTo(Point p){
-		return new Vector(p.x-x, p.y-y, p.z-z);
+		return new Vector(p.coords[0]-coords[0], p.coords[1]-coords[1], p.coords[2]-coords[2]);
 	}
 
 	/** 
@@ -67,15 +61,15 @@ public class Point implements Simplex{
 	public static boolean collinear(Point p0, Point p1, Point p2) {
 		Vector v1v0 = p1.vectorTo(p0);
 		Vector v1v2 = p1.vectorTo(p2);
-		return v1v0.cross(v1v2).lengthSquared()<Constants.EPSILON;
+		return v1v0.cross(v1v2).getLengthSquared()<Constants.EPSILON;
 	}
 
 	/** Returns true if four specified points are in the same plane	 */
 	public static boolean coplanar(Point p0, Point p1, Point p2, Point p3) {
-		double ax = p0.x; double ay = p0.y; double az = p0.z;
-		double bx = p1.x; double by = p1.y; double bz = p1.z;
-		double cx = p2.x; double cy = p2.y; double cz = p2.z;
-		double dx = p3.x; double dy = p3.y; double dz = p3.z;
+		double ax = p0.coords[0]; double ay = p0.coords[1]; double az = p0.coords[2];
+		double bx = p1.coords[0]; double by = p1.coords[1]; double bz = p1.coords[2];
+		double cx = p2.coords[0]; double cy = p2.coords[1]; double cz = p2.coords[2];
+		double dx = p3.coords[0]; double dy = p3.coords[1]; double dz = p3.coords[2];
 		return   Math.abs(
 				-az*by*cx + ay*bz*cx + az*bx*cy - ax*bz*cy
 				-ay*bx*cz + ax*by*cz + az*by*dx - ay*bz*dx
@@ -88,46 +82,46 @@ public class Point implements Simplex{
 
 	/** Translates this point by (x,y,z). */
 	public void translate(double dx, double dy, double dz) {
-		this.x += dx;
-		this.y += dy;
-		this.z += dz;
+		this.coords[0] += dx;
+		this.coords[1] += dy;
+		this.coords[2] += dz;
 	}
 	
 	/** Scale this point by a factor s */
 	public void scale(double s){
-		this.x*=s;
-		this.y*=s;
-		this.z*=s;
+		this.coords[0]*=s;
+		this.coords[1]*=s;
+		this.coords[2]*=s;
 	}
 	
 	/** Returns p added to this (changing this object). */
-	public Point addThis(Vector p) { translate(p.x,p.y,p.z); return this; }
+	public Point addThis(Vector p) { translate(p.getX(),p.getY(),p.getZ()); return this; }
 	
 	/** Returns p added to this (without changing this object). */
-	public Point add(Vector p) { return new Point(x+p.x, y+p.y, z+p.z); }
+	public Point add(Vector p) { return new Point(coords[0]+p.getX(), coords[1]+p.getY(), coords[2]+p.getZ()); }
 	
 	/** Returns p subtracted from this (changing this object). */
-	public Point subtractThis(Vector p) { x-=p.x; y-=p.y; z-=p.z; return this;	}
+	public Point subtractThis(Vector p) { coords[0]-=p.getX(); coords[1]-=p.getY(); coords[2]-=p.getZ(); return this;	}
 	
 	/** Returns p subtracted from this (without changing this object). */
-	public Point subtract(Vector p) {return new Point(x-p.x,y-p.y,z-p.z);	}
+	public Point subtract(Vector p) {return new Point(coords[0]-p.getX(),coords[1]-p.getY(),coords[2]-p.getZ());	}
 	
 	/** Reflects this point through origo. */
-	public Point reflectThroughOrigoThis() { x*=-1; y*=-1; z*=-1; return this; }
+	public Point reflectThroughOrigoThis() { coords[0]*=-1; coords[1]*=-1; coords[2]*=-1; return this; }
 
 	/** Get the squared distance from this point to point q. */
 	public double getDistanceSquared(Point q) {
-		double dx = x-q.x;
-		double dy = y-q.y;
-		double dz = z-q.z;
+		double dx = coords[0]-q.coords[0];
+		double dy = coords[1]-q.coords[1];
+		double dz = coords[2]-q.coords[2];
 		return dx*dx+dy*dy+dz*dz;
 	}
 
 	/** Get the distance from this point to point q */
 	public double getDistance(Point q) { 
-		double dx = x-q.x;
-		double dy = y-q.y;
-		double dz = z-q.z;
+		double dx = coords[0]-q.coords[0];
+		double dy = coords[1]-q.coords[1];
+		double dz = coords[2]-q.coords[2];
 		return Math.sqrt(dx*dx+dy*dy+dz*dz); 
 	}
 
@@ -140,7 +134,7 @@ public class Point implements Simplex{
 	
 	/** Creates the midpoint of two points. */
 	public static Point getMidpoint(Point p, Point q) {
-		return new Point((p.x + q.x)/2,(p.y + q.y)/2,(p.z + q.z)/2);		
+		return new Point( (p.coords[0] + q.coords[0])/2,(p.coords[1] + q.coords[1])/2,(p.coords[2] + q.coords[2])/2 );		
 	}
 
 
@@ -165,11 +159,11 @@ public class Point implements Simplex{
 	 * y-coordinate is considered and so forth.
 	 */
 	public boolean dominates(Point q) { 
-		if (x > q.x) return true;
-		if (x < q.x) return false;
-		if (y > q.y) return true;
-		if (y < q.y) return false; 
-		return z > q.z;
+		if (coords[0] > q.coords[0]) return true;
+		if (coords[0] < q.coords[0]) return false;
+		if (coords[1] > q.coords[1]) return true;
+		if (coords[1] < q.coords[1]) return false; 
+		return coords[2] > q.coords[2];
 	}
 
 	/**
@@ -207,25 +201,25 @@ public class Point implements Simplex{
 	}
 	
 	/** Returns true iff this point and point p are overlapping. */
-	public boolean equals(Point p) { return x == p.x && y == p.y && z == p.z; }
+	public boolean equals(Point p) {
+		if(Math.abs(coords[0]-p.coords[0])>Constants.EPSILON) return false;
+		if(Math.abs(coords[1]-p.coords[1])>Constants.EPSILON) return false;
+		if(Math.abs(coords[2]-p.coords[2])>Constants.EPSILON) return false;
+		return true;
+	}
 
 	/** Return a new object that equals this object. */
-	public Point clone(){ return new Point(x,y,z); }
+	public Point clone(){ return new Point(coords[0], coords[1], coords[2]); }
 	
 	/** Returns the vector from origo to this point. Converts this point to a vector. */
-	public Vector toVector() { return new Vector(x, y, z); }
-
-	/** Convert this point to a double-array */
-	public double[] toDoubleArray() { 
-		return new double[]{x, y, z}; 
-	}
+	public Vector toVector() { return new Vector(coords[0], coords[1], coords[2]); }
 
 	/** Returns a string-representation of this point formatted with two decimals precision. */ 
 	public String toString() {	return toString(2); }
 
 	/** Returns a string-representation of this point formatted with <code>dec</code> decimals precision. */ 
 	public String toString(int dec) {
-		return String.format("Point3d[%."+dec+"f,%."+dec+"f,%."+dec+"f]", x,y,z); 
+		return String.format("Point[%."+dec+"f,%."+dec+"f,%."+dec+"f]", coords[0], coords[1], coords[2]); 
 	}	
 
 	/** Writes this point to <code>System.out</code>. */

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.Vector;
 import ProGAL.geom3d.complex.CEdge;
 import ProGAL.geom3d.complex.CTriangle;
 import ProGAL.geom3d.complex.CVertex;
@@ -15,6 +16,7 @@ import ProGAL.geom3d.complex.CTetrahedron;
 import ProGAL.geom3d.complex.SimplicialComplex;
 import ProGAL.geom3d.predicates.*;
 import ProGAL.geom3d.predicates.Predicates.SphereConfig;
+import ProGAL.math.Randomization;
 
 /** <p>
  *  A Delaunay complex for a set of d-dimensional points is a tesselation of the points such that no point is inside 
@@ -22,7 +24,7 @@ import ProGAL.geom3d.predicates.Predicates.SphereConfig;
  *  </p>
  *  
  *  <p>
- *  This class builds a three-dimensional Delaunay complexes in the constructor and accesses it using e.g. the 
+ *  This class builds a three-dimensional Delaunay complex in the constructor and accesses it using e.g. the 
  *  <code>getTetrahedra</code> method. The following example displays the Delaunay complex of ten random points. 
  *  <pre>
  *  {@code
@@ -38,6 +40,25 @@ import ProGAL.geom3d.predicates.Predicates.SphereConfig;
  *  }
  *  </pre>     
  *  </p>
+ *  <p>The original point-set is left unaltered and non-referenced by this class. A new set of vertices are 
+ *  allocated using the CVertex class. These are randomly permuted to avoid degeneracies. If one wishes to 
+ *  associate the original points with a vertex in the complex it would be sufficient to test if the distance 
+ *  between the point and the vertex is less than 0.0001.</p>
+ *  
+ *  <p>The complex is bounded by a big tetrahedron whose corner-points are located sufficiently far from any of 
+ *  the vertices of the complex. The simplices that have one of these 'big points' as corners can not be accessed 
+ *  directly via the getter-methods, but they will be neighbors of other normal simplices. For instance:
+ *  <pre>
+ *  DelaunayComplex dc = new DelaunayComplex( PointList.generatePointsInCube(4) );
+ *  for(CTetrahedron t: dc.getTetrahedra()){
+ *  	System.out.println( t.containsBigPoint() );
+ *  	System.out.println( t.getNeighbor(0).containsBigPoint() );
+ *  	System.out.println( t.getNeighbor(1).containsBigPoint() );
+ *  	System.out.println( t.getNeighbor(2).containsBigPoint() );
+ *  	System.out.println( t.getNeighbor(3).containsBigPoint() );
+ *  }
+ *  </pre> 
+ *  Will print false, true, true, true and true.</p>
  *  
  *  @author R.Fonseca
  */
@@ -52,12 +73,14 @@ public class DelaunayComplex implements SimplicialComplex{
 	private final Flip14 f14;
 	private final Flips flips;
 
+	/** Builds the Delaunay complex of the specified point-set */
 	public DelaunayComplex(List<Point> points) {
 		this.points = new ArrayList<CVertex>(points.size());
 		for(Point p: points) this.points.add(new CVertex(p));
 		this.edges = new ArrayList<CEdge>(points.size()*6);
 		this.triangles = new ArrayList<CTriangle>(points.size()*6);
 		this.tetrahedra = new ArrayList<CTetrahedron>(points.size()*6);
+		
 		this.predicates = new ExactJavaPredicates();
 		this.walk = new Walk(predicates);
 		this.flips = new Flips(predicates);
@@ -66,21 +89,35 @@ public class DelaunayComplex implements SimplicialComplex{
 		compute();
 	}
 
+	/** Get the tetrahedra in the complex. The tetrahedra that has 'big points' as corners are not returned */
 	public List<CTetrahedron> getTetrahedra() {
 		return new ArrayList<CTetrahedron>(tetrahedra);
 	}
+	/** Get the triangles in the complex. The triangles that has 'big points' as corners are not returned */
 	public List<CTriangle> getTriangles(){
 		return new ArrayList<CTriangle>(triangles);
 	}
+	/** Get the edges in the complex. The edges that has 'big points' as end-points are not returned */
 	public List<CEdge> getEdges(){
 		return new ArrayList<CEdge>(edges);
 	}
+	/** Get the vertices in the complex. The 'big points' are not returned */
 	public List<CVertex> getVertices(){
 		return new ArrayList<CVertex>(points);
 	}
 
 	private void compute() {
 		double max = 1000;//TODO find a more meaningful max
+		
+		//TODO: Take care of degeneracies in a better way than permutation
+		for(CVertex v: points){
+			v.addThis(new Vector(
+					Randomization.randBetween(-0.00001, 0.00001),
+					Randomization.randBetween(-0.00001, 0.00001),
+					Randomization.randBetween(-0.00001, 0.00001)
+					)
+			);
+		}
 
 		//Find the enclosing tetrahedron
 		CTetrahedron next_t = new FirstTetrahedron(max);
@@ -104,11 +141,11 @@ public class DelaunayComplex implements SimplicialComplex{
 	private void completeComplex() {
 		//Add the non-modified tetrahedra that doesnt contain one of the big points
 		for(CTetrahedron t: flips.getTetrahedrastack()){
-			if (!t.isModified() &&!t.containsBigPoint()){
+			if (!t.isModified() && !t.containsBigPoint()){
 				tetrahedra.add(t);
 			}
 		}
-		
+		flips.setTetrahedrastack(null);//Should free up some memory after garbage collection
 		
 		class VertexPair{
 			CVertex p1, p2;
@@ -135,6 +172,7 @@ public class DelaunayComplex implements SimplicialComplex{
 			edgeMap.put( new VertexPair(t.getPoint(2),t.getPoint(3)),new CEdge(t.getPoint(2),t.getPoint(3)) );
 		}
 		edges.addAll(edgeMap.values());
+		
 		for(CEdge e: edges){
 			((CVertex)e.getA()).addAdjacentEdge(e);
 			((CVertex)e.getB()).addAdjacentEdge(e);
@@ -153,6 +191,9 @@ public class DelaunayComplex implements SimplicialComplex{
 			CEdge e1 = edgeMap.get(new VertexPair((CVertex)t.getPoint(0),(CVertex)t.getPoint(1)));
 			CEdge e2 = edgeMap.get(new VertexPair((CVertex)t.getPoint(1),(CVertex)t.getPoint(2)));
 			CEdge e3 = edgeMap.get(new VertexPair((CVertex)t.getPoint(2),(CVertex)t.getPoint(0)));
+			t.setEdge(0, e1);
+			t.setEdge(1, e2);
+			t.setEdge(2, e3);
 			e1.addTriangle(t);
 			e2.addTriangle(t);
 			e3.addTriangle(t);
@@ -165,12 +206,18 @@ public class DelaunayComplex implements SimplicialComplex{
 			else if(tet.getNeighbour(1).containsTriangle(t)) tet.setTriangle(1, t);
 			else if(tet.getNeighbour(2).containsTriangle(t)) tet.setTriangle(2, t);
 			else if(tet.getNeighbour(3).containsTriangle(t)) tet.setTriangle(3, t);
+
+			tet = t.getNeighbour(1);
+			if(tet.getNeighbour(0).containsTriangle(t)) tet.setTriangle(0, t);
+			else if(tet.getNeighbour(1).containsTriangle(t)) tet.setTriangle(1, t);
+			else if(tet.getNeighbour(2).containsTriangle(t)) tet.setTriangle(2, t);
+			else if(tet.getNeighbour(3).containsTriangle(t)) tet.setTriangle(3, t);
 		}
 	}
 
 	/** Checks that all tetrahedra comply with the Delaunay-criteria. */
 	public boolean checkTetrahedra() {
-		for(CTetrahedron t: flips.getTetrahedrastack()){
+		for(CTetrahedron t: tetrahedra){
 			for(CVertex p: points){
 				if(		t.getPoint(0)!=p && 
 						t.getPoint(1)!=p && 

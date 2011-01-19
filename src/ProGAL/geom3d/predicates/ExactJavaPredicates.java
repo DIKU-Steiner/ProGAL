@@ -38,18 +38,20 @@ public class ExactJavaPredicates extends Predicates{
 
 	@Override
 	public double circumradius(Triangle tri){
-		double radius = tricircumradius3d(	
-				tri.getPoint(0).getX(),tri.getPoint(0).getY(),tri.getPoint(0).getZ(),
-				tri.getPoint(1).getX(),tri.getPoint(1).getY(),tri.getPoint(1).getZ(),
-				tri.getPoint(2).getX(),tri.getPoint(2).getY(),tri.getPoint(2).getZ() );
-
-		return radius;
+//		double radius = tricircumradius3d(	
+//				tri.getPoint(0).getX(),tri.getPoint(0).getY(),tri.getPoint(0).getZ(),
+//				tri.getPoint(1).getX(),tri.getPoint(1).getY(),tri.getPoint(1).getZ(),
+//				tri.getPoint(2).getX(),tri.getPoint(2).getY(),tri.getPoint(2).getZ() );
+//		
+//		return radius;
+		return tri.getCircumradius();
 	}
 
 
 	@Override
 	public double orient(Point p0, Point p1, Point p2, Point q){
-		double orient = orient3d(	p0.getX(),p0.getY(),p0.getZ(),
+		double orient = orient3d(	
+				p0.getX(),p0.getY(),p0.getZ(),
 				p1.getX(),p1.getY(),p1.getZ(),
 				p2.getX(),p2.getY(),p2.getZ(),
 				q.getX(),q.getY(),q.getZ());
@@ -61,6 +63,7 @@ public class ExactJavaPredicates extends Predicates{
 	public SphereConfig insphere(Point p0, Point p1, Point p2, Point p3, Point q){
 		double orient = orient(p0,p1,p2,p3);
 		if(orient==0){
+//			System.out.println("insphere(...) COPLANAR");
 			return SphereConfig.COPLANAR;
 		}
 
@@ -72,26 +75,40 @@ public class ExactJavaPredicates extends Predicates{
 
 		if(orient>0){
 			if(result>0){
+
+//				System.out.println("insphere(...) INSIDE");
 				return SphereConfig.INSIDE;
 			}
 			if(result<0){
+
+//				System.out.println("insphere(...) OUTSIDE");
 				return SphereConfig.OUTSIDE;
 			}
 			if(result==0){
+
+//				System.out.println("insphere(...) ON");
 				return SphereConfig.ON;
 			}
 		}
 		if(orient<0){
 			if(result>0){
+
+//				System.out.println("insphere(...) OUTSIDE");
 				return SphereConfig.OUTSIDE;
 			}
 			if(result<0){
+
+//				System.out.println("insphere(...) INSIDE");
 				return SphereConfig.INSIDE;
 			}
 			if(result==0){
+
+				System.out.println("insphere(...) ON");
 				return SphereConfig.ON;
 			} 
 		}
+
+//		System.out.println("insphere(...) NULL");
 		return null;
 	}
 
@@ -107,9 +124,17 @@ public class ExactJavaPredicates extends Predicates{
 				p2.getX(),p2.getY(),p2.getZ(),
 				q.getX(),q.getY(),q.getZ()	);
 
-		if(result>0) 		return SphereConfig.INSIDE;
-		else if(result<0) 	return SphereConfig.OUTSIDE;		
-		else				return SphereConfig.ON;
+		if(result>0){
+//			System.out.println("insphere(...4x...) INSIDE");
+			return SphereConfig.INSIDE;
+		}
+		else if(result<0) {
+//			System.out.println("insphere(...4x...) OUTSIDE");
+			return SphereConfig.OUTSIDE;		
+		}else {
+//			System.out.println("insphere(...4x...) ON");
+			return SphereConfig.ON;
+		}
 	}
 
 	@Override
@@ -120,13 +145,22 @@ public class ExactJavaPredicates extends Predicates{
 	@Override
 	public PlaneConfig diffsides(Point p0, Point p1, Point p2, Point q0, Point q1){
 		double a,b;
-
+//		System.out.printf("p0=%s p1=%s p2=%s q0=%s q1=%s\n",p0.toString(),p1.toString(),p2.toString(),q0.toString(),q1.toString());
 		a=orient(p0,p1,p2,q0);
 		b=orient(p0,p1,p2,q1);
-
-		if((a>0 && b<0) || (a<0 && b>0)) return PlaneConfig.DIFF;
-		if((a>0 && b>0) || (a<0 && b<0)) return PlaneConfig.SAME;
-		if(a==0 || b==0) return PlaneConfig.COPLANAR;
+//		System.out.printf("a=%f, b=%f\n",a,b);
+		if(a==0 || b==0) {
+//			System.out.println("diffsides() COPLANAR");
+			return PlaneConfig.COPLANAR;
+		}
+		if((a>0 && b<0) || (a<0 && b>0)) {
+//			System.out.println("diffsides() DIFF");
+			return PlaneConfig.DIFF;
+		}
+		if((a>0 && b>0) || (a<0 && b<0)) {
+//			System.out.println("diffsides() SAME");
+			return PlaneConfig.SAME;
+		}
 
 		//never happens
 		return null;		
@@ -153,10 +187,9 @@ public class ExactJavaPredicates extends Predicates{
 	}
 
 
-
-
-
-
+	
+	
+	
 
 
 	private double splitter;
@@ -1135,6 +1168,7 @@ public class ExactJavaPredicates extends Predicates{
 		+ (((adxbdy) >= 0.0 ? (adxbdy) : -(adxbdy)) + ((bdxady) >= 0.0 ? (bdxady) : -(bdxady))) * ((cdz) >= 0.0 ? (cdz) : -(cdz));
 		errbound = o3derrboundA * permanent;
 		if ((det > errbound) || (-det > errbound)) {
+//			System.out.println("Returning early "+det+" .. "+errbound);
 			return det;
 		}
 

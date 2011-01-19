@@ -38,8 +38,7 @@ public class LineSegment implements Simplex{
 	
 	/** Get the squared length of the segment. */
 	public double getLengthSquared() { 
-		double bax = b.x - a.x, bay = b.y - a.y, baz = b.z - a.z;
-		return bax*bax + bay*bay + baz*baz;
+		return a.getDistanceSquared(b);
 	}
 	
 	/** Get the point on the segment closest to a given point q. This method always returns 
@@ -49,7 +48,7 @@ public class LineSegment implements Simplex{
 		Vector aq = a.vectorTo(q);;
 		double t = dir.dot(aq)/dir.getLengthSquared();
 		t = Math.min(1, Math.max(0,t));
-		return new Point(a.x + t*dir.x, a.y + t*dir.y, a.z + t*dir.z);
+		return new Point(a.getX() + t*dir.getX(), a.getY() + t*dir.getY(), a.getZ() + t*dir.getZ());
 	}
 
 	/** Gets the squared distance from q to the nearest point on this segment. */
@@ -60,7 +59,7 @@ public class LineSegment implements Simplex{
 	
 	/** Gets the midpoint of the segment. */
 	public Point getMidPoint() { 
-		return new Point( a.x + (b.x-a.x)/2 , a.y + (b.y-a.y)/2 , a.z + (b.z-a.z)/2 ); 
+		return Point.getMidpoint(a, b);
 	}
 
 	/**

@@ -554,13 +554,4 @@ public class PointTest {
 		assertTrue(v.equals(new Vector(10,20,3.1415)));
 	}
 
-	@Test
-	public void testToDoubleArray() {
-		Point p = new Point(10,20,3.1415);
-		assertEquals(10, p.toDoubleArray()[0], Constants.EPSILON);
-		assertEquals(20, p.toDoubleArray()[1], Constants.EPSILON);
-		assertEquals(3.1415, p.toDoubleArray()[2], Constants.EPSILON);
-		assertEquals(3, p.toDoubleArray().length);
-	}
-
 }

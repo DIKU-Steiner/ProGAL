@@ -32,11 +32,17 @@ public class Triangle implements Simplex{
 	}
 	
 	/** Return the center of the triangle. Here average of the corners is used.*/
-	public Point getCenter() { return new Point( (p1.x+p2.x+p3.x)/3, (p1.y+p2.y+p3.y)/3, (p1.z+p2.z+p3.z)/3); }
+	public Point getCenter() { 
+		return new Point( 
+			(p1.getX()+p2.getX()+p3.getX())/3, 
+			(p1.getY()+p2.getY()+p3.getY())/3, 
+			(p1.getZ()+p2.getZ()+p3.getZ())/3
+		); 
+	}
 
 	/** Return the area of one side of the triangle. */
 	public double getArea(){
-		return 0.5*p1.vectorTo(p2).crossThis(p1.vectorTo(p3)).length();
+		return 0.5*p1.vectorTo(p2).crossThis(p1.vectorTo(p3)).getLength();
 	}
 	
 	/** Return a vector that is normal to this triangle. */
@@ -69,6 +75,26 @@ public class Triangle implements Simplex{
 		return l1.getIntersection(l2);
 	}
 
+	public double getInradius(){
+		double a = p1.getDistance(p2);
+		double b = p1.getDistance(p3);
+		double c = p2.getDistance(p3);
+		double s = (a+b+c)/2;//Semiperemiter
+		return Math.sqrt( ((s-a)*(s-b)*(s-c))/s );
+	}
+	
+	public Point getIncenter(){
+		double a = p1.getDistance(p2);
+		double b = p1.getDistance(p3);
+		double c = p2.getDistance(p3);
+		double P = a+b+c;
+		Vector C = p3.toVector().multiplyThis(a);
+		C.addThis(p2.toVector().multiplyThis(b));
+		C.addThis(p1.toVector().multiplyThis(c));
+		C.divideThis(P);
+		return C.toPoint();
+	}
+	
 	/** Returns a string-representation of this triangle formatted with two decimals precision. */
 	public String toString(){	return toString(2);	}
 

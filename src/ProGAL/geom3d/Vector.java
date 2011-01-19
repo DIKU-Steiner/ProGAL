@@ -7,84 +7,43 @@ package ProGAL.geom3d;
  *  projections, but can also cause serious problems if anyone chooses to extend the 
  *  Vector3d object.
  */
-public class Vector {
-	protected double x,y,z;
+public class Vector extends ProGAL.geomNd.Vector{
+//	protected double x,y,z;
 		
 	/** Construct a vector with the specified coordinates. */
-	public Vector(double x, double y, double z) { this.x = x; this.y = y; this.z = z; }
-	
+	public Vector(double x, double y, double z) { 
+		super(new double[]{x,y,z});
+	}	
 	/** Construct a vector pointing from origo to p. */
-	public Vector(Point p) { x = p.x; y = p.y; z = p.z; }
+	public Vector(Point p) { 	super(p);	}
 	
 	/** Construct a vector that is a clone of v. */
-	public Vector(Vector v) { x = v.x; y = v.y; z = v.z; }	
+	public Vector(Vector v) {	super(v);	}	
 	
-
+	/** Construct a vector using the double-array as coordinates. Note: The array is not cloned */
+	public Vector(double[] coords) {	super(coords);	}
 	
-	/** Get the i'th coordinate. */
-	public double getCoord(int i) {
-		switch(i){
-		case 0: return x;
-		case 1: return y;
-		case 2: return z;
-		}
-		throw new Error("Trying to get invalid coordinate");
-	}
 	
-	/** Get the i'th coordinate. */
-	public double get(int i) { return getCoord(i); }
-
 	/** Get the first coordinate. */
-	public double getX() { return x; }
+	public double getX() { return coords[0]; }
 	
 	/** Get the second coordinate. */
-	public double getY() { return y; }
+	public double getY() { return coords[1]; }
 	
 	/** Get the third coordinate. */
-	public double getZ() { return z; }
+	public double getZ() { return coords[2]; }
 	
-	/** Set the i'th coordinate to v */
-	public void setCoord(int i, double v){
-		switch(i){
-		case 0: this.x = v;return;
-		case 1: this.y = v;return;
-		case 2: this.z = v;return;
-		}
-	}
-	
-	/** Set the i'th coordinate to v */
-	public void set(int i, double v){ setCoord(i,v); }
-
 	/** Set the first coordinate */
-	public void setX(double x) { this.x = x; }
+	public void setX(double x) { this.coords[0] = x; }
 	/** Set the second coordinate */
-	public void setY(double y) { this.y = y; }
+	public void setY(double y) { this.coords[1] = y; }
 	/** Set the third coordinate */
-	public void setZ(double z) { this.z = z; }
+	public void setZ(double z) { this.coords[2] = z; }
 
 
-	/** Get the squared length of this vector. */
-	public double getLengthSquared() { return x*x + y*y + z*z; }
-
-	/** Get the length of this vector. */
-	public double getLength() {return Math.sqrt(getLengthSquared()); }
-
-	/** Get the squared length of this vector. */
-	public double lengthSquared() {return getLengthSquared(); }
-	
-	/** Get the length of this vector. */
-	public double length() {return getLength(); }
-
-	
-	
-	/** Return true if the length of this vector is 0. */
-	public boolean isZeroVector() { 
-		return ((x == 0.0) && (y == 0.0) && (z == 0.0)); 
-	}
-	
 	/** Get the dot-product of this vector and v. */
 	public double dot(Vector v){ 
-		return x*v.x+y*v.y+z*v.z; 
+		return coords[0]*v.coords[0]+coords[1]*v.coords[1]+coords[2]*v.coords[2]; 
 	}
 
 	/** Get the angle between this vector and v. */
@@ -93,17 +52,23 @@ public class Vector {
 	}
 	
 	/** Add v to this vector and return the result (without changing this object). */
-	public Vector add(Vector v){ return new Vector(x+v.x, y+v.y, z+v.z); }
+	public Vector add(Vector v){ return new Vector(coords[0]+v.coords[0],coords[1]+v.coords[1],coords[2]+v.coords[2]); }
 	
 	/** Add v to this vector and return the result (changing this object). */ 
-	public Vector addThis(Vector v){ x+=v.x; y+=v.y; z+=v.z; return this; }
+	public Vector addThis(Vector v){ coords[0]+=v.coords[0]; coords[1]+=v.coords[1]; coords[2]+=v.coords[2]; return this; }
 	
 	/** Multiply this vector by s and return the result (without changing this object). */
-	public Vector multiply(double s){ return new Vector(x*s, y*s, z*s); }
+	public Vector multiply(double s){ return new Vector(coords[0]*s, coords[1]*s, coords[2]*s); }
 	
 	/** Multiply this vector by s and return the result (changing this object). */
-	public Vector multiplyThis(double s){ x*=s;y*=s;z*=s;return this; }
+	public Vector multiplyThis(double s){ coords[0]*=s;coords[1]*=s;coords[2]*=s;return this; }
 	
+	/** Divide this vector by s and return the result (without changing this object). */
+	public Vector divide(double s){ return new Vector(coords[0]/s, coords[1]/s, coords[2]/s); }
+	
+	/** Divide this vector by s and return the result (changing this object). */
+	public Vector divideThis(double s){ coords[0]/=s;coords[1]/=s;coords[2]/=s;return this; }
+
 	/** Normalize this vector and return the result (without changing this object). */
 	public Vector normalize(){ return this.multiply(1/getLength()); }
 	
@@ -117,24 +82,24 @@ public class Vector {
 	public Vector scaleToLengthThis(double length) { return multiplyThis(length/getLength()); }
 	
 	/** Get the cross-product of this vector and v (without changing this object). */
-	public Vector cross(Vector v){ return new Vector(y*v.z - z*v.y, z*v.x - x*v.z, x*v.y - y*v.x); }
+	public Vector cross(Vector v){ return new Vector(coords[1]*v.coords[2] - coords[2]*v.coords[1], coords[2]*v.coords[0] - coords[0]*v.coords[2], coords[0]*v.coords[1] - coords[1]*v.coords[0]); }
 	
 	/** Get the cross-product of this vector and v and store the result in this vector (changes this object). */
 	public Vector crossThis(Vector v){ 
-		double newX = y*v.z - z*v.y, newY = z*v.x - x*v.z, newZ = x*v.y - y*v.x;
-		this.x = newX;this.y = newY;this.z = newZ;
+		double newX = coords[1]*v.coords[2] - coords[2]*v.coords[1], newY = coords[2]*v.coords[0] - coords[0]*v.coords[2], newZ = coords[0]*v.coords[1] - coords[1]*v.coords[0];
+		this.coords[0] = newX;this.coords[1] = newY;this.coords[2] = newZ;
 		return this;
 	}
 	
 	/** Convert this vector to a point. */
-	public Point toPoint() { return new Point(x, y, z); }
+	public Point toPoint() { return new Point(coords[0], coords[1], coords[2]); }
 	
 	/** Returns a string-representation of this vector formatted with two decimals precision. */
 	public String toString() { return toString(2); }
 	
 	/** Returns a string-representation of this vector formatted with <code>dec</code> decimals precision. */
 	public String toString(int dec) {
-		return String.format("Vector3d[%."+dec+"f,%."+dec+"f,%."+dec+"f]",x,y,z);
+		return String.format("Vector3d[%."+dec+"f,%."+dec+"f,%."+dec+"f]",coords[0],coords[1],coords[2]);
 	}	
 	
 	/** Writes this vector to <code>System.out</code>. */
@@ -143,11 +108,8 @@ public class Vector {
 	/** Writes this vector to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 
-	/** Return true if this vector equals v. */
-	public boolean equals(Vector v){ return x==v.x && y==v.y && z==v.z; }
-	
 	/** Create a clone of this vector. */
-	public Vector clone(){ return new Vector(x, y, z); }
+	public Vector clone(){ return new Vector(coords[0], coords[1], coords[2]); }
 
 	///////// Static methods and fields ////////
 
@@ -194,6 +156,8 @@ public class Vector {
 		public Vector scaleToLengthThis(double length) { return multiply(length/getLength()); }
 		public Vector crossThis(Vector v){ return cross(v); }
 	}
+
+	
 	
 }
 

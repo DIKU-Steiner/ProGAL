@@ -10,7 +10,9 @@ class FirstTetrahedron extends CTetrahedron{
 		super();
 		double k = 200;
 		double m=k*max;
-
+		
+//		m = 30;
+		
 		setPoint(new CVertex(new Point( m, 0,-m),true), 0 );
 		setPoint(new CVertex(new Point( 0, m,-m),true), 1 );
 		setPoint(new CVertex(new Point(-m,-m,-m),true), 2 );

@@ -52,7 +52,7 @@ public class Line {
 	 * zero this method will not return a reference to the defining point (but the returned 
 	 * point will equal it). */
 	public Point getPoint(double t) {
-		return new Point(p.x + t*dir.x, p.y + t*dir.y, p.z + t*dir.z);
+		return new Point(p.getX() + t*dir.getX(), p.getY() + t*dir.getY(), p.getZ() + t*dir.getZ());
 	}
 	
 	/** Returns the othogonal projection of the point q onto this line. */
@@ -63,7 +63,7 @@ public class Line {
 	/** Returns the line-parameter of the othogonal projection of the point q onto this line. */
 	public double orthogonalProjectionParameter(Point q) {
 		Vector pq = p.vectorTo(q);
-		return pq.dot(dir)/dir.lengthSquared();
+		return pq.dot(dir)/dir.getLengthSquared();
 	}
 	
 	/** Returns the smallest segment that contains all orthogonol 
@@ -94,7 +94,7 @@ public class Line {
 
 	/** Gets the squared orthogonal distance to a point. */
 	public double getDistanceSquared(Point q) { 
-		return dir.cross(q.vectorTo(p)).lengthSquared()/dir.lengthSquared();
+		return dir.cross(q.vectorTo(p)).getLengthSquared()/dir.getLengthSquared();
 	}
 	
 	/** Gets the orthogonal distance to a point. */
@@ -108,9 +108,9 @@ public class Line {
 	 * @hop 14-32
 	 */
 	public double getSquaredDistance(Line l) {
-		double a = dir.lengthSquared();
+		double a = dir.getLengthSquared();
 		double b = dir.dot(l.dir);
-		double e = l.dir.lengthSquared();
+		double e = l.dir.getLengthSquared();
 		double d = a*e-b*b;
 		
 		if(Math.abs(d)<Constants.EPSILON) return getDistanceSquared(l.p);
@@ -122,9 +122,9 @@ public class Line {
 		double s = (b*f-c*e)/d;
 		double t = (a*f-b*c)/d;
 
-		double dx = (p.x+s*dir.x) - (l.p.x+t*l.dir.x);
-		double dy = (p.y+s*dir.y) - (l.p.y+t*l.dir.y);
-		double dz = (p.z+s*dir.z) - (l.p.z+t*l.dir.z);
+		double dx = (p.getX()+s*dir.getX()) - (l.p.getX()+t*l.dir.getX());
+		double dy = (p.getY()+s*dir.getY()) - (l.p.getY()+t*l.dir.getY());
+		double dz = (p.getZ()+s*dir.getZ()) - (l.p.getZ()+t*l.dir.getZ());
 		return dx*dx+dy*dy+dz*dz;
 		//return getPoint(s).getDistanceSquared(l.getPoint(t));
 	}
@@ -134,9 +134,9 @@ public class Line {
 	 * then null is returned.
 	 */
 	public Point getIntersection(Line l){
-		double a = dir.lengthSquared();
+		double a = dir.getLengthSquared();
 		double b = dir.dot(l.dir);
-		double e = l.dir.lengthSquared();
+		double e = l.dir.getLengthSquared();
 		double d = a*e-b*b;
 		
 		if(Math.abs(d)<Constants.EPSILON) return null;
@@ -148,11 +148,11 @@ public class Line {
 		double s = (b*f-c*e)/d;
 		double t = (a*f-b*c)/d;
 
-		double dx = (p.x+s*dir.x) - (l.p.x+t*l.dir.x);
-		double dy = (p.y+s*dir.y) - (l.p.y+t*l.dir.y);
-		double dz = (p.z+s*dir.z) - (l.p.z+t*l.dir.z);
+		double dx = (p.getX()+s*dir.getX()) - (l.p.getX()+t*l.dir.getX());
+		double dy = (p.getY()+s*dir.getY()) - (l.p.getY()+t*l.dir.getY());
+		double dz = (p.getZ()+s*dir.getZ()) - (l.p.getZ()+t*l.dir.getZ());
 		if(dx*dx+dy*dy+dz*dz>Constants.EPSILON) return null;
-		return new Point(p.x+s*dir.x, p.y+s*dir.y, p.z+s*dir.z);
+		return new Point(p.getX()+s*dir.getX(), p.getY()+s*dir.getY(), p.getZ()+s*dir.getZ());
 		
 	}
 

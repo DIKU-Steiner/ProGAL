@@ -1,7 +1,5 @@
 package ProGAL.math;
 
-import ProGAL.geom3d.Point;
-import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.Vector;
 
 public class Matrix3x3 extends Matrix{
@@ -15,6 +13,18 @@ public class Matrix3x3 extends Matrix{
 	}
 	public Vector getRow(int r){
 		return new Vector(coords[r][0],coords[r][1],coords[r][2]);
+	}
+	
+	public Matrix3x3 getTranspose(){
+		Matrix3x3 ret = clone();
+		for(int i=0;i<M;i++){
+			for(int j=0;j<N;j++){
+				double tmp = coords[i][j];
+				coords[i][j] = coords[j][i];
+				coords[j][i] = tmp;
+			}
+		}
+		return ret;
 	}
 
 	/**
@@ -45,6 +55,7 @@ public class Matrix3x3 extends Matrix{
 		newCoords[2][2] = coords[0][0]*coords[1][1] - coords[0][1]*coords[1][0];//18HOPs
 
 		double det = coords[0][0]*newCoords[0][0]+coords[0][1]*newCoords[1][0]+coords[0][2]*newCoords[2][0]; //3HOPs
+		System.out.println("DET: "+det);
 		this.coords = newCoords;
 		return multiplyThis(1/det);//10HOps
 	}
@@ -58,13 +69,13 @@ public class Matrix3x3 extends Matrix{
 			if(coords.length!=3 || coords[0].length!=3) 
 			throw new Error("Matrix is "+coords.length+"x"+coords[0].length);
 
-		EigenvalueDecomposition ed = new EigenvalueDecomposition();
-		Vector[] ret = new Vector[3];
-		double[][] V = ed.getV().coords;
-		ret[0] = new Vector(V[0][0],V[1][0],V[2][0]).multiplyThis(ed.getRealEigenvalues()[0]);
-		ret[1] = new Vector(V[0][1],V[1][1],V[2][1]).multiplyThis(ed.getRealEigenvalues()[1]);
-		ret[2] = new Vector(V[0][2],V[1][2],V[2][2]).multiplyThis(ed.getRealEigenvalues()[2]);
-		if(true)return ret;
+//		EigenvalueDecomposition ed = new EigenvalueDecomposition();
+//		Vector[] ret = new Vector[3];
+//		double[][] V = ed.getV().coords;
+//		ret[0] = new Vector(V[0][0],V[1][0],V[2][0]).multiplyThis(ed.getRealEigenvalues()[0]);
+//		ret[1] = new Vector(V[0][1],V[1][1],V[2][1]).multiplyThis(ed.getRealEigenvalues()[1]);
+//		ret[2] = new Vector(V[0][2],V[1][2],V[2][2]).multiplyThis(ed.getRealEigenvalues()[2]);
+//		if(true) return ret;
 
 		
 		boolean issymmetric = true;
@@ -112,7 +123,7 @@ public class Matrix3x3 extends Matrix{
 				m2.set(1, 1, -l2+m2.get(1, 1));
 				m2.set(2, 2, -l2+m2.get(2, 2));
 				m2.reduceThis();		//18HOPs
-				m2.toConsole();
+//				m2.toConsole();
 				v2 = new Vector(-m2.coords[0][2], -m2.coords[1][2], 1);
 			}
 
@@ -122,24 +133,19 @@ public class Matrix3x3 extends Matrix{
 				m3.set(1, 1, -l3+m3.get(1, 1));
 				m3.set(2, 2, -l3+m3.get(2, 2));
 				m3.reduceThis();//18HOPs
-				m3.toConsole();
+//				m3.toConsole();
 				v3 = new Vector(-m3.coords[0][2], -m3.coords[1][2], 1);
 			}
+			return new Vector[]{v1,v2,v3};
 		}
 
-		return null;
-	}
-
-	public static void main(String[] args){
-		PointList points = PointList.generatePointsInCube(9);
-		for(Point p: points) { for(int i=1;i<3;i++) p.set(i, p.get(i)*0.3); }
-		Matrix3x3 m = points.getCovariance();
-		System.out.println("m: ");
-		m.toConsole();
-
-		m.getEigenvectors();
-
-		m.getEigenvalueDecomposition().getV().toConsole();
+		EigenvalueDecomposition ed = new EigenvalueDecomposition();
+		Vector[] ret = new Vector[3];
+		double[][] V = ed.getV().coords;
+		ret[0] = new Vector(V[0][0],V[1][0],V[2][0]).multiplyThis(ed.getRealEigenvalues()[0]);
+		ret[1] = new Vector(V[0][1],V[1][1],V[2][1]).multiplyThis(ed.getRealEigenvalues()[1]);
+		ret[2] = new Vector(V[0][2],V[1][2],V[2][2]).multiplyThis(ed.getRealEigenvalues()[2]);
+		return ret;
 	}
 
 	public Matrix3x3 clone(){

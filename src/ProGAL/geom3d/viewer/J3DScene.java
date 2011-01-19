@@ -256,7 +256,7 @@ public class J3DScene {
 //			Matrix4x4 m4 = Matrix4x4.createRotationMatrix(v1.angle(v2), v);
 //			trans.set(m4.getCoordArray());
 //		}
-//		trans.setScale(new Vector(c.getRadius(), v2.length(), c.getRadius()));
+//		trans.setScale(new Vector(c.getRadius(), v2.getLength(), c.getRadius()));
 //		trans.setTranslation(c.getSegment().getMidPoint().toVector());
 //
 //		((TransformGroup)shapeTransforms.get(c).getChild(0)).setTransform(trans);
@@ -267,7 +267,7 @@ public class J3DScene {
 //		Vector v1 = new Vector(0,1,0);
 //		Vector v2 = c.p1.vectorTo(c.p2);
 //
-//		if(v2.length()>0.000001 && v1.angle(v2)>0.00001){ 
+//		if(v2.getLength()>0.000001 && v1.angle(v2)>0.00001){ 
 //			//Matrix m = Matrix.createRotationMatrix(v1.angle(v2), v1.cross(v2).normIn());
 //			//trans.set(m.getCoordArray());
 //			Vector v = Vector.crossProduct(v1, v2);
@@ -275,7 +275,7 @@ public class J3DScene {
 //			Matrix4x4 m4 = Matrix4x4.createRotationMatrix(v1.angle(v2), v);
 //			trans.set(m4.getCoordArray());
 //		}
-//		trans.setScale(new Vector(c.rad, v2.length(), c.rad));
+//		trans.setScale(new Vector(c.rad, v2.getLength(), c.rad));
 //		trans.setTranslation(c.getCenter().toVector());
 //
 //		((TransformGroup)shapeTransforms.get(c).getChild(0)).setTransform(trans);
@@ -334,11 +334,11 @@ public class J3DScene {
 		Transform3D trans = new Transform3D();
 		Vector v1 = new Vector(0,1,0);
 		Vector v2 = c.segment.getAToB();
-		if(v1.length()>0 && v2.length()>0 && v1.angle(v2)>0.00001){ 
+		if(v1.getLength()>0 && v2.getLength()>0 && v1.angle(v2)>0.00001){ 
 			Matrix m = Matrix.createRotationMatrix(v1.angle(v2), v1.cross(v2).scaleToLength(1));
 			trans.set(to4x4CoordArray(m));
 		}
-		trans.setScale(new Vector3d(c.rad, v2.length(), c.rad));
+		trans.setScale(new Vector3d(c.rad, v2.getLength(), c.rad));
 		trans.setTranslation(toJ3DVec(c.segment.getMidPoint()));
 
 
@@ -348,14 +348,14 @@ public class J3DScene {
 		BranchGroup bg = (BranchGroup)tg.getChild(0);
 
 		trans = new Transform3D();
-		trans.setScale(new Vector3d(1,c.rad/v2.length(),1));
+		trans.setScale(new Vector3d(1,c.rad/v2.getLength(),1));
 		trans.setTranslation(new Vector3d(0,0.5,0));
 		((TransformGroup)bg.getChild(0)).setTransform(trans);
 
 		trans = new Transform3D();
 		trans.rotX(Math.PI);
 		trans.setTranslation(new Vector3d(0,-0.5,0));
-		trans.setScale(new Vector3d(1,c.rad/v2.length(),1));
+		trans.setScale(new Vector3d(1,c.rad/v2.getLength(),1));
 		((TransformGroup)bg.getChild(1)).setTransform(trans);
 	}
 
@@ -851,11 +851,11 @@ public class J3DScene {
 				camBehavior.translate(new Vector(-0.1,0,0));
 			}
 			if(e.getKeyCode()==KeyEvent.VK_S){
-				Toolbox.writeJPEGFile("J3DScene.jpg", canvas);
+				J3DImageFileWriter.writeJPEGFile("J3DScene.jpg", canvas);
 				System.out.println("Stored view to J3DScene.jpg");
 			}
 			if(e.getKeyCode()==KeyEvent.VK_E){
-				Toolbox.writeEPSFile("J3DScene.eps", canvas);
+				J3DImageFileWriter.writeEPSFile("J3DScene.eps", canvas);
 				System.out.println("Stored view to J3DScene.eps");
 			}
 			if(e.getKeyCode()==KeyEvent.VK_C){
@@ -1022,7 +1022,7 @@ public class J3DScene {
 				chooser.setFileFilter(filter);
 				int returnVal = chooser.showSaveDialog(j3ds.canvas);
 				if(returnVal == JFileChooser.APPROVE_OPTION) {
-					Toolbox.writeJPEGFile(chooser.getSelectedFile().getAbsolutePath(), j3ds.canvas);
+					J3DImageFileWriter.writeJPEGFile(chooser.getSelectedFile().getAbsolutePath(), j3ds.canvas);
 				}	
 			}	
 		}
@@ -1037,7 +1037,7 @@ public class J3DScene {
 				chooser.setFileFilter(filter);
 				int returnVal = chooser.showSaveDialog(j3ds.canvas);
 				if(returnVal == JFileChooser.APPROVE_OPTION) {
-					Toolbox.writeEPSFile(chooser.getSelectedFile().getAbsolutePath(), j3ds.canvas);
+					J3DImageFileWriter.writeEPSFile(chooser.getSelectedFile().getAbsolutePath(), j3ds.canvas);
 				}	
 			}
 		}

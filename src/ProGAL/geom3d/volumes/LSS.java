@@ -47,8 +47,8 @@ public class LSS implements Volume{
 		Vector[] eigenVecs = covMatr.getEigenvectors();
 		
 		Vector dir = eigenVecs[0];
-		if(eigenVecs[1].length()>dir.length()) dir = eigenVecs[1];
-		if(eigenVecs[2].length()>dir.length()) dir = eigenVecs[2];
+		if(eigenVecs[1].getLength()>dir.getLength()) dir = eigenVecs[1];
+		if(eigenVecs[2].getLength()>dir.getLength()) dir = eigenVecs[2];
 
 		InfCylinder iCyl = InfCylinder.createMinRadCylinderFromDirection(points, dir.normalizeThis());
 		LSS ret = iCyl.capWithHalfSpheres(points);

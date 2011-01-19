@@ -9,7 +9,6 @@ class Walk {
 	private Predicates primitives;
 	
 	public Walk(Predicates primitives) {
-		super();
 		this.primitives=primitives;
 	}
 
@@ -46,20 +45,17 @@ class Walk {
 					}
 					return t;				
 				}
-
-				if(primitives.diffsides(t.getPoint((i+1)%4),t.getPoint((i+2)%4),t.getPoint((i+3)%4),p,t.getPoint(i))== Predicates.PlaneConfig.DIFF){
+				Predicates.PlaneConfig pc = primitives.diffsides(t.getPoint((i+1)%4),t.getPoint((i+2)%4),t.getPoint((i+3)%4),p,t.getPoint(i));
+//				System.out.println("walk .. "+t);
+				if(pc==Predicates.PlaneConfig.DIFF){
 					next=true;
 					t = t.getNeighbour(i);		
 					break;
 				}
 
 			}
-			if(next){
-				next=false;
-			}
-			else{
-				return t;
-			}
+			if(next) 	next=false;
+			else		return t;
 		}
 
 

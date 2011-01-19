@@ -1,5 +1,6 @@
 package ProGAL.math;
 
+import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Vector;
 
 public class Matrix {
@@ -20,6 +21,8 @@ public class Matrix {
 	 * number of elements in each row-array are different.   
 	 */
 	public Matrix(double[][] coords){
+		this.M = coords.length;
+		this.N = M>0?coords[0].length:0;
 		this.coords = coords;
 	}
 
@@ -33,9 +36,33 @@ public class Matrix {
 
 	public int getM(){ return M; }
 	public int getN(){ return N; }
+
+	
+
+	public ProGAL.geomNd.Vector getRow(int r) {
+		ProGAL.geomNd.Vector ret = new ProGAL.geomNd.Vector(N);
+		for(int c=0;c<N;c++) ret.set(c, coords[r][c]);
+		return ret;
+	}
+
+	public ProGAL.geomNd.Vector getColumn(int c) {
+		ProGAL.geomNd.Vector ret = new ProGAL.geomNd.Vector(M);
+		for(int r=0;r<M;r++) ret.set(r, coords[r][c]);
+		return ret;
+	}
 	
 
 
+
+	
+	/** Get the transpose of this matrix */
+	public Matrix getTranspose() {
+		double[][] newCoords = new double[N][M];
+		for(int i=0;i<M;i++) 
+			for(int j=0;j<N;j++) newCoords[j][i] = coords[i][j];
+		return new Matrix(newCoords);
+	}
+	
 
 	/** Apply this matrix to the vector v and return the result (this will change v). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
@@ -61,6 +88,32 @@ public class Matrix {
 			return v;
 		}
 		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to vectors");
+	}
+	
+	/** Apply this matrix to the vector v and return the result (this will change v). 
+	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
+	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
+	public Point applyToIn(Point p){
+		if(M==3 && N==3){
+			double[] ret = new double[3];
+			for(int i=0;i<3;i++) {
+				for(int j=0;j<3;j++)
+					ret[i] += p.get(j)*coords[i][j];
+			}
+			for(int i=0;i<3;i++) p.set(i, ret[i]);
+			return p;
+		}
+		if( (M==4 || M==3) && N==4){
+			double[] ret = new double[3];
+			for(int i=0;i<3;i++) {
+				for(int j=0;j<3;j++)
+					ret[i] += p.get(j)*coords[i][j];
+				ret[i] += coords[i][3];
+			}
+			for(int i=0;i<3;i++) p.set(i,ret[i]);
+			return p;
+		}
+		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to points");
 	}
 
 	/** Apply this matrix to the vector v and return the result (without changing v). 
@@ -1129,5 +1182,7 @@ public class Matrix {
 		public Matrix multiplyThis(double s){ return multiply(s); }
 		public Matrix invertThis(){ return invert(); }
 	}
+
+
 
 }

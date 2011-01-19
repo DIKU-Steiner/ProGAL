@@ -4,7 +4,7 @@ import ProGAL.geom3d.*;
 import ProGAL.geom3d.volumes.Tetrahedron;
 import ProGAL.math.Constants;
 
-public abstract class InexactJavaPredicates extends Predicates{
+public class InexactJavaPredicates extends Predicates{
 	public double circumradius(Point p0, Point p1, Point p2, Point p3){				return circumradius(new Tetrahedron(p0,p1,p2,p3)); 	}
 	public double circumradius(Tetrahedron t){										return t.getCircumradius();							}
 	public double circumradius(Point p0, Point p1, Point p2){						return circumradius(new Triangle(p0,p1,p2));		}
@@ -48,8 +48,15 @@ public abstract class InexactJavaPredicates extends Predicates{
 	public boolean inplane(Point p0, Point p1, Point p2, Point p3){
 		return orient(p0,p1,p2,p3)==0;
 	}
-
-//	public abstract SphereConfig edgeinsphere(Edge e, Point q);
-//	public abstract double edgecircumradius(Edge e);
+	@Override
+	public double edgecircumradius(LineSegment ls) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public SphereConfig edgeinsphere(LineSegment e, Point q) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }
