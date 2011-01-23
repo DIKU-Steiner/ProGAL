@@ -36,6 +36,10 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 		this.alpha = alpha;
 	}
 
+	public double getAlpha() {
+		return alpha;
+	}
+	
 	public List<CEdge> getEdges() {
 		return super.getEdges(alpha);
 	}
@@ -50,6 +54,9 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 
 	public List<Simplex> getSimplices() {
 		return super.getSimplices(alpha);
+	}
+	public List<Simplex> getAllSimplices(){
+		return super.getSimplices();
 	}
 
 	/** 
@@ -105,4 +112,5 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 		if(d==null) return Integer.MAX_VALUE;
 		return d;
 	}
+
 }

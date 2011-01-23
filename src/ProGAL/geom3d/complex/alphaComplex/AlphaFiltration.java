@@ -295,26 +295,30 @@ public class AlphaFiltration {
 			//sigma_n down to sigma_1. A union-find structure representing the dual graph, G_i of  
 			//K_i^tilda = T - K_i is maintained, and a triangle is marked iff it causes a UNION operation.
 			ds = new DisjointSet();
+			UnionFind<CTetrahedron> uf = new UnionFind<CTetrahedron>();
 			CTetrahedron bigTet = new CTetrahedron(null,null,null,null);
-			ds.makeSet(bigTet);
+//			ds.makeSet(bigTet);
 			for(int iT=triangles.size()-1;iT>=0;iT--){
 				CTriangle t = triangles.get(iT);
 				CTetrahedron n0 = t.getNeighbour(0);
 				CTetrahedron n1 = t.getNeighbour(1);
 				if(n0.containsBigPoint()) n0 = bigTet;
 				if(n1.containsBigPoint()) n1 = bigTet;
-				DisjointSet.Set s0 = ds.find(n0);
-				DisjointSet.Set s1 = ds.find(n1);
-				if(s0==null) s0 = ds.makeSet(n0);
-				if(s1==null) s1 = ds.makeSet(n1);
+				CTetrahedron s0 = uf.find(n0);
+				CTetrahedron s1 = uf.find(n1);
+//				DisjointSet.Set s0 = ds.find(n0);
+//				DisjointSet.Set s1 = ds.find(n1);
+//				if(s0==null) s0 = ds.makeSet(n0);
+//				if(s1==null) s1 = ds.makeSet(n1);
 				
 				if(  s0!=s1  ){
 					marked[simplices.indexOf(t)] = true;
-					ds.union(n0, n1);
+//					ds.union(n0, n1);
+					uf.union(n0, n1);
 				}
 			}
 			
-			//The only tetrahedron that belongs to a 3-cycle at the time it is processed is sigma_n. 
+			//The only tetrahedron that be	longs to a 3-cycle at the time it is processed is sigma_n. 
 			//This is the only tetrahedron that gets marked.
 			int lastTetIdx = simplices.indexOf(tetrahedra.get(tetrahedra.size()-1));
 			marked[lastTetIdx] = true;
@@ -337,6 +341,12 @@ public class AlphaFiltration {
 			}
 		}
 		return bettiNumbers;
+	}
+	
+	public int[][][] getBettiPersistence(){
+		List<int[]>[] pairs = getPairSimplices();
+		int[][][] ret = new int[3][][];
+		return null;
 	}
 	
 	@SuppressWarnings("unchecked")
