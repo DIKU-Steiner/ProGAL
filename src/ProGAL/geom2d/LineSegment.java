@@ -19,7 +19,6 @@ public class LineSegment implements Shape{
 		return new LineSegment(a.clone(), b.clone());
 	}
 
-	@Override
 	public Point getCenter() {
 		return Point.midPoint(a, b);
 	}

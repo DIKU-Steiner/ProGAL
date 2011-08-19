@@ -191,9 +191,7 @@ public class Circle implements Shape{
 
 
 
-	@Override
 	public Point getCenter() {
 		return center;
 	} 
-
 }

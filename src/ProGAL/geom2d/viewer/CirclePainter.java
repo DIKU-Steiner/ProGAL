@@ -9,7 +9,6 @@ import ProGAL.geom2d.viewer.J2DScene.ShapeOptions;
 
 public class CirclePainter implements ShapePainter {
 
-	@Override
 	public void paintShape(ShapeOptions shape, Graphics2D g2d) {
 
 		Circle circle = (Circle)shape.shape;

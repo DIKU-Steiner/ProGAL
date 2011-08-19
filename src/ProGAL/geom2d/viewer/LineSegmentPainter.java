@@ -7,7 +7,6 @@ import ProGAL.geom2d.viewer.J2DScene.ShapeOptions;
 
 public class LineSegmentPainter implements ShapePainter {
 
-	@Override
 	public void paintShape(ShapeOptions shape, Graphics2D g2d) {
 
 		LineSegment ls = (LineSegment)shape.shape;
