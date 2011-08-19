@@ -30,7 +30,7 @@ public class RMSDTest {
 		List<Point> backTransformedPoints = backTrans.transform(transformedPoints);
 		
 		for(int i=0;i<orig.size();i++){
-			assertTrue(orig.get(i).getDistance(backTransformedPoints.get(i))<0.1);
+			assertTrue(orig.get(i).distance(backTransformedPoints.get(i))<0.1);
 		}
 	
 	}
@@ -67,9 +67,9 @@ public class RMSDTest {
 		System.out.println(backTransformedPoints);
 		for(int i=0;i<orig.size();i++){
 			if(i==2 || i==3) 
-				assertFalse(orig.get(i).getDistance(backTransformedPoints.get(i))<0.1);
+				assertFalse(orig.get(i).distance(backTransformedPoints.get(i))<0.1);
 			else
-				assertTrue(orig.get(i).getDistance(backTransformedPoints.get(i))<0.1);
+				assertTrue(orig.get(i).distance(backTransformedPoints.get(i))<0.1);
 		}
 		
 	}

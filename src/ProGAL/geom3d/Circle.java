@@ -76,7 +76,7 @@ public class Circle implements Shape{
 	public static Circle getEquilateralCircle(Point a, Point b) {
 		Point center = Point.getMidpoint(a, b);
 		Vector ab = a.vectorTo(b);
-		double radius = Math.sqrt(3)*ab.getLength()/2;
+		double radius = Math.sqrt(3)*ab.length()/2;
 		return new Circle(center, radius, ab);
 	}
 	

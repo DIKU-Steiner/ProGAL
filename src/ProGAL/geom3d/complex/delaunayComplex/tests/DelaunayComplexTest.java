@@ -30,11 +30,11 @@ public class DelaunayComplexTest {
 		assertEquals(5,dc.getVertices().size());
 		
 		//All of the vertices should be (almost) on top of the points and come in the same order 
-		assertTrue(pl.get(0).getDistance(dc.getVertices().get(0))<0.0001);
-		assertTrue(pl.get(1).getDistance(dc.getVertices().get(1))<0.0001);
-		assertTrue(pl.get(2).getDistance(dc.getVertices().get(2))<0.0001);
-		assertTrue(pl.get(3).getDistance(dc.getVertices().get(3))<0.0001);
-		assertTrue(pl.get(4).getDistance(dc.getVertices().get(4))<0.0001);
+		assertTrue(pl.get(0).distance(dc.getVertices().get(0))<0.0001);
+		assertTrue(pl.get(1).distance(dc.getVertices().get(1))<0.0001);
+		assertTrue(pl.get(2).distance(dc.getVertices().get(2))<0.0001);
+		assertTrue(pl.get(3).distance(dc.getVertices().get(3))<0.0001);
+		assertTrue(pl.get(4).distance(dc.getVertices().get(4))<0.0001);
 
 		assertEquals(3, dc.getVertices().get(0).getAdjacentEdges().size());
 		assertEquals(4, dc.getVertices().get(1).getAdjacentEdges().size());

@@ -8,7 +8,7 @@ public class Matrix {
 	protected int M,N;
 
 	/** Construct an M by N matrix with zeros in all entries. */
-	public Matrix(int N, int M){
+	public Matrix(int M, int N){
 		coords = new double[M][N];
 		for(int i=0;i<M;i++) for(int j=0;j<N;j++) coords[i][j] = 0;
 		this.M = M;

@@ -71,7 +71,7 @@ public class InfCylinder {
 		}
 		Circle mec = Circle.minimumEnclosingCircle_Welzl(points2d);//minimumEnclosingCircle_bruteforce(points2d);
 		
-		Point linePoint = x.multiply(mec.getCenter().getX()).addThis(y.multiply(mec.getCenter().getY())).toPoint();
+		Point linePoint = x.multiply(mec.center().getX()).addThis(y.multiply(mec.center().getY())).toPoint();
 		return new InfCylinder(new Line(linePoint, dir.clone()), mec.getRadius()+mec.getRadius()*0.001);
 	}
 

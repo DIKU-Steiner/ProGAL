@@ -7,4 +7,5 @@ public interface Simplex extends Shape{
 	/** TODO: Comment */
 	public Point getPoint(int i);
 
+	public int getDimension();
 }

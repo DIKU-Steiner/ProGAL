@@ -30,6 +30,10 @@ public class Triangle implements Simplex{
 		}
 		throw new Error("Badly specified point number ("+c+"). Should be between 0 and 2");
 	}
+
+	/** Return the 'dimension' of this object. Required by the interface Simplex. */
+	public int getDimension() { return 2; }
+
 	
 	/** Return the center of the triangle. Here average of the corners is used.*/
 	public Point getCenter() { 
@@ -42,7 +46,7 @@ public class Triangle implements Simplex{
 
 	/** Return the area of one side of the triangle. */
 	public double getArea(){
-		return 0.5*p1.vectorTo(p2).crossThis(p1.vectorTo(p3)).getLength();
+		return 0.5*p1.vectorTo(p2).crossThis(p1.vectorTo(p3)).length();
 	}
 	
 	/** Return a vector that is normal to this triangle. */
@@ -55,9 +59,9 @@ public class Triangle implements Simplex{
 	 * the length of the two remaining sides.
 	 */
 	public double getCircumradius(){
-		double a = p1.getDistance(p2);
-		double b = p1.getDistance(p3);
-		double c = p2.getDistance(p3);
+		double a = p1.distance(p2);
+		double b = p1.distance(p3);
+		double c = p2.distance(p3);
 		double s = (a+b+c)/2;//Semiperemiter
 		return a*b*c/(4*Math.sqrt(s*(a+b-s)*(a+c-s)*(b+c-s)));
 	}
@@ -76,17 +80,17 @@ public class Triangle implements Simplex{
 	}
 
 	public double getInradius(){
-		double a = p1.getDistance(p2);
-		double b = p1.getDistance(p3);
-		double c = p2.getDistance(p3);
+		double a = p1.distance(p2);
+		double b = p1.distance(p3);
+		double c = p2.distance(p3);
 		double s = (a+b+c)/2;//Semiperemiter
 		return Math.sqrt( ((s-a)*(s-b)*(s-c))/s );
 	}
 	
 	public Point getIncenter(){
-		double a = p1.getDistance(p2);
-		double b = p1.getDistance(p3);
-		double c = p2.getDistance(p3);
+		double a = p1.distance(p2);
+		double b = p1.distance(p3);
+		double c = p2.distance(p3);
 		double P = a+b+c;
 		Vector C = p3.toVector().multiplyThis(a);
 		C.addThis(p2.toVector().multiplyThis(b));
@@ -110,7 +114,7 @@ public class Triangle implements Simplex{
 	public void toConsole(int dec) {
 		System.out.println(toString(dec)); 
 	}
-
+	
 
 
  

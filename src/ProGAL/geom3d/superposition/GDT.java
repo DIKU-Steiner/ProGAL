@@ -79,7 +79,7 @@ public class GDT {
 		Iterator<Point> i2 = points2.iterator();
 		int i=0;
 		while(i1.hasNext()){
-			ret[i++] = i1.next().getDistance(i2.next());
+			ret[i++] = i1.next().distance(i2.next());
 		}
 		return ret;
 	}

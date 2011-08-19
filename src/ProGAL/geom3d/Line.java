@@ -42,6 +42,11 @@ public class Line {
 		dir = s.getAToB();
 	}
 	
+	/** Constructs a line through the two specified points. */
+	public Line(Point p1, Point p2){
+		this(p1, p1.vectorTo(p2));
+	}
+	
 	/** Returns the point defining this line. */
 	public Point getP()   { return p; }
 
@@ -171,6 +176,61 @@ public class Line {
 	public double getMaxDistance(PointList points) {
 		return Math.sqrt(getMaxDistanceSquared(points));
 	}
+	
+	/** 
+	 * Return a rotation of p around this line. The rotation is a right-handed one  
+	 * (thumb in the direction of dir)
+	 */
+	public Point rotate(Point p, double angle){
+		Point ret = p.clone();
+		return rotateIn(ret, angle);
+	}
+	
+	/** 
+	 * Rotate point around this line, store the result in p and return the results. The rotation
+	 * is a right-handed one (thumb in the direction of dir)
+	 */
+	public Point rotateIn(Point point, double angle){
+		Vector v = p.vectorTo(point);
+		dir.rotateIn(v, angle);
+		for(int i=0;i<3;i++)
+			point.set(i, v.get(i)+p.get(i));
+		return point;
+	}
+	
+	/**
+	 * Return the optimal right-hand rotation around the line that brings the m-points as 
+	 * close to the f-points as possible. Formally the rotation angle that minimizes 
+	 * <code>double S = m[0].distanceSquared(f[0]) + ... + m[m.length-1].distanceSquared(f[m.length-1]);</code>
+	 * This method follows the description by Canutescu and Dunbrack 2003.
+	 * @param moving Array of effector points
+	 * @param target Array of target points 
+	 * @return an angle which the effector points should be rotated so they come close to the target points. 
+	 */
+	public double optimalRotation(Point[] moving, Point[] target){
+		Point[] m = moving;
+		Point[] f = target;
+		if(f.length!=m.length) throw new RuntimeException("Lengths must match");
+		
+		double tanNum = 0, tanDenom = 0;
+		for(int i=0;i<m.length;i++){
+			Point O_i = orthogonalProjection(m[i]);
+			Vector fVec = O_i.vectorTo(f[i]);
+			Vector rVec = O_i.vectorTo(m[i]);
+			Vector sVec = dir.cross(rVec).normalizeThis();
+			double rLen = rVec.length();
+			rVec.multiplyThis(1/rLen);
+			tanNum		+= fVec.dot(sVec)*rLen;
+			tanDenom 	+= fVec.dot(rVec)*rLen;
+		}
+		double alpha = Math.atan(tanNum/tanDenom);
+		double secDeriv = Math.cos(alpha)*tanDenom + Math.sin(alpha)*tanNum;
+		
+		if(secDeriv<0) alpha -= Math.signum(alpha)*Math.PI;
+		
+		return alpha;
+	}
+	
 
 	/** Returns a string-representation of this line.*/
 	public String toString(){

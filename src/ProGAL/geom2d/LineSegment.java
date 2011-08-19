@@ -1,6 +1,6 @@
 package ProGAL.geom2d;
 
-public class LineSegment {
+public class LineSegment implements Shape{
 	protected Point a,b;
 	
 	public LineSegment(Point a, Point b){
@@ -12,10 +12,15 @@ public class LineSegment {
 	public Point getB(){ return b; }
 	
 	public double getLength(){
-		return a.getDistance(b);
+		return a.distance(b);
 	}
 	
 	public LineSegment clone(){
 		return new LineSegment(a.clone(), b.clone());
+	}
+
+	@Override
+	public Point getCenter() {
+		return Point.midPoint(a, b);
 	}
 }

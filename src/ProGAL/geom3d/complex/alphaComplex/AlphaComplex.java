@@ -17,7 +17,7 @@ import ProGAL.geom3d.complex.delaunayComplex.DelaunayComplex;
  * @author R. Fonseca
  */
 public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
-	private double alpha;
+	protected double alpha;
 
 	private Map<Simplex, Integer> depthMap = null;
 
@@ -58,6 +58,9 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 	public List<Simplex> getAllSimplices(){
 		return super.getSimplices();
 	}
+	public List<CEdge> getAllEdges(){
+		return super.edges;
+	}
 
 	/** 
 	 * Return the depth of simplex from the surface of the alpha complex. Note that a depth is 
@@ -69,6 +72,11 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 		if(depthMap==null)
 			calculateDepths();
 		return depthMap.get(s);
+	}
+	
+	public void setAlpha(double alpha){
+		this.alpha = alpha;
+		calculateDepths();
 	}
 
 	private void calculateDepths(){
@@ -85,7 +93,7 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 		}
 
 		//Now iterate through all tetrahedra and update depths as long as they havent converged 
-		//This could probably be done much more efficiently (e.g. shortest path) 
+		//This could probably be done much more efficiently (e.g. single source shortest path) 
 		boolean update = true;
 		while(update){
 			update = false;

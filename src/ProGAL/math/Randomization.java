@@ -69,4 +69,14 @@ public class Randomization {
 		rand = new java.util.Random(s);
 	}
 	
+	public static Object[] shuffle(Object[] arr){
+		for (int i=arr.length; i>1; i--){
+			int r = randBetween(0,i);
+			Object tmp = arr[i-1];
+			arr[i-1] = arr[r];
+			arr[r] = tmp;
+		}
+		return arr;
+	}
+	
 }

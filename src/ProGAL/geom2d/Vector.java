@@ -33,7 +33,8 @@ public class Vector {
 		y = xOld;
 	}
 	public void makeUnitVector() { scale(1/getLength()); }
-	public void addVector(Vector v) { x=x+v.x; y=y+v.y; }
+	public Vector addThis(Vector v) { x=x+v.x; y=y+v.y; return this; }
+	public Vector addThis(Point p) { x=x+p.x; y=y+p.y; return this; }
 	public void subtractVector(Vector v) { x=x-v.x; y=y-v.y; }
 	
 	public Vector createNegativeVector2d() { return createScaledVector2d(-1); }

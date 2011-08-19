@@ -1,5 +1,8 @@
 package ProGAL.geom3d;
 
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+
 /** 
  *  A vector in (x,y,z)-space represented with double precision.
  *  @todo cache the length so several calls to getLengthSquared and getLength
@@ -70,16 +73,16 @@ public class Vector extends ProGAL.geomNd.Vector{
 	public Vector divideThis(double s){ coords[0]/=s;coords[1]/=s;coords[2]/=s;return this; }
 
 	/** Normalize this vector and return the result (without changing this object). */
-	public Vector normalize(){ return this.multiply(1/getLength()); }
+	public Vector normalize(){ return this.multiply(1/length()); }
 	
 	/** Normalize this vector and return the result (changing this object). */
-	public Vector normalizeThis(){ return this.multiplyThis(1/getLength()); }
+	public Vector normalizeThis(){ return this.multiplyThis(1/length()); }
 
 	/** Scale this vector to a certain length (returns new object and does not change this object). */
-	public Vector scaleToLength(double length) { return multiply(length/getLength()); }
+	public Vector scaleToLength(double length) { return multiply(length/length()); }
 	
 	/** Scale this vector to a certain length (changes this object). */
-	public Vector scaleToLengthThis(double length) { return multiplyThis(length/getLength()); }
+	public Vector scaleToLengthThis(double length) { return multiplyThis(length/length()); }
 	
 	/** Get the cross-product of this vector and v (without changing this object). */
 	public Vector cross(Vector v){ return new Vector(coords[1]*v.coords[2] - coords[2]*v.coords[1], coords[2]*v.coords[0] - coords[0]*v.coords[2], coords[0]*v.coords[1] - coords[1]*v.coords[0]); }
@@ -89,6 +92,41 @@ public class Vector extends ProGAL.geomNd.Vector{
 		double newX = coords[1]*v.coords[2] - coords[2]*v.coords[1], newY = coords[2]*v.coords[0] - coords[0]*v.coords[2], newZ = coords[0]*v.coords[1] - coords[1]*v.coords[0];
 		this.coords[0] = newX;this.coords[1] = newY;this.coords[2] = newZ;
 		return this;
+	}
+	
+	/** 
+	 * Perform a right-handed rotation of v around this vector. 
+	 * TODO: Test
+	 */
+	public Vector rotateIn(Vector v, double angle) {
+		double l = length();
+		if(l==0) throw new Error("Trying to rotate around 0-vector");
+		
+		double ux = coords[0]/l;
+		double uy = coords[1]/l;
+		double uz = coords[2]/l;
+		double sin = sin(angle);
+		double cos = cos(angle);
+		
+		double a00 = (ux*ux + cos*(1.0-ux*ux));
+		double a10 = (ux*uy*(1.0-cos)+uz*sin);
+		double a20 = (uz*ux*(1-cos) - uy*sin);
+        
+		double a01 = (ux*uy*(1-cos) - uz*sin);
+		double a11 = (uy*uy + cos*(1.0-uy*uy));
+		double a21 = (uy*uz*(1.0-cos) + ux*sin);
+        
+		double a02 = (uz*ux*(1.0-cos) + uy*sin);
+		double a12 = (uy*uz*(1.0-cos) - ux*sin);
+		double a22 = (uz*uz + cos*(1.0 - uz*uz));
+
+		double newX = a00*v.coords[0]+a01*v.coords[1]+a02*v.coords[2];
+		double newY = a10*v.coords[0]+a11*v.coords[1]+a12*v.coords[2];
+		double newZ = a20*v.coords[0]+a21*v.coords[1]+a22*v.coords[2];
+		v.setX(newX);
+		v.setY(newY);
+		v.setZ(newZ);
+		return v;
 	}
 	
 	/** Convert this vector to a point. */
@@ -119,7 +157,7 @@ public class Vector extends ProGAL.geomNd.Vector{
 	/** Get the dihedral angle between 3 non-colinear vectors b1, b2, b3. */
 	public static double getDihedralAngle(Vector b1, Vector b2, Vector b3) {
 		Vector b2xb3 = b2.cross(b3);
-		double y = b1.multiply(b2.getLength()).dot(b2xb3);
+		double y = b1.multiply(b2.length()).dot(b2xb3);
 		double x = b1.cross(b2).dot(b2xb3);
 		return Math.atan2(y,x);
 	}
@@ -152,12 +190,10 @@ public class Vector extends ProGAL.geomNd.Vector{
 		public void setZ(double z) { throw new RuntimeException("This vector is immutable"); }
 		public Vector addThis(Vector v){ return add(v); }
 		public Vector multiplyThis(double s){ return multiply(s); }
-		public Vector normalizeThis(){ return multiply(1/getLength()); }
-		public Vector scaleToLengthThis(double length) { return multiply(length/getLength()); }
+		public Vector normalizeThis(){ return multiply(1/length()); }
+		public Vector scaleToLengthThis(double length) { return multiply(length/length()); }
 		public Vector crossThis(Vector v){ return cross(v); }
 	}
-
-	
 	
 }
 

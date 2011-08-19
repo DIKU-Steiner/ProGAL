@@ -68,7 +68,7 @@ public class PointList extends ArrayList<Point> {
 	public double getVariance() {
 		Point c = getCentroid();
 		double sum = 0.0;
-		for (Point p: this) sum += c.getDistanceSquared(p);
+		for (Point p: this) sum += c.distanceSquared(p);
 		return sum/size();
 	}
 	

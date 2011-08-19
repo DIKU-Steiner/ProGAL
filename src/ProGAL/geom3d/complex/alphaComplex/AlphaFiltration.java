@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import java.util.HashMap;
 
@@ -99,9 +100,9 @@ public class AlphaFiltration {
 	}
 
 
-	public List<Simplex> getSimplices() {
-		return simplices;
-	}
+	public List<Simplex> getSimplices() {		return simplices;	}
+	public List<CTetrahedron> getTetrahedra() {	return tetrahedra;	}
+	public List<CTriangle> getTriangles() {		return triangles;	}
 	
 	/** Get a list of tetrahedra that are part of the alpha-complex with the specified probe radius. */
 	public List<CTetrahedron> getTetrahedra(double alpha){
@@ -184,7 +185,6 @@ public class AlphaFiltration {
 			double minmu = triminmu(tri, ch);
 			double maxmu = trimaxmu(tri, ch);
 			double rho = p.circumradius(tri);
-			if(rho!=tri.getCircumradius()) System.out.println(rho+" vs "+tri.getCircumradius());
 			TriangleAlphaProperties prop = new TriangleAlphaProperties(minmu, maxmu, rho, ch, att);
 			propertyMap.put(tri, prop);
 		}	
@@ -192,11 +192,14 @@ public class AlphaFiltration {
 	}
 
 	private double triminmu(CTriangle tri, boolean ch){		//computes minmu 
-		if(ch)	return getInAlpha(tri.getNeighbour(0));     //always put in place 0
+		if(tri.getNeighbour(0).containsBigPoint())	return getInAlpha(tri.getNeighbour(1));
+		if(tri.getNeighbour(1).containsBigPoint())	return getInAlpha(tri.getNeighbour(0));
 		else	return Math.min(getInAlpha(tri.getNeighbour(0)), getInAlpha(tri.getNeighbour(1)));
 	}
 	private double trimaxmu(CTriangle tri, boolean ch){		//computes maxmu 
-		if(ch)	return getInAlpha(tri.getNeighbour(0));     //always put in place 0
+		if(tri.getNeighbour(0).containsBigPoint())	return getInAlpha(tri.getNeighbour(1));
+		if(tri.getNeighbour(1).containsBigPoint())	return getInAlpha(tri.getNeighbour(0));
+//		if(ch)	return getInAlpha(tri.getNeighbour(0));     //always put in place 0
 		else	return Math.max(getInAlpha(tri.getNeighbour(0)), getInAlpha(tri.getNeighbour(1)));
 	}
 
@@ -253,6 +256,16 @@ public class AlphaFiltration {
 			propertyMap.put(v, prop);
 		}
 	}
+	
+	
+	/** 
+	 * The vertex-hull of v is the set of all tetrahedrons that has v as a corner-point. Notice that 
+	 * that this method operates on the entire Delaunay complex and is not affected by any probe size. 
+	 */
+	public Set<CTetrahedron> getVertexHull(CVertex v){
+		return del3d.getVertexHull(v);
+	}
+	
 
 	/** 
 	 * Get the Betti-numbers of the alpha-filtration. The implementation follows the specification  
@@ -329,7 +342,7 @@ public class AlphaFiltration {
 			int[] b = new int[4];
 			for(int i=0;i<n;i++){
 				Simplex s = simplices.get(i);
-				int k = getDim(s);
+				int k = s.getDimension();//getDim(s);
 				if(marked[i]) 	b[k]++;
 				else			b[k-1]--;
 
@@ -343,12 +356,42 @@ public class AlphaFiltration {
 		return bettiNumbers;
 	}
 	
+	/**
+	 * TODO: Comment
+	 */
 	public int[][][] getBettiPersistence(){
 		List<int[]>[] pairs = getPairSimplices();
-		int[][][] ret = new int[3][][];
-		return null;
+		int n = simplices.size();
+		int maxPersistence = 0;
+		int[][][] ret = new int[3][n][n];
+		for(int d=0;d<3;d++){
+			for(int[] pair: pairs[d]){
+				int persistence = pair[1]-pair[0];
+				maxPersistence = Math.max(maxPersistence, persistence);
+				for(int i=pair[0];i<pair[1];i++){
+					for(int p=0;p<persistence;p++){
+						ret[d][i][p]++;
+					}
+					persistence--;
+				}
+				
+			}
+		}
+		
+		int[][][] compressedRet = new int[3][maxPersistence+1][n];
+		for(int d=0;d<3;d++){
+			for(int i=0;i<n;i++){
+				for(int p=0;p<maxPersistence+1;p++){
+					compressedRet[d][i][p] = ret[d][i][p];
+				}
+			}
+		}
+		return compressedRet;
 	}
 	
+	/**
+	 * TODO: Comment
+	 */
 	@SuppressWarnings("unchecked")
 	public List<int[]>[] getPairSimplices(){
 		List<int[]>[] ret = new List[3];
@@ -437,6 +480,10 @@ public class AlphaFiltration {
 	        else		return p1.getSimplexType()-p2.getSimplexType();
 	    }
 	}
+
+
+
+
 
 
 

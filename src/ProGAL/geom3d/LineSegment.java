@@ -38,7 +38,7 @@ public class LineSegment implements Simplex{
 	
 	/** Get the squared length of the segment. */
 	public double getLengthSquared() { 
-		return a.getDistanceSquared(b);
+		return a.distanceSquared(b);
 	}
 	
 	/** Get the point on the segment closest to a given point q. This method always returns 
@@ -52,10 +52,10 @@ public class LineSegment implements Simplex{
 	}
 
 	/** Gets the squared distance from q to the nearest point on this segment. */
-	public double getSquaredDistance(Point q) { return q.getDistanceSquared(getClosestPoint(q)); }
+	public double getSquaredDistance(Point q) { return q.distanceSquared(getClosestPoint(q)); }
 	
 	/** Gets the distance from q to the nearest point on this segment. */
-	public double getDistance(Point q) { return q.getDistance(getClosestPoint(q)); }
+	public double getDistance(Point q) { return q.distance(getClosestPoint(q)); }
 	
 	/** Gets the midpoint of the segment. */
 	public Point getMidPoint() { 
@@ -77,6 +77,10 @@ public class LineSegment implements Simplex{
 		if(i==0) return a;
 		else return b;
 	}
+	
+
+	/** Return the 'dimension' of this object. Required by the interface Simplex. */
+	public int getDimension() { return 1; }
 	
 	/** Returns true iff the argument is a line-segment and equals this. */
 	public boolean equals(Object o){

@@ -174,7 +174,7 @@ public class ExactJavaPredicates extends Predicates{
 
 	/**TODO: This isnt exact */
 	public SphereConfig edgeinsphere(LineSegment ls, Point q){
-		double d_sq = ls.getMidPoint().getDistanceSquared(q);
+		double d_sq = ls.getMidPoint().distanceSquared(q);
 		double r_sq = ls.getLengthSquared()/4;
 		if(d_sq==r_sq) 	return SphereConfig.ON;
 		if(d_sq<r_sq)	return SphereConfig.INSIDE;

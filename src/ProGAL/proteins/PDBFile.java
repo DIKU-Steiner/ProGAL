@@ -1,13 +1,19 @@
 package ProGAL.proteins;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.superposition.RMSD;
+import ProGAL.geom3d.superposition.Transform;
 import ProGAL.io.IOToolbox;
 import ProGAL.io.WebIOToolbox;
+import ProGAL.proteins.structure.AminoAcid;
+import ProGAL.proteins.structure.AminoAcidChain;
+import ProGAL.proteins.structure.Atom;
 
 /**
  * A class for reading and representing a PDB-file. All lines are read but not all are parsed.
@@ -16,19 +22,22 @@ import ProGAL.io.WebIOToolbox;
  * specified the method will assume that the first chain of the first model is meant.  
  *  
  * In some files there are multiple suggestions for atom-placements. This is resolved by only 
- * reading the first suggested atom-placement.
+ * reading the first suggested atom-placement. The other atom-placements are added to the 
+ * alternativeCoords LinkedList in the first atom-record. 
  * 
  * The four-letter PDB id and chain id are guessed based on the filename.
  * 
  * TODO: Represent ligands, heterogens and secondary structure.
- * TODO: Create method that extracts resolution from REMARK-records 
  * TODO: Check the integrity of different models, e.g. that the sequences are the same.
  * @author R. Fonseca
  */
-public class PDBFile implements Serializable{
+public class PDBFile extends File{
 	private static final long serialVersionUID = 1791445213018199901L;
 	
 	private boolean includeHydrogens = false;
+	private boolean includeHetAtms = true;
+	private int standardModel = 0;
+	private int standardChain = 0;
 	private final List<PDBRecord> records;
 	private final List<PDBModel> models = new ArrayList<PDBModel>();
 	
@@ -43,9 +52,13 @@ public class PDBFile implements Serializable{
 	
 	/** Construct a PDB-file from the specified file */
 	public PDBFile(File f){
-		name = f.getName().replaceAll(".pdb", "");
+		super(f.getAbsolutePath());
+		if(f.getName().contains("."))	name = f.getName().substring(0,f.getName().indexOf('.'));
+		else							name = f.getName();
 		records = readPDBFile(f,false);
 		buildPDBStructure();
+		if(name.contains("_")) 
+			setStandardChain(name.charAt(name.indexOf('_')+1));
 	}
 
 	private void buildPDBStructure(){
@@ -101,15 +114,43 @@ public class PDBFile implements Serializable{
 		PDBChain chain = null;
 		for(;r<records.size();r++){
 			PDBRecord record = records.get(r);
-			if(record instanceof TerRecord) break;
-			if(record instanceof AtomRecord){
+			if(record instanceof TerRecord) continue;
+			else if(record instanceof HetatmRecord){
+				HetatmRecord aRecord = (HetatmRecord)record;
+				if(chain==null) chain = new PDBChain(aRecord.chain);
+				if(chain.chainId!=aRecord.chain) break;
+				
+				//Ignore alternative coordinates
+				AtomRecord prevARecord = locateOccupancyPartner(aRecord, chain);
+				if(prevARecord!=null){
+					if(prevARecord.occupancy>=aRecord.occupancy)
+						prevARecord.alternativeCoords.add(aRecord.coords);
+					else{
+						prevARecord.alternativeCoords.add(prevARecord.coords);
+						prevARecord.coords = aRecord.coords;
+						prevARecord.occupancy = aRecord.occupancy;
+					}
+				}else{
+					chain.atomRecords.add(aRecord);
+				}
+			}else if(record instanceof AtomRecord){
 				AtomRecord aRecord = (AtomRecord)record;
 				if(chain==null) chain = new PDBChain(aRecord.chain);
 				if(chain.chainId!=aRecord.chain) break;
 				
-				chain.atomRecords.add(aRecord);
-			}else if(record instanceof HetatmRecord){
-				//TODO: Do something about HETATM's
+				//Ignore alternative coordinates
+				AtomRecord prevARecord = locateOccupancyPartner(aRecord, chain);
+				if(prevARecord!=null){
+					if(prevARecord.occupancy>=aRecord.occupancy)
+						prevARecord.alternativeCoords.add(aRecord.coords);
+					else{
+						prevARecord.alternativeCoords.add(prevARecord.coords);
+						prevARecord.coords = aRecord.coords;
+						prevARecord.occupancy = aRecord.occupancy;
+					}
+				}else{
+					chain.atomRecords.add(aRecord);
+				}
 			}else if(record instanceof AnisouRecord){
 				//TODO: Do something about ANISOU's
 			}else{ break; }//throw new RuntimeException("Unexpected record at "+name+":"+(r+1)+"\n> "+record); }
@@ -119,32 +160,57 @@ public class PDBFile implements Serializable{
 		return r;
 	}
 	
+	/** 
+	 * Searches through all AtomRecords in chain for a multiple occupancy to r.
+	 * Returns null if none is found 
+	 */
+	private AtomRecord locateOccupancyPartner(AtomRecord r, PDBChain chain){
+		for(AtomRecord ar: chain.atomRecords){
+			if(ar==r) break;
+			if(ar.atomName.equalsIgnoreCase(r.atomName) && ar.residueNumber==r.residueNumber) return ar;
+		}
+		return null;
+	}
+	
 	/** Read a PDB-file from www.pdb.org.*/
 	public static PDBFile downloadPDBFile(String pdbId){
 		return new PDBFile(WebIOToolbox.downloadFile("http://www.pdb.org/pdb/files/"+pdbId.toUpperCase()+".pdb"));
 	}
 
+	public void setStandardModel(int m){ this.standardModel = m; }
+	public void setStandardChain(int c){ this.standardChain = c; }
+	public void setIncludeHydrogens(boolean b){ this.includeHydrogens=b; }
+	public void setIncludeHetatms(boolean b){ this.includeHetAtms=b; }
+	public void setStandardChain(char c){
+		PDBModel m = models.get(standardModel);
+		for(PDBChain chain: m.chains){
+			if(Character.toUpperCase(chain.chainId)==Character.toUpperCase(c)){
+				setStandardChain(m.chains.indexOf(chain));
+				break;
+			}
+		}
+	}
 
 	public List<PDBModel> getModels(){ return models; }
 
 	/** Returns the ATOM-records. Only the records in the first chain of the first model are returned. */
 	public List<AtomRecord> getAtomRecords(){
-		return getAtomRecords(0,0);
+		return getAtomRecords(standardModel, standardChain);
 	}
 
 	/** Returns the ATOM-records of CA-atoms. Only the records in the first chain of the first model are returned. */
 	public List<AtomRecord> getCARecords(){
-		return getCARecords(0,0);
+		return getCARecords(standardModel, standardChain);
 	}
 	
 	/** Returns the CA-coordinates of atoms in the first chain in the first model. */
 	public List<Point> getCACoords(){
-		return getCACoords(0,0);
+		return getCACoords(standardModel, standardChain);
 	}
 
 	/** Returns all atom-coordinates in the first chain in the first model. */
 	public List<Point> getAtomCoords(){
-		return getAtomCoords(0,0);
+		return getAtomCoords(standardModel, standardChain);
 	}
 
 	/** Returns the ATOM-records of the specified model and chain. */
@@ -152,8 +218,25 @@ public class PDBFile implements Serializable{
 		List<AtomRecord> ret = new ArrayList<AtomRecord>();
 		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
 			if(!includeHydrogens && ar.isHydrogen()) continue;
+			if(!includeHetAtms && ar instanceof HetatmRecord) continue;
 			
 			ret.add(ar);
+		}
+		return ret;
+	}
+
+	public List<HetatmRecord> getHetatmRecords(){
+		return getHetatmRecords(standardModel, standardChain);
+	}
+	
+	/** Returns the HETATM-records of the specified model and chain. */
+	public List<HetatmRecord> getHetatmRecords(int modelNum, int chainNum){
+		List<HetatmRecord> ret = new ArrayList<HetatmRecord>();
+		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
+			if(!includeHydrogens && ar.isHydrogen()) continue;
+			if(!(ar instanceof HetatmRecord)) continue;
+			
+			ret.add((HetatmRecord)ar);
 		}
 		
 		return ret;
@@ -186,10 +269,54 @@ public class PDBFile implements Serializable{
 			if(!includeHydrogens && a.isHydrogen()) continue;
 			coords.add(a.coords);
 		}
+		for(HetatmRecord a: getHetatmRecords(modelNum, chainNum)){
+			if(!includeHydrogens && a.isHydrogen()) continue;
+			coords.add(a.coords);
+		}
 		return coords;
 	}
-
 	
+	public AminoAcidChain getChain(int modelNum, int chainNum){
+		AminoAcidChain chain = new AminoAcidChain(this.getSequence());
+		int c=0;
+		int prevRes = getAtomRecords(modelNum,chainNum).get(0).residueNumber;
+		for(AtomRecord ar: getAtomRecords(modelNum, chainNum)){
+			if(prevRes!=ar.residueNumber) c++;
+			prevRes = ar.residueNumber;
+			try{
+				chain.atom(c, ar.atomName).set(ar.coords);
+			}catch(RuntimeException exc){}
+		}
+		Point O = new Point(0,0,0);
+		AminoAcid[] aas = chain.aminoAcids();
+		for(int aa=0;aa<aas.length;aa++){
+			for(Atom a: aas[aa].atoms()){
+				if(a.equals(O)) 
+					System.err.printf("Warning: %s%d_%s not set",aas[aa].typeThreeLetter(),aa,a.name());
+			}
+		}
+		
+		return chain;
+	}
+	
+	/** Returns all REMARK records. */
+	public List<RemarkRecord> getRemarkRecords(){
+		List<RemarkRecord> ret = new ArrayList<RemarkRecord>();
+		for(PDBRecord r: records) {
+			if(r instanceof RemarkRecord)
+				ret.add((RemarkRecord)r);
+		}
+		return ret;
+	}
+
+	public static void main(String[] args){
+		Locale.setDefault(Locale.ENGLISH);
+		PDBFile f = new PDBFile("/Users/ras/Documents/CypA_packing/3K0N.pdb");
+		f.setIncludeHetatms(true);
+//		for(PDBRecord r: f.getRemarkRecords()) System.out.println(r);
+//		System.out.println(f.getResolution());
+		for(AtomRecord ar: f.getAtomRecords()) System.out.println(ar);
+	}
 	
 	
 	private static List<PDBRecord> readPDBFile(File f, boolean onlySS){
@@ -214,16 +341,16 @@ public class PDBFile implements Serializable{
 		}
 		
 		//Filter out duplicate ATOM records
-		for(int i=1;i<ret.size();i++){
-			if(ret.get(i-1) instanceof AtomRecord && ret.get(i) instanceof AtomRecord){
-				AtomRecord atom1 = (AtomRecord)ret.get(i-1);
-				AtomRecord atom2 = (AtomRecord)ret.get(i);
-				if(atom1.aaType.equals(atom2.aaType) && atom1.atomName.equals(atom2.atomName)){
-					ret.remove(i);
-					i--;
-				}
-			}
-		}
+//		for(int i=1;i<ret.size();i++){
+//			if(ret.get(i-1) instanceof AtomRecord && ret.get(i) instanceof AtomRecord){
+//				AtomRecord atom1 = (AtomRecord)ret.get(i-1);
+//				AtomRecord atom2 = (AtomRecord)ret.get(i);
+//				if(atom1.aaType.equals(atom2.aaType) && atom1.atomName.equals(atom2.atomName)){
+//					ret.remove(i);
+//					i--;
+//				}
+//			}
+//		}
 		return ret;
 	}
 
@@ -236,6 +363,41 @@ public class PDBFile implements Serializable{
 		}
 		return sb.toString().toString();
 	}
+	
+	public double getResolution(){
+		for(PDBRecord record: records){
+			if(record instanceof RemarkRecord){
+				RemarkRecord rr = (RemarkRecord)record;
+				if(rr.remark.contains("2 RESOLUTION.")){
+					int start = rr.remark.indexOf("ANGSTROMS")-5;
+					if(start<0) return Double.NaN;
+					return Double.parseDouble(rr.remark.substring(start, start+4));
+				}
+			}
+		}
+		throw new RuntimeException(this.name+" - Resolution not specified");
+	}
+	
+
+	public double superposeOnto(PDBFile f){
+		List<Point> thisAtoms = new ArrayList<Point>();
+		for(AtomRecord ar: getAtomRecords()) thisAtoms.add(ar.coords);
+		List<Point> fAtoms = new ArrayList<Point>();
+		for(AtomRecord ar: f.getAtomRecords()) fAtoms.add(ar.coords);
+
+		while(fAtoms.size()>thisAtoms.size()) fAtoms.remove(fAtoms.size()-1);
+		while(fAtoms.size()<thisAtoms.size()) thisAtoms.remove(thisAtoms.size()-1);
+		
+		Transform t = RMSD.optimalSuperposition(thisAtoms, fAtoms);
+		t.transformIn(thisAtoms);
+		return RMSD.getRMSD(thisAtoms, fAtoms);
+	}
+	
+	
+	
+	
+	
+	
 	
 	public static interface PDBRecord{}
 
@@ -269,7 +431,7 @@ public class PDBFile implements Serializable{
 				initSeqNum = Integer.parseInt(pdbLine.substring(22,26).trim());
 				endChainID = pdbLine.charAt(32);
 				endSeqNum = Integer.parseInt(pdbLine.substring(33,37).trim());
-				sense = Integer.parseInt(pdbLine.substring(38,40).trim());
+//				sense = Integer.parseInt(pdbLine.substring(38,40).trim());
 				//initResName = pdbLine.substring(17,20).trim();
 				//endResName = pdbLine.substring(28,31).trim();
 				//if(sense!=0 && pdbLine.length()<50) System.err.println("Warning: '"+pdbLine+"' should contain more info");
@@ -287,16 +449,19 @@ public class PDBFile implements Serializable{
 		}
 	}
 
+	
 	public static class AtomRecord implements PDBRecord{
 		public String atomName, aaType, element;
 		public char chain;
 		public int atomNumber, residueNumber;
 		public Point coords;
+		public double occupancy;
+		public LinkedList<Point> alternativeCoords = new LinkedList<Point>();
 
 		AtomRecord(String pdbLine){
 			try{
-			atomNumber = Integer.parseInt(pdbLine.substring(5,11).trim());
-			atomName = pdbLine.substring(12,16).trim();
+			atomNumber = Integer.parseInt(pdbLine.substring(6,11).trim());
+			atomName = pdbLine.substring(13,16).trim();
 			aaType = pdbLine.substring(17, 20).trim();
 			chain = pdbLine.charAt(21);
 			residueNumber = Integer.parseInt(pdbLine.substring(22,26).trim());
@@ -304,9 +469,13 @@ public class PDBFile implements Serializable{
 			double y = Double.parseDouble(pdbLine.substring(38,46).trim());
 			double z = Double.parseDouble(pdbLine.substring(46,54).trim());
 			coords = new Point(x,y,z);
+			occupancy = Double.parseDouble(pdbLine.substring(56,60).trim());
 			element = pdbLine.substring(76,78).trim();
-			//TODO: Read occupancy,tempFactor, element and charge
-			}catch(StringIndexOutOfBoundsException exc){}//Ignore missing elements
+			if(element.isEmpty()) element = pdbLine.charAt(13)+"";
+			//TODO: Read occupancy,tempFactor, and charge
+			}catch(StringIndexOutOfBoundsException exc){
+				element = pdbLine.charAt(13)+""; 
+			}
 		}
 		public boolean isHydrogen() {
 			if(element==null || element.isEmpty()){
@@ -337,8 +506,8 @@ public class PDBFile implements Serializable{
          * 79 - 80        LString(2)    charge       Charge  on the atom.
 		 */
 		public String toString(){
-			return String.format("%6s%5d %4s%c%3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f          %2s%2s",
-					"ATOM",
+			return String.format("%6s%5d  %-3s%c%3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f          %2s%2s",
+					(this instanceof HetatmRecord)?"HETATM":"ATOM  ",
 					atomNumber, 
 					atomName,
 					' ',
@@ -349,9 +518,9 @@ public class PDBFile implements Serializable{
 					coords.getX(),
 					coords.getY(),
 					coords.getZ(),
-					1.0,
+					occupancy,
 					0.0,
-					"",
+					element==null?"":element,
 					""
 			);
 		}
@@ -422,50 +591,9 @@ public class PDBFile implements Serializable{
 //			throw new Error("Unknown amino acid type: "+aaType);
 		}
 	}
-	public static class HetatmRecord implements PDBRecord{
-		public String atomType, haType;
-		public char chain;
-		public int atomNumber, residueNumber;
-		public Point coords;
-
+	public static class HetatmRecord extends AtomRecord{
 		HetatmRecord(String pdbLine){
-			atomNumber = Integer.parseInt(pdbLine.substring(6,11).trim());
-			atomType = pdbLine.substring(13,16).trim();
-			haType = pdbLine.substring(17, 20);
-			chain = pdbLine.charAt(21);
-			residueNumber = Integer.parseInt(pdbLine.substring(22,26).trim());
-			double x = Double.parseDouble(pdbLine.substring(28,38).trim());
-			double y = Double.parseDouble(pdbLine.substring(38,46).trim());
-			double z = Double.parseDouble(pdbLine.substring(46,54).trim());
-			coords = new Point(x,y,z);
-		}
-		public String toString(){
-			return String.format("PDBAtom[#:%d,res#:%d,type:%4s,coords:%s]",atomNumber, residueNumber, atomType, coords.toString());
-		}
-		
-		public char getSingleCharAAType(){
-			if(haType.equalsIgnoreCase("ALA")) return 'A';  
-			if(haType.equalsIgnoreCase("ARG")) return 'R';  
-			if(haType.equalsIgnoreCase("ASN")) return 'N';  
-			if(haType.equalsIgnoreCase("ASP")) return 'D';  
-			if(haType.equalsIgnoreCase("CYS")) return 'C';  
-			if(haType.equalsIgnoreCase("GLU")) return 'E';  
-			if(haType.equalsIgnoreCase("GLN")) return 'Q';  
-			if(haType.equalsIgnoreCase("GLY")) return 'G';  
-			if(haType.equalsIgnoreCase("HIS")) return 'H';  
-			if(haType.equalsIgnoreCase("ILE")) return 'I';  
-			if(haType.equalsIgnoreCase("LEU")) return 'L'; 
-			if(haType.equalsIgnoreCase("LYS")) return 'K'; 
-			if(haType.equalsIgnoreCase("MET")) return 'M'; 
-			if(haType.equalsIgnoreCase("PHE")) return 'F'; 
-			if(haType.equalsIgnoreCase("PRO")) return 'P'; 
-			if(haType.equalsIgnoreCase("SER")) return 'S'; 
-			if(haType.equalsIgnoreCase("THR")) return 'T'; 
-			if(haType.equalsIgnoreCase("TRP")) return 'W'; 
-			if(haType.equalsIgnoreCase("TYR")) return 'Y'; 
-			if(haType.equalsIgnoreCase("VAL")) return 'V'; 
-			return '?';
-//			throw new Error("Unknown amino acid type: "+aaType);
+			super(pdbLine);
 		}
 	}
 
@@ -486,9 +614,8 @@ public class PDBFile implements Serializable{
 	public static class RemarkRecord implements PDBRecord{
 		public String remark;
 		
-		private RemarkRecord(String pdbLine){
-			remark = pdbLine.substring(6);
-		}
+		private RemarkRecord(String pdbLine){	remark = pdbLine.substring(6);		}
+		public String toString(){	return "REMARK"+remark;	}
 	}
 	public static class ParentRecord implements PDBRecord{
 		public String recordString;

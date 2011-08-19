@@ -1,5 +1,7 @@
 package ProGAL.geomNd;
 
+import java.io.Serializable;
+
 import ProGAL.math.Constants;
 
 /** 
@@ -9,7 +11,9 @@ import ProGAL.math.Constants;
  * construction and can be retrieved lated. 
  * @author R. Fonseca
  */
-public class Point {
+public class Point implements Serializable{
+	private static final long serialVersionUID = -6776647998875885511L;
+	
 	/** The double-array that holds the value of this point */
 	protected final double[] coords;
 	/** The dimension of this point. */
@@ -29,12 +33,24 @@ public class Point {
 	public double getCoord(int d) {		return coords[d];		}	
 	public double[] getCoords() {		return coords;			}
 	
-	public int getDimension() {			return dim;				}
+	/** 
+	 * Return the dimensionality of this point. If it is a point in xyz-space 
+	 * then the dimensionality is 3. The method getDimensions should not be confused 
+	 * with getDimension (in Simplex and geom3d.Point) which is always 0 for points. 
+	 */
+	public int getDimensions() {			return dim;				}
 
 	public void set(int d, double v){		coords[d]=v;			}
 	public void setCoord(int d, double v){	coords[d]=v;			}
+	public void set(Point p){		
+		for(int i=0;i<Math.min(dim, p.dim);i++) coords[i] = p.coords[i];
+	}
+	public void setCoord(Point p){	
+		for(int i=0;i<Math.min(dim, p.dim);i++) coords[i] = p.coords[i];
+	}
 	
-	public double getDistanceSquared(Point p){
+	
+	public double distanceSquared(Point p){
 		double sum = 0;
 		for(int d=0;d<dim;d++) {
 			double delta = coords[d]-p.coords[d];
@@ -42,8 +58,8 @@ public class Point {
 		}
 		return sum;
 	}
-	public double getDistance(Point p){
-		return Math.sqrt(getDistanceSquared(p));
+	public double distance(Point p){
+		return Math.sqrt(distanceSquared(p));
 	}
 	
 	/** Creates the midpoint of two points. */

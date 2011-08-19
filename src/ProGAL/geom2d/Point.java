@@ -24,7 +24,7 @@ public class Point {
 	}
 	
 	/** Returns the midpoint of two points. */
-	public static Point getMidPoint(Point p, Point q) { return new Point((p.x + q.x)/2, (p.y + q.y)/2); }
+	public static Point midPoint(Point p, Point q) { return new Point((p.x + q.x)/2, (p.y + q.y)/2); }
 	
 //	/*
 //	 * creates the equilateral point to the right of pq
@@ -65,16 +65,16 @@ public class Point {
 	public Point scale(double f) { x = x*f; y = y*f; return this; }
 	
 	/** Returns squared distance of this point to point q. */
-	public double getSquaredDistance(Point q) { 
+	public double squaredDistance(Point q) { 
 		double dx = x-q.x;
-		double dy = x-q.x;
+		double dy = y-q.y;
 		return dx*dx+dy*dy; 
 	}
 	
 	/** Returns distance of this point to point q. */
-	public double getDistance(Point q) {
+	public double distance(Point q) {
 		double dx = x-q.x;
-		double dy = x-q.x;
+		double dy = y-q.y;
 		return Math.sqrt(dx*dx+dy*dy); 
 	}
 	
@@ -95,7 +95,7 @@ public class Point {
 	 * creates a bisector between points p and q
 	 */
 	public static Line getBisector(Point p, Point q) {
-		if (!p.equals(q)) return new Line(getMidPoint(p,q), new Vector(p,q)); 
+		if (!p.equals(q)) return new Line(midPoint(p,q), new Vector(p,q)); 
 		return null;
 	}
 	

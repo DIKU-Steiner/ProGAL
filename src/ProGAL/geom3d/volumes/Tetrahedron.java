@@ -29,11 +29,20 @@ public class Tetrahedron implements Simplex, Volume {
 		return corners[c];
 	}
 	
+	/** Return all four corners */
+	public Point[] getCorners() {
+		return corners;
+	}
+	
+	
 	/** Return the specified corner-point. Throws an error if <code>c<0 || c>3</code>. */
 	public Point getPoint(int c){
 		if(c<0 || c>3) throw new IllegalArgumentException();
 		return corners[c];
 	}
+	
+	/** Return the 'dimension' of this object. Required by the interface Simplex. */
+	public int getDimension() { return 3; }
 
 	/** TODO: Comment */
 	public void setPoint(int c, Point point) {
@@ -64,12 +73,12 @@ public class Tetrahedron implements Simplex, Volume {
 		double sixV = Math.abs(a.dot(bXc));
 		Vector cXa = c.crossThis(a);
 		Vector aXb = a.crossThis(b);
-		double denom = bXc.getLength()+cXa.getLength()+aXb.getLength()+( bXc.addThis(cXa).addThis(aXb).getLength() );
+		double denom = bXc.length()+cXa.length()+aXb.length()+( bXc.addThis(cXa).addThis(aXb).length() );
 		return sixV/denom;
 	}
 	
 	/** Calculate the radius of the circumsphere. */
-	public double getCircumradius(){
+	public double circumradius(){
 		Vector a = corners[3].vectorTo(corners[0]);
 		Vector b = corners[3].vectorTo(corners[1]);
 		Vector c = corners[3].vectorTo(corners[2]);
@@ -77,12 +86,12 @@ public class Tetrahedron implements Simplex, Volume {
 		O.addThis(c.cross(a).multiplyThis(b.dot(b)));
 		O.addThis(a.cross(b).multiplyThis(c.dot(c)));
 		O.multiplyThis(1.0/(2*a.dot(b.crossThis(c))));
-		return O.getLength();
+		return O.length();
 	}
 	
 
 	/** Find the center of the circumscribing sphere. */
-	public Point getCircumcenter(){
+	public Point circumcenter(){
 		Vector a = corners[3].vectorTo(corners[0]);
 		Vector b = corners[3].vectorTo(corners[1]);
 		Vector c = corners[3].vectorTo(corners[2]);
@@ -102,10 +111,10 @@ public class Tetrahedron implements Simplex, Volume {
 		Vector bXc = b.cross(c);
 		Vector cXa = c.cross(a);
 		Vector aXb = a.cross(b);
-		double bXcLength = bXc.getLength();
-		double cXaLength = cXa.getLength();
-		double aXbLength = aXb.getLength();
-		double dLength = bXc.addThis(cXa).addThis(aXb).getLength();
+		double bXcLength = bXc.length();
+		double cXaLength = cXa.length();
+		double aXbLength = aXb.length();
+		double dLength = bXc.addThis(cXa).addThis(aXb).length();
 		Vector O = a.multiplyThis(bXcLength);
 		O.addThis(b.multiplyThis(cXaLength));
 		O.addThis(c.multiplyThis(aXbLength));
@@ -115,7 +124,7 @@ public class Tetrahedron implements Simplex, Volume {
 	
 	
 	public Point getCenter() {
-		return getCircumcenter();
+		return circumcenter();
 	}
 
 	/** Returns true if the point p is inside this tetrahedron. */

@@ -214,6 +214,19 @@ public class DelaunayComplex implements SimplicialComplex{
 			else if(tet.getNeighbour(3).containsTriangle(t)) tet.setTriangle(3, t);
 		}
 	}
+	
+	/** The vertex-hull of v is the set of all tetrahedrons that has v as a corner-point */
+	public Set<CTetrahedron> getVertexHull(CVertex v){
+		Set<CTetrahedron> hull = new HashSet<CTetrahedron>();
+		for(CEdge e: v.getAdjacentEdges()){
+			for(CTriangle tri: e.getAdjacentTriangles()){
+				hull.add(tri.getNeighbour(0));
+				hull.add(tri.getNeighbour(1));
+			}
+		}
+		return hull;
+	}
+	
 
 	/** Checks that all tetrahedra comply with the Delaunay-criteria. */
 	public boolean checkTetrahedra() {

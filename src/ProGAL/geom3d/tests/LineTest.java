@@ -134,7 +134,7 @@ public class LineTest {
 	public void testGetDistanceSquared() {
 		Line l = new Line(new Point(0,1,0), new Vector(2,0,0));
 		Point proj = l.orthogonalProjection(new Point(4,1,20));
-		assertEquals(proj.getDistanceSquared(new Point(4,1,20)), l.getDistanceSquared(new Point(4,1,20)), Constants.EPSILON);
+		assertEquals(proj.distanceSquared(new Point(4,1,20)), l.getDistanceSquared(new Point(4,1,20)), Constants.EPSILON);
 		assertEquals(0, l.getDistanceSquared(new Point(0,1,0)), Constants.EPSILON);
 		assertEquals(0, l.getDistanceSquared(new Point(-3,1,0)), Constants.EPSILON);
 	}
@@ -143,7 +143,7 @@ public class LineTest {
 	public void testGetDistance() {
 		Line l = new Line(new Point(0,1,0), new Vector(2,0,0));
 		Point proj = l.orthogonalProjection(new Point(4,1,20));
-		assertEquals(proj.getDistance(new Point(4,1,20)), l.getDistance(new Point(4,1,20)), Constants.EPSILON);
+		assertEquals(proj.distance(new Point(4,1,20)), l.getDistance(new Point(4,1,20)), Constants.EPSILON);
 		assertEquals(0, l.getDistance(new Point(0,1,0)), Constants.EPSILON);
 		assertEquals(0, l.getDistance(new Point(-3,1,0)), Constants.EPSILON);
 	}
@@ -198,6 +198,20 @@ public class LineTest {
 		l2 = new Line(new Point(0,0,2), new Vector(10,1,0));
 		assertEquals(4, l1.getSquaredDistance(l2),Constants.EPSILON);
 		assertEquals(4, l2.getSquaredDistance(l1),Constants.EPSILON);
+	}
+	
+	@Test
+	public void testRotate(){
+		Line l = new Line(new Point(0,1,0), new Vector(1,0,0));
+		Point p = new Point(2,0,0);
+		assertTrue(l.rotate(p, Math.PI/2).equals(new Point(2,1,-1)));
+		
+		//Random non-trivial line and point. Rotate point and rotate it back. 
+		l = new Line( new Point(0.2, 0.3, 0.4), new Vector(0.5,0.6,0.7));
+		p = new Point(3.9,1.0,1.1);
+		Point q = l.rotate(p, 1);//Rotate roughly a sixth of a circle
+		assertTrue(l.rotate(q, -1).equals(p));
+		assertTrue(l.rotate(q, Math.PI*2-1).equals(p));
 	}
 
 }

@@ -17,7 +17,7 @@ public class PointTest {
 		assertEquals(0.2, p.get(1), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 		assertEquals(0.5, p.get(3), Constants.EPSILON);
-		assertEquals(4, p.getDimension());
+		assertEquals(4, p.getDimensions());
 		
 		arr[1] = 2.2;
 		assertEquals(2.2, p.get(1), Constants.EPSILON);
@@ -31,7 +31,7 @@ public class PointTest {
 		assertEquals(0.0, p.get(2), Constants.EPSILON);
 		assertEquals(0.0, p.get(3), Constants.EPSILON);
 		assertEquals(0.0, p.get(4), Constants.EPSILON);
-		assertEquals(4, p.getDimension());
+		assertEquals(4, p.getDimensions());
 	}
 
 	@Test
@@ -52,7 +52,7 @@ public class PointTest {
 		assertEquals(0.2, p.get(1), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 		assertEquals(0.5, p.get(3), Constants.EPSILON);
-		assertEquals(4, p.getDimension());
+		assertEquals(4, p.getDimensions());
 		
 		p.set(1, 2.2);
 		assertEquals(2.2, p.get(1), Constants.EPSILON);
@@ -64,24 +64,24 @@ public class PointTest {
 	public void testGetDistanceSquared() {
 		Point p = new Point(new double[]{3,2,1,4});
 		Point q = new Point(new double[]{-3,1,1,4});
-		assertEquals(37, p.getDistanceSquared(q), Constants.EPSILON);
-		assertEquals(0, p.getDistanceSquared(p), Constants.EPSILON);
+		assertEquals(37, p.distanceSquared(q), Constants.EPSILON);
+		assertEquals(0, p.distanceSquared(p), Constants.EPSILON);
 		
 
 		q = new Point(new double[]{10,20,30,40});
-		assertEquals(7*7+18*18+29*29+36*36, p.getDistanceSquared(q), Constants.EPSILON);
+		assertEquals(7*7+18*18+29*29+36*36, p.distanceSquared(q), Constants.EPSILON);
 	}
 
 	@Test
 	public void testGetDistance() {
 		Point p = new Point(new double[]{3,2,1,4});
 		Point q = new Point(new double[]{-3,1,1,4});
-		assertEquals(Math.sqrt(37), p.getDistance(q), Constants.EPSILON);
-		assertEquals(0, p.getDistance(p), Constants.EPSILON);
+		assertEquals(Math.sqrt(37), p.distance(q), Constants.EPSILON);
+		assertEquals(0, p.distance(p), Constants.EPSILON);
 		
 
 		q = new Point(new double[]{10,20,30,40});
-		assertEquals(Math.sqrt(7*7+18*18+29*29+36*36), p.getDistanceSquared(q), Constants.EPSILON);
+		assertEquals(Math.sqrt(7*7+18*18+29*29+36*36), p.distanceSquared(q), Constants.EPSILON);
 	}
 
 	@Test
@@ -89,7 +89,7 @@ public class PointTest {
 		Point p = new Point(new double[]{3,2,1,4});
 		Point q = new Point(new double[]{0,2,1,4});
 		Point midpoint = Point.getMidpoint(p,q);
-		assertTrue(midpoint.getDistanceSquared(p)==midpoint.getDistanceSquared(q));
+		assertTrue(midpoint.distanceSquared(p)==midpoint.distanceSquared(q));
 		assertTrue(	Point.collinear(p, q, midpoint) );
 		
 		q = p.clone();

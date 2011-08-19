@@ -44,6 +44,9 @@ public class Vector {
 	/** Get the i'th coordinate. */
 	public double get(int i) { return getCoord(i); }
 
+	/** Get the dimensionality of this vector */
+	public int getDimensions() {	return coords.length;	}
+	
 	/** Set the i'th coordinate to v */
 	public void setCoord(int i, double v){ coords[i] = v; }
 	
@@ -58,7 +61,7 @@ public class Vector {
 	}
 
 	/** Get the length of this vector. */
-	public double getLength() {return Math.sqrt(getLengthSquared()); }
+	public double length() {return Math.sqrt(getLengthSquared()); }
 
 	
 	/** Return true if the length of this vector is 0. */
@@ -119,16 +122,16 @@ public class Vector {
 	}
 
 	/** Normalize this vector and return the result (without changing this object). */
-	public Vector normalize(){ return this.multiply(1/getLength()); }
+	public Vector normalize(){ return this.multiply(1/length()); }
 	
 	/** Normalize this vector and return the result (changing this object). */
-	public Vector normalizeThis(){ return this.multiplyThis(1/getLength()); }
+	public Vector normalizeThis(){ return this.multiplyThis(1/length()); }
 
 	/** Scale this vector to a certain length (returns new object and does not change this object). */
-	public Vector scaleToLength(double length) { return multiply(length/getLength()); }
+	public Vector scaleToLength(double length) { return multiply(length/length()); }
 	
 	/** Scale this vector to a certain length (changes this object). */
-	public Vector scaleToLengthThis(double length) { return multiplyThis(length/getLength()); }
+	public Vector scaleToLengthThis(double length) { return multiplyThis(length/length()); }
 	
 	/** Convert this vector to a point. */
 	public Point toPoint() { return new Point(clone().coords); }
@@ -169,6 +172,7 @@ public class Vector {
 
 	/** Get the angle between vector u and v. */
 	public static double getAngle(Vector u, Vector v) { return u.angle(v); }
+
 	
 
 }

@@ -47,8 +47,8 @@ public class LSS implements Volume{
 		Vector[] eigenVecs = covMatr.getEigenvectors();
 		
 		Vector dir = eigenVecs[0];
-		if(eigenVecs[1].getLength()>dir.getLength()) dir = eigenVecs[1];
-		if(eigenVecs[2].getLength()>dir.getLength()) dir = eigenVecs[2];
+		if(eigenVecs[1].length()>dir.length()) dir = eigenVecs[1];
+		if(eigenVecs[2].length()>dir.length()) dir = eigenVecs[2];
 
 		InfCylinder iCyl = InfCylinder.createMinRadCylinderFromDirection(points, dir.normalizeThis());
 		LSS ret = iCyl.capWithHalfSpheres(points);
@@ -68,7 +68,7 @@ public class LSS implements Volume{
 		double sumOfRads = v1.rad + v2.rad;
 		for (int i=0; i<2; i++) {
 			for (int j=2; j<4; j++) {
-				dist = points[i].getDistance(points[j]) + sumOfRads;//4HOps
+				dist = points[i].distance(points[j]) + sumOfRads;//4HOps
 				if (dist > best) { best = dist;	m1 = i;	m2 = j; }
 			}
 		}
@@ -107,7 +107,7 @@ public class LSS implements Volume{
 		//10+6+12*3=52HOps so far
 
 		ProGAL.geom2d.Circle mec = new ProGAL.geom2d.Circle( cArr[0],cArr[1],cArr[2]);//68HOps
-		Point linePoint = x.multiply(mec.getCenter().getX()).add(y.multiply(mec.getCenter().getY())).toPoint();//6HOps
+		Point linePoint = x.multiply(mec.center().getX()).add(y.multiply(mec.center().getY())).toPoint();//6HOps
 		return new InfCylinder(new Line(linePoint,dir), mec.getRadius());
 	}
 	
@@ -120,7 +120,7 @@ public class LSS implements Volume{
 	public double distanceToPoint(Point point){
 		Vector d = segment.getAToB();
 		double t = clamp( -(point.vectorTo(segment.getA()).dot(d))/(d.dot(d)) );
-		return ( segment.getA().add(d.multiplyThis(t)).subtractThis(point.toVector()) ).toVector().getLength();
+		return ( segment.getA().add(d.multiplyThis(t)).subtractThis(point.toVector()) ).toVector().length();
 	}
 	public boolean overlaps(LSS capsule){
 		double minDist = closestSegmentPoint(capsule); 
@@ -137,7 +137,7 @@ public class LSS implements Volume{
 		double e = dir2.getLengthSquared();					//|S2| squared		.. 3HOp
 		
 		if(a<Constants.EPSILON && e<Constants.EPSILON )
-			return startPoint1.getDistance(startPoint2);
+			return startPoint1.distance(startPoint2);
 		if(a<Constants.EPSILON) return closestSegmentPoint(startPoint2, capsule.segment.getB(), startPoint1);
 		if(e<Constants.EPSILON) return closestSegmentPoint(startPoint1, segment.getB(), startPoint2);
 		
@@ -170,14 +170,14 @@ public class LSS implements Volume{
 
 		Point c1 = startPoint1.add(dir1.multiplyThis(s));//      vec-scalar mult  .. 3HOp
 		Point c2 = startPoint2.add(dir2.multiplyThis(t));//      vec-scalar mult  .. 3HOp
-		return c1.getDistance(c2);	                //          .. 3HOp
+		return c1.distance(c2);	                //          .. 3HOp
 	}
 	
 	private static double closestSegmentPoint(Point p11, Point p12, Point p2){
 		Line l = new Line(p11, p11.vectorTo(p12));
 		double t = l.orthogonalProjectionParameter(p2);
-		t = clamp(t)*p11.getDistance(p12);
-		return l.getPoint(t).getDistance(p2);
+		t = clamp(t)*p11.distance(p12);
+		return l.getPoint(t).distance(p2);
 	}
 
 
@@ -190,7 +190,7 @@ public class LSS implements Volume{
 		Line l = new Line(segment);
 		double t = l.orthogonalProjectionParameter(p);
 		if(t>1) t=1; else if(t<0) t=0;
-		return l.getPoint(t).getDistance(p)<=this.rad;
+		return l.getPoint(t).distance(p)<=this.rad;
 	}
 
 

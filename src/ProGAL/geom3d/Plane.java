@@ -75,7 +75,7 @@ public class Plane implements Shape{
 	/** Gets perpendicular distance of point to this plane */
 	public double getDistance(Point p) {
 		double d = getD();
-		return Math.abs(normal.dot(p.toVector()) + d) / normal.getLength(); 
+		return Math.abs(normal.dot(p.toVector()) + d) / normal.length(); 
 	}
 
 	/** Get the unsigned angle between this plane and p. */

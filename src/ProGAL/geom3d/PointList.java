@@ -59,7 +59,7 @@ public class PointList extends ArrayList<Point> {
 	public double getVariance() {
 		Point c = getCentroid();
 		double sum = 0.0;
-		for (Point p: this) sum += c.getDistanceSquared(p);
+		for (Point p: this) sum += c.distanceSquared(p);
 		return sum/size();
 	}
 	
@@ -174,7 +174,7 @@ public class PointList extends ArrayList<Point> {
 			p = (Point)get(i);
 			for (int j = i+1; j < size(); j++) {
 				q = get(j);
-				pq = p.getDistanceSquared(q);
+				pq = p.distanceSquared(q);
 				if (pq > best) { best = pq; best1 = p; best2 = q; }
 			}
 		}
@@ -228,6 +228,21 @@ public class PointList extends ArrayList<Point> {
 					Randomization.randBetween(-1.0,1.0),
 					Randomization.randBetween(-1.0,1.0) 
 					));
+		return list;
+	}
+
+
+	public static PointList generatePointsOnSphere(int n) {
+		PointList list = new PointList();
+		for(int i=0;i<n;i++){
+				double theta0 = Randomization.randBetween(0, 2*Math.PI);
+				double theta1 = Math.acos(Randomization.randBetween(-1.0,1.0));
+			list.add(new Point(
+					Math.sin(theta0)*Math.cos(theta1),
+					Math.sin(theta0)*Math.sin(theta1),
+					Math.cos(theta0)
+					));
+		}
 		return list;
 	}
 }

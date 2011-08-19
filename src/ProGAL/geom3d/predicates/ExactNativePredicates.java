@@ -180,7 +180,7 @@ public class ExactNativePredicates extends Predicates{
 //		if(r<circumradius) return SphereConfig.INSIDE;
 //		else if(r>circumradius) return SphereConfig.OUTSIDE;
 //		else return SphereConfig.ON;
-		double d_sq = ls.getMidPoint().getDistanceSquared(q);
+		double d_sq = ls.getMidPoint().distanceSquared(q);
 		double r_sq = ls.getLengthSquared()/4;
 		if(d_sq==r_sq) 	return SphereConfig.ON;
 		if(d_sq<r_sq)	return SphereConfig.INSIDE;

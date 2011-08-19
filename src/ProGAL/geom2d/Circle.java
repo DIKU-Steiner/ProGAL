@@ -2,7 +2,7 @@ package ProGAL.geom2d;
 
 import java.util.List;
 
-public class Circle {
+public class Circle implements Shape{
 	protected Point center;
 	protected double radius;
 
@@ -15,7 +15,7 @@ public class Circle {
 
 	
 	public Circle(Point p1, Point p2){
-		this( Point.getMidPoint(p1, p2), p1.getDistance(p2)/2 );
+		this( Point.midPoint(p1, p2), p1.distance(p2)/2 );
 	}
 
 	/** Creates circle through 3 given points. */
@@ -23,22 +23,22 @@ public class Circle {
 		Line ab = Point.getBisector(a, b);
 		Line bc = Point.getBisector(b, c);
 		if(a.equals(b) || b.equals(c)){
-			center = Point.getMidPoint(a, c);
-			radius = center.getDistance(a);
+			center = Point.midPoint(a, c);
+			radius = center.distance(a);
 		}else if(a.equals(c)){
-			center = Point.getMidPoint(a, b);
-			radius = center.getDistance(a);
+			center = Point.midPoint(a, b);
+			radius = center.distance(a);
 		}else if(ab.isParallelWith(bc)){
 			Point p1 = a;
 			Point p2 = b;
-			if(a.getDistance(b)<a.getDistance(c)) p2 = c;
-			if(b.getDistance(c)>p1.getDistance(p2)) p1 = b;
-			center = Point.getMidPoint(p1, p2);
-			radius = p1.getDistance(p2);
+			if(a.distance(b)<a.distance(c)) p2 = c;
+			if(b.distance(c)>p1.distance(p2)) p1 = b;
+			center = Point.midPoint(p1, p2);
+			radius = p1.distance(p2);
 		}else{
 			center = Line.getIntersection(ab, bc);
 			if(center==null) throw new Error(a+" "+b+" "+c);
-			radius = center.getDistance(c);
+			radius = center.distance(c);
 		}
 	}
 	
@@ -66,8 +66,8 @@ public class Circle {
 			radius = Math.max(c1.radius, c2.radius);
 		}else{
 			Line l = new Line(c1.center, c2.center);
-			center = l.getPoint(0.5*c1.center.getDistance(c2.center)-c1.radius/2+c2.radius/2);
-			radius = center.getDistance(c1.center)+c1.radius;
+			center = l.getPoint(0.5*c1.center.distance(c2.center)-c1.radius/2+c2.radius/2);
+			radius = center.distance(c1.center)+c1.radius;
 		}
 	}
 	
@@ -87,66 +87,10 @@ public class Circle {
 	}
 
 
-	public Point getCenter() { return center; }
+	public Point center() { return center; }
 	public double getRadius() { return radius; }
 
 
-//	/**
-//	 * returns true if none of the given points is in the circle
-//	 */
-//	public boolean isEmpty(PointSet2d points) {
-//		double rr = radius*radius;
-//		int size = points.getSize(); 
-//		int i = 0;
-//		while (i < size) if (((Point)points.get(i++)).getSquaredDistance(center) < rr - 0.000000001) return false;
-//		return true;
-//	}
-//
-//	/**
-//	 * returns true if none of the given points except points a, b and c is in the circle
-//	 */
-//	public boolean isEmpty(PointSet2d points, Point a, Point b, Point c) {
-//		double rr = radius*radius;
-//		Point p;
-//		int size = points.getSize(); 
-//		int i = 0;
-//		while (i < size) {
-//			p = (Point)points.get(i++);
-//			if ((p != a) && (p != b) && (p != c) && (p.getSquaredDistance(center) < rr - 0.000000001)) return false;
-//		}
-//		return true;
-//	}
-//
-//
-//	/**
-//	 * returns the secant of the circle on a given line
-//	 * @param line
-//	 * @return
-//	 */
-//	public Segment2d getIntersection(Line2d line) {
-//		Point p1 = line.p;
-//		Point p2 = line.getPoint(1.0);
-////		Point p3 = center;
-//		double dx = p2.x - p1.x;
-//		double dy = p2.y - p1.y;
-//		double ex = p1.x - center.x;
-//		double ey = p1.y - center.y;
-//		double a = dx*dx + dy*dy;
-//		double b = 2*(dx*ex + dy*ey);
-//		double c = center.x*center.x + center.y*center.y + p1.x*p1.x + p1.y*p1.y - 2*(center.x*p1.x + center.y*p1.y) - radius*radius;
-//		double delta = b*b - 4*a*c; 
-//		if (delta < 0) return null;
-//		double u1, u2;
-//		if (delta == 0) u1 = u2 = -b/(2*a);
-//		else {
-//			double sqr = Math.sqrt(delta)/(2*a);
-//			u1 = -b + sqr;
-//			u2 = -b - sqr;
-//		}
-//		return new Segment2d(new Point(p1.x + u1*dx, p1.y + u1*dy),
-//							 new Point(p1.x + u2*dx, p1.y + u2*dy));
-//	}
-	
 	public static Circle minimumEnclosingCircle_Welzl(List<Point> points){
 		Point[] b = new Point[3];
 		return findMEC(points.size(), points,0,b);
@@ -229,11 +173,11 @@ public class Circle {
 		return minCircle;
 	}
 
-	private boolean contains(Point p) {
-		return center.getDistance(p)<=(radius+0.0001);
+	public boolean contains(Point p) {
+		return center.distance(p)<=(radius+0.0001);
 	}
 	public boolean contains(Circle c){
-		return radius>=center.getDistance(c.center)+c.radius-0.000001;
+		return radius>=center.distance(c.center)+c.radius-0.000001;
 	}
 
 	public String toString() { return toString(2); }
@@ -243,6 +187,13 @@ public class Circle {
 	}
 
 	public void toConsole() { toConsole(2); } 
-	public void toConsole(int dec) { System.out.println(toString(dec)); } 
+	public void toConsole(int dec) { System.out.println(toString(dec)); }
+
+
+
+	@Override
+	public Point getCenter() {
+		return center;
+	} 
 
 }

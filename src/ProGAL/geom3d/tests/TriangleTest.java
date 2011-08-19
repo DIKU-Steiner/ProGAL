@@ -52,9 +52,9 @@ public class TriangleTest {
 	@Test
 	public void testGetCenter() {
 		Triangle t = new Triangle(new Point(1,1,1),new Point(2,1,1), new Point(1,2,1));
-		assertTrue(t.getCenter().getDistance(t.getPoint(0))<t.getPoint(0).getDistance(t.getPoint(1)));
-		assertTrue(t.getCenter().getDistance(t.getPoint(0))<t.getPoint(0).getDistance(t.getPoint(2)));
-		assertTrue(t.getCenter().getDistance(t.getPoint(1))<t.getPoint(1).getDistance(t.getPoint(2)));
+		assertTrue(t.getCenter().distance(t.getPoint(0))<t.getPoint(0).distance(t.getPoint(1)));
+		assertTrue(t.getCenter().distance(t.getPoint(0))<t.getPoint(0).distance(t.getPoint(2)));
+		assertTrue(t.getCenter().distance(t.getPoint(1))<t.getPoint(1).distance(t.getPoint(2)));
 		//Note .. not generally true, but true for this triangle.
 	}
 

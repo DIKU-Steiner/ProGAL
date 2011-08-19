@@ -6,11 +6,15 @@ import ProGAL.math.Constants;
  *  A point in (x,y,z)-space represented with double precision. 
  */
 public class Point extends ProGAL.geomNd.Point implements Simplex{
-//	protected double x,y,z;
+	private static final long serialVersionUID = -2120468832687547475L;
 
 	/** Construct a point with the specified coordinates. */
 	public Point(double x, double y, double z) { 
 		super(new double[]{x,y,z});
+	}
+	/** Construct a point with the specified coordinates. */
+	public Point(double[] coords) { 
+		super(coords);
 	}
 	/** Construct a point that is a clone of p. */
 	public Point(Point p) { 
@@ -49,6 +53,12 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	/** Set the third coordinate */
 	public void setZ(double z) { this.coords[2] = z; }
 	
+	/** 
+	 * Return the 'dimension' of this object. Required by the interface Simplex.
+	 * Beware not to confuse this method with getDimensions from geomNd.Point.  
+	 */
+	public int getDimension() { return 0; }
+	
 	/** Get the vector that points from this point to p */
 	public Vector vectorTo(Point p){
 		return new Vector(p.coords[0]-coords[0], p.coords[1]-coords[1], p.coords[2]-coords[2]);
@@ -81,21 +91,21 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 
 
 	/** Translates this point by (x,y,z). */
-	public void translate(double dx, double dy, double dz) {
+	public void translateThis(double dx, double dy, double dz) {
 		this.coords[0] += dx;
 		this.coords[1] += dy;
 		this.coords[2] += dz;
 	}
 	
 	/** Scale this point by a factor s */
-	public void scale(double s){
+	public void scaleThis(double s){
 		this.coords[0]*=s;
 		this.coords[1]*=s;
 		this.coords[2]*=s;
 	}
 	
 	/** Returns p added to this (changing this object). */
-	public Point addThis(Vector p) { translate(p.getX(),p.getY(),p.getZ()); return this; }
+	public Point addThis(Vector p) { translateThis(p.getX(),p.getY(),p.getZ()); return this; }
 	
 	/** Returns p added to this (without changing this object). */
 	public Point add(Vector p) { return new Point(coords[0]+p.getX(), coords[1]+p.getY(), coords[2]+p.getZ()); }
@@ -110,7 +120,7 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	public Point reflectThroughOrigoThis() { coords[0]*=-1; coords[1]*=-1; coords[2]*=-1; return this; }
 
 	/** Get the squared distance from this point to point q. */
-	public double getDistanceSquared(Point q) {
+	public double distanceSquared(Point q) {
 		double dx = coords[0]-q.coords[0];
 		double dy = coords[1]-q.coords[1];
 		double dz = coords[2]-q.coords[2];
@@ -118,7 +128,7 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	}
 
 	/** Get the distance from this point to point q */
-	public double getDistance(Point q) { 
+	public double distance(Point q) { 
 		double dx = coords[0]-q.coords[0];
 		double dy = coords[1]-q.coords[1];
 		double dz = coords[2]-q.coords[2];
@@ -226,8 +236,6 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	public void toConsole() { System.out.println(toString()); }
 	/** Writes this point to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
-	
-
 
 }
 

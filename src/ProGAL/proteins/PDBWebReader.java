@@ -64,17 +64,23 @@ public class PDBWebReader {
 		return null;
 	}
 
-
+	public static String readPDBFile(String pdbId){
+		return readPDBFile(pdbId, true);
+	}
+	
 	/**
 	 * Downloads a PDB-file to a temporary file and returns the path
 	 */
-	public static String readPDBFile(String pdbId){
-		JFrame dialog = new JFrame("Downloading .. ");
-		dialog.setSize(500,100);
-		dialog.setLocation(200, 200);
-		dialog.getContentPane().add(new JLabel("    Downloading http://www.pdb.org/pdb/files/"+pdbId.toUpperCase()+".pdb"));
-		dialog.setVisible(true);
-		dialog.setResizable(false);
+	public static String readPDBFile(String pdbId, boolean displayStatus){
+		JFrame dialog = null;
+		if(displayStatus){
+			dialog = new JFrame("Downloading .. ");
+			dialog.setSize(500,100);
+			dialog.setLocation(200, 200);
+			dialog.getContentPane().add(new JLabel("    Downloading http://www.pdb.org/pdb/files/"+pdbId.toUpperCase()+".pdb"));
+			dialog.setVisible(true);
+			dialog.setResizable(false);
+		}
 		try{
 
 			URL url = new URL("http://www.pdb.org/pdb/files/"+pdbId.toUpperCase()+".pdb");
@@ -92,7 +98,8 @@ public class PDBWebReader {
 			File f = File.createTempFile(pdbId.toUpperCase(), ".pdb");
 			f.deleteOnExit();
 			IOToolbox.writeToFile(sb.toString(), f.getAbsolutePath(), false);
-			dialog.setVisible(false);
+			if(displayStatus)
+				dialog.setVisible(false);
 			return f.getAbsolutePath();
 		}catch(MalformedURLException e){} catch (IOException e) {
 			e.printStackTrace();

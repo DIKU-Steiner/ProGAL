@@ -22,7 +22,7 @@ class TriangleSet3D extends Shape3D {
 
 		for(Triangle t: triangles){
 			Vector n = t.getP1().vectorTo(t.getP2()).crossThis(t.getP1().vectorTo(t.getP3()));
-			if(n.getLength()>0.000001){
+			if(n.length()>0.000001){
 				verts.add(t.getP1().clone());
 				verts.add(t.getP2().clone());
 				verts.add(t.getP3().clone());

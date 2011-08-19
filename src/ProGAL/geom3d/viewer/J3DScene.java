@@ -24,10 +24,15 @@ import javax.vecmath.Vector3f;
 import ProGAL.math.Matrix;
 
 import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
+import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.geometry.Text2D;
+import com.sun.j3d.utils.picking.PickCanvas;
+import com.sun.j3d.utils.picking.PickResult;
+import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
 import ProGAL.geom3d.*;
+import ProGAL.geom3d.volumes.LSS;
 
 /** A graphics class for viewing scenes using Java3D. 
  * All the <code>Shape</code>-subclasses specified in the <code>edu.geom3D</code> 
@@ -89,6 +94,7 @@ public class J3DScene {
 	private CamBehavior camBehavior;
 	private RebuildBehavior rebuildBehavior;
 	private OrbitBehavior orbitBehavior;
+	private PickCanvas pickCanvas;
 	private Timer repaintTimer;
 
 	private final BoundingSphere bounds = new BoundingSphere(new javax.vecmath.Point3d(0,0,0), 5000);
@@ -96,7 +102,9 @@ public class J3DScene {
 
 	private final Map<Shape,BranchGroup> shapeTransforms = new HashMap<Shape,BranchGroup>();
 	private final Map<Shape,Color> primitives = new HashMap<Shape,Color>();
-	private Vector lightDir = new Vector(0,-1,-5);
+	private final Map<Node, Shape> pickMap = new HashMap<Node,Shape>();
+	private final List<ClickListener> clickListeners = new LinkedList<ClickListener>();
+//	private Vector lightDir = new Vector(0,-1,-5);
 	private Point sceneCenter = new Point(0,0,0);
 	private final List<Shape> axisElements = new ArrayList<Shape>();
 
@@ -112,7 +120,12 @@ public class J3DScene {
 		BranchGroup bg = shapeTransforms.remove(v);
 		if(bg!=null)
 			scene.removeChild(bg);
-
+		
+		for(Entry<Node,Shape> entry: new LinkedList<Entry<Node,Shape>>(pickMap.entrySet())){
+			if(entry.getValue()==v){ 
+				pickMap.remove(entry.getKey());
+			}
+		}
 	}
 
 	/** Remove all volumes from the scene. */
@@ -121,6 +134,7 @@ public class J3DScene {
 			removeShape(primitives.entrySet().iterator().next().getKey());
 		primitives.clear();
 		shapeTransforms.clear();
+		pickMap.clear();
 	}
 
 
@@ -139,7 +153,7 @@ public class J3DScene {
 		Node p = genPrimitive(v, c, divisions);
 		scene.addChild(p);
 	}
-	
+
 	/** Add a text-object at the specified position. */
 	public void addText(String t, Point pos){ 
 		addShape(new TextShape(t,pos), Color.GRAY); 
@@ -154,16 +168,36 @@ public class J3DScene {
 	/** Sets the location that the camera looks at to the center of all the shapes added 
 	 * to the scene.  */
 	public void centerCamera(){
-		Vector sceneCenter = new Vector(0,0,0);
+		Vector newCenter = new Vector(0,0,0);
 		for(Entry<Shape, Color> entry: primitives.entrySet())
-			sceneCenter.addThis(entry.getKey().getCenter().toVector());
-		sceneCenter.multiplyThis(-1f/primitives.entrySet().size());
+			newCenter.addThis(entry.getKey().getCenter().toVector());
+		newCenter.multiplyThis(1f/primitives.entrySet().size());
 
+//		centerCamera(sceneCenter.toPoint());
 		Transform3D transform = new Transform3D();
-		transform.setTranslation(new Vector3f((float)sceneCenter.getX(), (float)sceneCenter.getY(), (float)sceneCenter.getZ()));
+		transform.setTranslation(new Vector3f(-(float)newCenter.getX(), -(float)newCenter.getY(), -(float)newCenter.getZ()));
 		TransformGroup tg = ((TransformGroup)((TransformGroup)sceneRoot.getChild(0)).getChild(0));
 		tg.setTransform(transform);
-
+		sceneCenter = newCenter.toPoint();
+	}
+	
+	public void centerCamera(Point newCenter){
+		
+		for(double t=0;t<=1;t+=(Math.sin(t*Math.PI)/10+0.01)){
+			float x = (float)( sceneCenter.getX()*(1-t) + newCenter.getX()*t );
+			float y = (float)( sceneCenter.getY()*(1-t) + newCenter.getY()*t );
+			float z = (float)( sceneCenter.getZ()*(1-t) + newCenter.getZ()*t );
+			Transform3D transform = new Transform3D();
+			transform.setTranslation(new Vector3f(-x,-y,-z));
+			TransformGroup tg = ((TransformGroup)((TransformGroup)sceneRoot.getChild(0)).getChild(0));
+			tg.setTransform(transform);
+			try{Thread.sleep(50);}catch(InterruptedException exc){}
+		}
+		Transform3D transform = new Transform3D();
+		transform.setTranslation(new Vector3f(-(float)newCenter.getX(), -(float)newCenter.getY(), -(float)newCenter.getZ()));
+		TransformGroup tg = ((TransformGroup)((TransformGroup)sceneRoot.getChild(0)).getChild(0));
+		tg.setTransform(transform);
+		sceneCenter = newCenter;
 	}
 
 	/** Zooms such that the maximal distance between two objects is within the view */
@@ -173,7 +207,7 @@ public class J3DScene {
 		try{
 			for(Entry<Shape, Color> entry: primitives.entrySet()){
 				for(Entry<Shape, Color> entry2: primitives.entrySet()){
-					double d = entry.getKey().getCenter().getDistance(entry2.getKey().getCenter());
+					double d = entry.getKey().getCenter().distance(entry2.getKey().getCenter());
 					if(d>maxDist) maxDist=d;
 				}
 			}
@@ -224,12 +258,23 @@ public class J3DScene {
 		}
 	}
 
+	/**
+	 * Add a click-listener that gets called every time an object or the background is clicked
+	 * @param cl
+	 */
+	public void addClickListener(ClickListener cl){
+		clickListeners.add(cl);
+	}
+	public List<ClickListener> getClickListeners(){
+		return clickListeners;
+	}
+	
 
 	private void updateTransforms(Shape v){
 		if(v instanceof ProGAL.geom3d.volumes.Sphere) updateSphereTransforms((ProGAL.geom3d.volumes.Sphere)v);
-//		if(v instanceof ProGAL.geom3d.volumes.Cylinder) updateCylinderTransforms((ProGAL.geom3d.volumes.Cylinder)v);
-//		if(v instanceof ProGAL.geom3d.volumes.Box) updateBoxTransforms((ProGAL.geom3d.volumes.Box)v);
-//		if(v instanceof ProGAL.geom3d.volumes.Cone) updateConeTransforms((ProGAL.geom3d.volumes.Cone)v);
+		//		if(v instanceof ProGAL.geom3d.volumes.Cylinder) updateCylinderTransforms((ProGAL.geom3d.volumes.Cylinder)v);
+		//		if(v instanceof ProGAL.geom3d.volumes.Box) updateBoxTransforms((ProGAL.geom3d.volumes.Box)v);
+		//		if(v instanceof ProGAL.geom3d.volumes.Cone) updateConeTransforms((ProGAL.geom3d.volumes.Cone)v);
 		if(v instanceof ProGAL.geom3d.volumes.LSS) 	updateLSSTransforms((ProGAL.geom3d.volumes.LSS)v);
 		if(v instanceof ProGAL.geom3d.volumes.Tetrahedron) updateTetrahedronTransforms((ProGAL.geom3d.volumes.Tetrahedron)v);
 		if(v instanceof ProGAL.geom3d.Triangle) updateTriangleTransforms((ProGAL.geom3d.Triangle)v);
@@ -244,42 +289,42 @@ public class J3DScene {
 
 		tg.setTransform(trans);
 	}
-//	private void updateCylinderTransforms(ProGAL.geom3d.volumes.Cylinder c){
-//
-//		Transform3D trans = new Transform3D();
-//		Vector v1 = new Vector(0,1.0001,0);
-//		Vector v2 = c.getSegment().getAToB();
-//
-//		if(v2.getLength()>0.000001 && v1.angle(v2)>0.00001 && v1.angle(v2)<Math.PI-0.00001){ 
-//			Vector v = Vector.crossProduct(v1, v2);
-//			v.scaleToLength(1);
-//			Matrix4x4 m4 = Matrix4x4.createRotationMatrix(v1.angle(v2), v);
-//			trans.set(m4.getCoordArray());
-//		}
-//		trans.setScale(new Vector(c.getRadius(), v2.getLength(), c.getRadius()));
-//		trans.setTranslation(c.getSegment().getMidPoint().toVector());
-//
-//		((TransformGroup)shapeTransforms.get(c).getChild(0)).setTransform(trans);
-//	}
-//	private void updateConeTransforms(ProGAL.geom3d.volumes.Cone c){
-//
-//		Transform3D trans = new Transform3D();
-//		Vector v1 = new Vector(0,1,0);
-//		Vector v2 = c.p1.vectorTo(c.p2);
-//
-//		if(v2.getLength()>0.000001 && v1.angle(v2)>0.00001){ 
-//			//Matrix m = Matrix.createRotationMatrix(v1.angle(v2), v1.cross(v2).normIn());
-//			//trans.set(m.getCoordArray());
-//			Vector v = Vector.crossProduct(v1, v2);
-//			v.scaleToLength(1);
-//			Matrix4x4 m4 = Matrix4x4.createRotationMatrix(v1.angle(v2), v);
-//			trans.set(m4.getCoordArray());
-//		}
-//		trans.setScale(new Vector(c.rad, v2.getLength(), c.rad));
-//		trans.setTranslation(c.getCenter().toVector());
-//
-//		((TransformGroup)shapeTransforms.get(c).getChild(0)).setTransform(trans);
-//	}
+	//	private void updateCylinderTransforms(ProGAL.geom3d.volumes.Cylinder c){
+	//
+	//		Transform3D trans = new Transform3D();
+	//		Vector v1 = new Vector(0,1.0001,0);
+	//		Vector v2 = c.getSegment().getAToB();
+	//
+	//		if(v2.getLength()>0.000001 && v1.angle(v2)>0.00001 && v1.angle(v2)<Math.PI-0.00001){ 
+	//			Vector v = Vector.crossProduct(v1, v2);
+	//			v.scaleToLength(1);
+	//			Matrix4x4 m4 = Matrix4x4.createRotationMatrix(v1.angle(v2), v);
+	//			trans.set(m4.getCoordArray());
+	//		}
+	//		trans.setScale(new Vector(c.getRadius(), v2.getLength(), c.getRadius()));
+	//		trans.setTranslation(c.getSegment().getMidPoint().toVector());
+	//
+	//		((TransformGroup)shapeTransforms.get(c).getChild(0)).setTransform(trans);
+	//	}
+	//	private void updateConeTransforms(ProGAL.geom3d.volumes.Cone c){
+	//
+	//		Transform3D trans = new Transform3D();
+	//		Vector v1 = new Vector(0,1,0);
+	//		Vector v2 = c.p1.vectorTo(c.p2);
+	//
+	//		if(v2.getLength()>0.000001 && v1.angle(v2)>0.00001){ 
+	//			//Matrix m = Matrix.createRotationMatrix(v1.angle(v2), v1.cross(v2).normIn());
+	//			//trans.set(m.getCoordArray());
+	//			Vector v = Vector.crossProduct(v1, v2);
+	//			v.scaleToLength(1);
+	//			Matrix4x4 m4 = Matrix4x4.createRotationMatrix(v1.angle(v2), v);
+	//			trans.set(m4.getCoordArray());
+	//		}
+	//		trans.setScale(new Vector(c.rad, v2.getLength(), c.rad));
+	//		trans.setTranslation(c.getCenter().toVector());
+	//
+	//		((TransformGroup)shapeTransforms.get(c).getChild(0)).setTransform(trans);
+	//	}
 	private void updateTextTransforms(TextShape t){
 		Transform3D transform = new Transform3D();
 		transform.setTranslation(toJ3DVec(t.pos));
@@ -287,29 +332,29 @@ public class J3DScene {
 
 		((TransformGroup)shapeTransforms.get(t).getChild(0)).setTransform(transform);
 	}
-//	private void updateBoxTransforms(ProGAL.geom3d.volumes.Box b){
-//		Transform3D transform = new Transform3D();
-//		if(b.getXDir().cross(b.getYDir()).dot(b.getZDir())>0){
-//			Matrix4x4 m = Matrix4x4.createColumnMatrix(
-//					b.getXDir(), 
-//					b.getZDir(), 
-//					b.getYDir()  );
-//			transform.set(m.getCoordArray());
-//			//transform.setScale(new Vector3d(b.getXDir().getLength(), b.getZDir().getLength(), b.getYDir().getLength()));
-//			transform.setTranslation(toJ3DVec(b.getAnchor()));
-//		}else{
-//			Matrix4x4 m = Matrix4x4.createColumnMatrix(
-//					b.getXDir(), 
-//					b.getYDir(), 
-//					b.getZDir()  );
-//			transform.set(m.getCoordArray());
-//			//transform.setScale(new Vector3d(b.getXDir().getLength(), b.getYDir().getLength(), b.getZDir().getLength()));
-//			transform.setTranslation(toJ3DVec(b.getAnchor()));
-//		}
-//
-//		//transform.setTranslation(toJ3DVec(b.p));
-//		((TransformGroup)shapeTransforms.get(b).getChild(0)).setTransform(transform);
-//	}
+	//	private void updateBoxTransforms(ProGAL.geom3d.volumes.Box b){
+	//		Transform3D transform = new Transform3D();
+	//		if(b.getXDir().cross(b.getYDir()).dot(b.getZDir())>0){
+	//			Matrix4x4 m = Matrix4x4.createColumnMatrix(
+	//					b.getXDir(), 
+	//					b.getZDir(), 
+	//					b.getYDir()  );
+	//			transform.set(m.getCoordArray());
+	//			//transform.setScale(new Vector3d(b.getXDir().getLength(), b.getZDir().getLength(), b.getYDir().getLength()));
+	//			transform.setTranslation(toJ3DVec(b.getAnchor()));
+	//		}else{
+	//			Matrix4x4 m = Matrix4x4.createColumnMatrix(
+	//					b.getXDir(), 
+	//					b.getYDir(), 
+	//					b.getZDir()  );
+	//			transform.set(m.getCoordArray());
+	//			//transform.setScale(new Vector3d(b.getXDir().getLength(), b.getYDir().getLength(), b.getZDir().getLength()));
+	//			transform.setTranslation(toJ3DVec(b.getAnchor()));
+	//		}
+	//
+	//		//transform.setTranslation(toJ3DVec(b.p));
+	//		((TransformGroup)shapeTransforms.get(b).getChild(0)).setTransform(transform);
+	//	}
 	private void updateTriangleTransforms(ProGAL.geom3d.Triangle t){
 		Transform3D transform = new Transform3D();
 		Matrix m = Matrix.createColumnMatrix(t.getP1().vectorTo(t.getP2()), t.getP1().vectorTo(t.getP3()), t.getNormal());
@@ -334,11 +379,11 @@ public class J3DScene {
 		Transform3D trans = new Transform3D();
 		Vector v1 = new Vector(0,1,0);
 		Vector v2 = c.segment.getAToB();
-		if(v1.getLength()>0 && v2.getLength()>0 && v1.angle(v2)>0.00001){ 
+		if(v1.length()>0 && v2.length()>0 && v1.angle(v2)>0.00001){ 
 			Matrix m = Matrix.createRotationMatrix(v1.angle(v2), v1.cross(v2).scaleToLength(1));
 			trans.set(to4x4CoordArray(m));
 		}
-		trans.setScale(new Vector3d(c.rad, v2.getLength(), c.rad));
+		trans.setScale(new Vector3d(c.rad, v2.length(), c.rad));
 		trans.setTranslation(toJ3DVec(c.segment.getMidPoint()));
 
 
@@ -348,14 +393,14 @@ public class J3DScene {
 		BranchGroup bg = (BranchGroup)tg.getChild(0);
 
 		trans = new Transform3D();
-		trans.setScale(new Vector3d(1,c.rad/v2.getLength(),1));
+		trans.setScale(new Vector3d(1,c.rad/v2.length(),1));
 		trans.setTranslation(new Vector3d(0,0.5,0));
 		((TransformGroup)bg.getChild(0)).setTransform(trans);
 
 		trans = new Transform3D();
 		trans.rotX(Math.PI);
 		trans.setTranslation(new Vector3d(0,-0.5,0));
-		trans.setScale(new Vector3d(1,c.rad/v2.getLength(),1));
+		trans.setScale(new Vector3d(1,c.rad/v2.length(),1));
 		((TransformGroup)bg.getChild(1)).setTransform(trans);
 	}
 
@@ -387,6 +432,8 @@ public class J3DScene {
 		app.setPolygonAttributes(pa);
 
 		Triangle3D tri = new Triangle3D(1, app);
+		
+		pickMap.put(tri, t);
 
 		TransformGroup tg = new TransformGroup();
 		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
@@ -417,6 +464,7 @@ public class J3DScene {
 		tList.add(new Triangle(new Point(0,1,0),new Point(1,0,0),new Point(0,0,1)));//tList.add(new Triangle(t.p3,t.p2,t.p4));
 		TriangleSet3D tset = new TriangleSet3D(tList, app);
 
+		pickMap.put(tset, t);
 
 		TransformGroup tg = new TransformGroup();
 		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
@@ -437,12 +485,15 @@ public class J3DScene {
 
 		BranchGroup capsGroup = new BranchGroup();
 		capsGroup.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-
+		
 		//First hemisphere
 		Transform3D trans = new Transform3D();
 		trans.setTranslation(new Vector3d(0,0.5,0));
 		TransformGroup tg  = new TransformGroup(trans);
-		tg.addChild(new Hemisphere3D(1, app, divisions));
+		Shape3D shape = new Hemisphere3D(1,app,divisions);
+		enablePicking(shape);
+		pickMap.put(shape, c);
+		tg.addChild(shape);
 		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		capsGroup.addChild(tg);
 
@@ -451,11 +502,17 @@ public class J3DScene {
 		trans.rotX(Math.PI);
 		trans.setTranslation(new Vector3d(0,-0.5, 0));
 		tg = new TransformGroup(trans);
-		tg.addChild(new Hemisphere3D(1,app, divisions));
+		shape = new Hemisphere3D(1,app,divisions);
+		enablePicking(shape);
+		pickMap.put(shape, c);
+		tg.addChild(shape);
 		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		capsGroup.addChild(tg);
 
-		capsGroup.addChild(new HollowCylinder3D(1,1,app, divisions));
+		shape = new HollowCylinder3D(1,1,app, divisions);
+		enablePicking(shape);
+		pickMap.put(shape, c);
+		capsGroup.addChild(shape);
 
 
 		TransformGroup tg1 = new TransformGroup();
@@ -473,49 +530,49 @@ public class J3DScene {
 		updateLSSTransforms(c);
 		return ret;
 	}
-//	private Node genCylinder(geom3d.Cylinder3d c, Color color){
-//		Appearance app = genAppearance(color);
-//
-//		//Cylinder cyl = new Cylinder(c.rad, c.p1.distance(c.p2), app);
-//		Cylinder cyl = new Cylinder(1, 1,Cylinder.GENERATE_NORMALS, 32, 1, app);
-//
-//
-//
-//		TransformGroup tg1 = new TransformGroup();
-//		tg1.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-//		tg1.addChild(cyl);
-//		//shapeTransforms.put(c, tg1);
-//
-//		BranchGroup ret = new BranchGroup();
-//		ret.addChild(tg1);
-//		ret.setCapability(BranchGroup.ALLOW_DETACH);
-//		ret.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-//		shapeTransforms.put(c, ret);
-//		updateCylinderTransforms(c);
-//		return ret;
-//	}
-//	private Node genCone(geom3d.Cone3d c, Color color){
-//	Appearance app = genAppearance(color);
-//
-//		//Cylinder cyl = new Cylinder(c.rad, c.p1.distance(c.p2), app);
-//		Cone cyl = new Cone(1, 1, app);
-//
-//
-//
-//		TransformGroup tg1 = new TransformGroup();
-//		tg1.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-//		tg1.addChild(cyl);
-//		//shapeTransforms.put(c, tg1);
-//
-//		BranchGroup ret = new BranchGroup();
-//		ret.addChild(tg1);
-//		ret.setCapability(BranchGroup.ALLOW_DETACH);
-//		ret.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-//		ret.compile();
-//		shapeTransforms.put(c, ret);
-//		updateConeTransforms(c);
-//		return ret;
-//	}
+	//	private Node genCylinder(geom3d.Cylinder3d c, Color color){
+	//		Appearance app = genAppearance(color);
+	//
+	//		//Cylinder cyl = new Cylinder(c.rad, c.p1.distance(c.p2), app);
+	//		Cylinder cyl = new Cylinder(1, 1,Cylinder.GENERATE_NORMALS, 32, 1, app);
+	//
+	//
+	//
+	//		TransformGroup tg1 = new TransformGroup();
+	//		tg1.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+	//		tg1.addChild(cyl);
+	//		//shapeTransforms.put(c, tg1);
+	//
+	//		BranchGroup ret = new BranchGroup();
+	//		ret.addChild(tg1);
+	//		ret.setCapability(BranchGroup.ALLOW_DETACH);
+	//		ret.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+	//		shapeTransforms.put(c, ret);
+	//		updateCylinderTransforms(c);
+	//		return ret;
+	//	}
+	//	private Node genCone(geom3d.Cone3d c, Color color){
+	//	Appearance app = genAppearance(color);
+	//
+	//		//Cylinder cyl = new Cylinder(c.rad, c.p1.distance(c.p2), app);
+	//		Cone cyl = new Cone(1, 1, app);
+	//
+	//
+	//
+	//		TransformGroup tg1 = new TransformGroup();
+	//		tg1.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+	//		tg1.addChild(cyl);
+	//		//shapeTransforms.put(c, tg1);
+	//
+	//		BranchGroup ret = new BranchGroup();
+	//		ret.addChild(tg1);
+	//		ret.setCapability(BranchGroup.ALLOW_DETACH);
+	//		ret.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+	//		ret.compile();
+	//		shapeTransforms.put(c, ret);
+	//		updateConeTransforms(c);
+	//		return ret;
+	//	}
 	private Node genSphere(ProGAL.geom3d.volumes.Sphere s, Color color, int divisions){
 		Appearance app = genAppearance(color);
 
@@ -525,6 +582,9 @@ public class J3DScene {
 					com.sun.j3d.utils.geometry.Sphere.GENERATE_NORMALS, 
 					divisions,
 					app);
+
+		enablePicking(sphere);
+		pickMap.put(sphere, s);
 
 		/*Transform3D trans = new Transform3D();
 		trans.setTranslation(toJ3DVec(s.center));
@@ -544,30 +604,30 @@ public class J3DScene {
 		updateSphereTransforms(s);
 		return ret;
 	}
-//	private Node genBox(ProGAL.geom3d.volumes.Box b, Color color) {
-//	Appearance app = genAppearance(color);
-//
-//		//com.sun.j3d.utils.geometry.Box box = new com.sun.j3d.utils.geometry.Box(v.extents[0]/2,v.extents[1]/2,v.extents[2]/2, app);
-//		com.sun.j3d.utils.geometry.Box box = new com.sun.j3d.utils.geometry.Box(1,1,1, app);
-//
-//
-//		TransformGroup tg = new TransformGroup();
-//		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-//		tg.addChild(box);
-//		//shapeTransforms.put(b, tg);
-//
-//		BranchGroup ret = new BranchGroup();
-//		ret.addChild(tg);
-//		ret.setCapability(BranchGroup.ALLOW_DETACH);
-//		ret.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-//		shapeTransforms.put(b, ret);
-//		updateBoxTransforms(b);
-//		return ret;
-//	}
+	//	private Node genBox(ProGAL.geom3d.volumes.Box b, Color color) {
+	//	Appearance app = genAppearance(color);
+	//
+	//		//com.sun.j3d.utils.geometry.Box box = new com.sun.j3d.utils.geometry.Box(v.extents[0]/2,v.extents[1]/2,v.extents[2]/2, app);
+	//		com.sun.j3d.utils.geometry.Box box = new com.sun.j3d.utils.geometry.Box(1,1,1, app);
+	//
+	//
+	//		TransformGroup tg = new TransformGroup();
+	//		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+	//		tg.addChild(box);
+	//		//shapeTransforms.put(b, tg);
+	//
+	//		BranchGroup ret = new BranchGroup();
+	//		ret.addChild(tg);
+	//		ret.setCapability(BranchGroup.ALLOW_DETACH);
+	//		ret.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+	//		shapeTransforms.put(b, ret);
+	//		updateBoxTransforms(b);
+	//		return ret;
+	//	}
 	private Node genPrimitive(Shape v, Color c){
-//		if(		v instanceof ProGAL.geom3d.volumes.Cylinder)		return genCylinder((geom3d.Cylinder)v, c);
-//		else if(v instanceof ProGAL.geom3d.volumes.Cone)			return genCone((geom3d.Cone)v, c);
-//		else if(v instanceof ProGAL.geom3d.volumes.Box)				return genBox((geom3d.Box)v, c);
+		//		if(		v instanceof ProGAL.geom3d.volumes.Cylinder)		return genCylinder((geom3d.Cylinder)v, c);
+		//		else if(v instanceof ProGAL.geom3d.volumes.Cone)			return genCone((geom3d.Cone)v, c);
+		//		else if(v instanceof ProGAL.geom3d.volumes.Box)				return genBox((geom3d.Box)v, c);
 		if(v instanceof ProGAL.geom3d.volumes.Sphere)				return genSphere((ProGAL.geom3d.volumes.Sphere)v, c, 32);
 		else if(v instanceof ProGAL.geom3d.volumes.LSS)				return genLSS((ProGAL.geom3d.volumes.LSS)v, c, 32);
 		else if(v instanceof ProGAL.geom3d.Triangle)				return genTriangle((ProGAL.geom3d.Triangle)v, c);
@@ -584,6 +644,9 @@ public class J3DScene {
 	private Node genText(TextShape t, Color c){
 		//Color c = new Color(255-c.getRed(), 255-c.getGreen(), 255-c.getBlue());
 		Shape3D text3D = new Text2D(t.text, new Color3f(c),"Arial",48, Font.BOLD );
+		
+		enablePicking(text3D);
+		pickMap.put(text3D, t);
 
 		TransformGroup subTg = new TransformGroup();
 		subTg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
@@ -612,33 +675,39 @@ public class J3DScene {
 		background.setApplicationBounds(bounds);
 		return background;
 	}
-	private Node genLight(){
-		Color3f light1Color = new Color3f(1f, 1f, 1f);
-		Vector3f light1Direction = toJ3DVec(lightDir);
-		DirectionalLight light1  = new DirectionalLight(light1Color, light1Direction);
-		light1.setInfluencingBounds(bounds);
-		return light1;
-	}
-	private Node genLight2(){
-		Color3f light1Color = new Color3f(1f, 1f, 1f);
-		Vector3f light1Direction = new Vector3f(0,-5f,5f);
-		DirectionalLight light1  = new DirectionalLight(light1Color, light1Direction);
-		light1.setInfluencingBounds(bounds);
-		return light1;
+	private void genLights(BranchGroup bg){
+		
+		Color3f lightColor = new Color3f(1f, 1f, 1f);
+		
+		Vector3f lightDirection = new Vector3f(0,-5,-5);
+		DirectionalLight light  = new DirectionalLight(lightColor, lightDirection);
+		light.setInfluencingBounds(bounds);
+		bg.addChild(light);
+		
+		lightDirection = new Vector3f(0,-5,5);
+		light  = new DirectionalLight(lightColor, lightDirection);
+		light.setInfluencingBounds(bounds);
+		bg.addChild(light);
+		
+		lightDirection = new Vector3f(0,5,0);
+		light  = new DirectionalLight(lightColor, lightDirection);
+		light.setInfluencingBounds(bounds);
+		bg.addChild(light);
+		
 	}
 
 	private boolean axisEnabled = false;
 	/** Enables or disables xyz-axis from the origo */
 	public void setAxisEnabled(boolean axisEnabled){
 		if(axisEnabled && axisElements.isEmpty()){
-			float rad = 0.015f;
-//			axisElements.add(new ProGAL.geom3d.volumes.Cylinder3d(new Point(0,0,0),new Point(1-2*rad,0,0), rad));
-//			axisElements.add(new ProGAL.geom3d.volumes.Cylinder3d(new Point(0,0,0),new Point(0,1-2*rad,0), rad));
-//			axisElements.add(new ProGAL.geom3d.volumes.Cylinder3d(new Point(0,0,0),new Point(0,0,1-2*rad), rad));
-//
-//			axisElements.add(new ProGAL.geom3d.volumes.Cone3d(new Point(1-2*rad,0,0),new Point(1,0,0), 2*rad));
-//			axisElements.add(new ProGAL.geom3d.volumes.Cone3d(new Point(0,0,1-2*rad),new Point(0,0,1), 2*rad));
-//			axisElements.add(new ProGAL.geom3d.volumes.Cone3d(new Point(0,1-2*rad,0),new Point(0,1,0), 2*rad));
+//			float rad = 0.015f;
+			//			axisElements.add(new ProGAL.geom3d.volumes.Cylinder3d(new Point(0,0,0),new Point(1-2*rad,0,0), rad));
+			//			axisElements.add(new ProGAL.geom3d.volumes.Cylinder3d(new Point(0,0,0),new Point(0,1-2*rad,0), rad));
+			//			axisElements.add(new ProGAL.geom3d.volumes.Cylinder3d(new Point(0,0,0),new Point(0,0,1-2*rad), rad));
+			//
+			//			axisElements.add(new ProGAL.geom3d.volumes.Cone3d(new Point(1-2*rad,0,0),new Point(1,0,0), 2*rad));
+			//			axisElements.add(new ProGAL.geom3d.volumes.Cone3d(new Point(0,0,1-2*rad),new Point(0,0,1), 2*rad));
+			//			axisElements.add(new ProGAL.geom3d.volumes.Cone3d(new Point(0,1-2*rad,0),new Point(0,1,0), 2*rad));
 
 			axisElements.add(new TextShape("x", new Point(1,0,0)));
 			axisElements.add(new TextShape("y", new Point(0,1,0)));
@@ -679,7 +748,7 @@ public class J3DScene {
 		//BranchGroup scene = new BranchGroup();
 
 		Transform3D transform = new Transform3D();
-		transform.setTranslation(toJ3DVec(sceneCenter.toVector().multiplyThis(-1)));
+		transform.setTranslation(toJ3DVec(new Vector(0,0,0)));
 		TransformGroup tg = new TransformGroup(transform);
 		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 
@@ -691,14 +760,12 @@ public class J3DScene {
 		for(Entry<Shape, Color> entry: primitives.entrySet())
 			scene.addChild(genPrimitive(entry.getKey(), entry.getValue()));
 		//for(TextPrimitive tp: texts) movedScene.addChild(genTextPrimitive(tp));
-		scene.addChild(genLight());
-		scene.addChild(genLight2());
+		genLights(scene);
 		scene.addChild(genBackground());
 		//if(paintAxis) scene.addChild(genAxis());
 		tg.addChild(scene);
 		//scene.addChild(tg);
 		tgroup.addChild(tg);
-
 
 		//tgroup.addChild(scene);
 		//scene.compile();
@@ -736,6 +803,17 @@ public class J3DScene {
 
 			canvas.addKeyListener(cl);
 			canvas.addMouseWheelListener(cl);
+
+			pickCanvas = new PickCanvas(canvas, sceneRoot);
+			pickCanvas.setMode(PickCanvas.GEOMETRY);
+			addClickListener(new ClickListener(){
+				public void shapeClicked(Shape shape, MouseEvent e) {
+					if(e.getClickCount()==2 && shape!=null){
+						centerCamera(shape.getCenter());
+					}
+				}});
+
+			canvas.addMouseListener(new PickListener()); 
 		}
 
 		return canvas;
@@ -771,12 +849,56 @@ public class J3DScene {
 		for(int r=0;r<m.getN();r++) 
 			for(int c=0;c<m.getN();c++)
 				ret[r*4+c]=(float)m.get(r, c);
-		
+
 		ret[15] = 1; 
 		return ret;
 	}
+
+	private class PickListener extends MouseAdapter{
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			pickCanvas.setShapeLocation(e);
+			PickResult result = pickCanvas.pickClosest();
+			if(result==null){ 
+				for(ClickListener cl: clickListeners) cl.shapeClicked(null, e);
+				return;
+			}
+			
+			Primitive p = (Primitive)result.getNode(PickResult.PRIMITIVE);
+			Shape3D s = (Shape3D)result.getNode(PickResult.SHAPE3D);
+
+			Shape clickedShape = p!=null?pickMap.get(p):s!=null?pickMap.get(s):null;
+			for(ClickListener cl: clickListeners)
+				cl.shapeClicked(clickedShape, e);
+		}
+	}
 	
-	
+	@SuppressWarnings("unchecked")
+	public void enablePicking(Node node) {
+	    node.setPickable(true);
+	    node.setCapability(Node.ENABLE_PICK_REPORTING);
+	    try {
+	       Group group = (Group) node;
+	       for (Enumeration e = group.getAllChildren(); e.hasMoreElements();) {
+	          enablePicking((Node)e.nextElement());
+	       }
+	    }catch(ClassCastException e) {
+	        // if not a group node, there are no children so ignore exception
+	    }catch(RestrictedAccessException exc){}
+	    try {
+	          Shape3D shape = (Shape3D) node;
+	          PickTool.setCapabilities(node, PickTool.INTERSECT_FULL);
+	          for (Enumeration e = shape.getAllGeometries(); e.hasMoreElements();) {
+	             Geometry g = (Geometry)e.nextElement();
+	             g.setCapability(Geometry.ALLOW_INTERSECT);
+	          }
+	       }
+	    catch(ClassCastException e) {
+	       // not a Shape3D node ignore exception
+	    }
+	} 
+
 	private class CamListener extends MouseAdapter implements MouseMotionListener, MouseWheelListener, KeyListener{
 		private boolean shiftPressed = false;
 		private java.awt.Point lastPoint = null;
@@ -970,20 +1092,21 @@ public class J3DScene {
 
 	public static void main(String[] args) {
 		J3DScene j3ds = createJ3DSceneInFrame();
-//		j3ds.addShape(new ProGAL.geom3d.volumes.Cylinder3d(new Point(0,1,0), new Point(0,1,1), 0.1), new Color(20, 20, 200, 200));
-//		geom3d.Box3d box = new geom3d.Box3d(
-//				new Point(-0.5,0.5,-0.5),
-//				new Vector(-1,-1,0).createScaledToLengthVector3d(0.5),
-//				new Vector(-1,1,0).createScaledToLengthVector3d(0.5),
-//				new Vector(0,0,-1).createScaledToLengthVector3d(0.5) );
-//		j3ds.addShape(box, Color.GREEN.darker());
+		//		j3ds.addShape(new ProGAL.geom3d.volumes.Cylinder3d(new Point(0,1,0), new Point(0,1,1), 0.1), new Color(20, 20, 200, 200));
+		//		geom3d.Box3d box = new geom3d.Box3d(
+		//				new Point(-0.5,0.5,-0.5),
+		//				new Vector(-1,-1,0).createScaledToLengthVector3d(0.5),
+		//				new Vector(-1,1,0).createScaledToLengthVector3d(0.5),
+		//				new Vector(0,0,-1).createScaledToLengthVector3d(0.5) );
+		//		j3ds.addShape(box, Color.GREEN.darker());
 
 		j3ds.setAxisEnabled(true);
 
 		j3ds.setBackgroundColor(Color.WHITE);
-//		j3ds.addShape(new geom3d.Capsule3d(new Point(1,1,0), new Point(3,0,0), 0.1), new Color(20,200,20, 100));
-//		geom3d.Cylinder3d cyl = new geom3d.Cylinder3d(new Point(0.4,0,0.1), new Point(0.4,0.5,0), 0.1);
-//		j3ds.addShape(cyl, Color.RED.darker().darker());
+		LSS lss = new LSS(new Point(1,1,0), new Point(3,0,0), 0.1);
+		j3ds.addShape(lss, new Color(20,200,20, 100));
+		//		geom3d.Cylinder3d cyl = new geom3d.Cylinder3d(new Point(0.4,0,0.1), new Point(0.4,0.5,0), 0.1);
+		//		j3ds.addShape(cyl, Color.RED.darker().darker());
 		ProGAL.geom3d.volumes.Sphere s = new ProGAL.geom3d.volumes.Sphere(new Point(-1,-0.2,0), 0.3f);
 		j3ds.addShape(s, Color.MAGENTA);
 		ProGAL.geom3d.volumes.Tetrahedron tetr = new ProGAL.geom3d.volumes.Tetrahedron(new Point(0,0,1), new Point(-0.5,0,1), new Point(-0.5,0.5,1), new Point(-0.25,0.25, 1.25));
@@ -992,6 +1115,7 @@ public class J3DScene {
 
 		j3ds.centerCamera();
 		j3ds.autoZoom();
+		j3ds.removeShape(lss);
 	}
 
 
@@ -1001,7 +1125,7 @@ public class J3DScene {
 		JFrame f = new JFrame("J3DScene-viewer");
 		f.setSize(1200,800);
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-		
+
 		J3DScene j3ds = new J3DScene();
 		j3ds.frame = f;
 		Canvas3D canvas = j3ds.getCanvas();

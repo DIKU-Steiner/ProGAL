@@ -11,9 +11,6 @@ public class CTriangle extends Triangle {
 		super(p0,p1,p2);
 		orderPoints(p0,p1,p2);
 		
-//		setEdge(new CEdge((CVertex)super.p1,(CVertex)super.p2), 0);
-//		setEdge(new CEdge((CVertex)super.p1,(CVertex)super.p3), 1);
-//		setEdge(new CEdge((CVertex)super.p2,(CVertex)super.p3), 2);
 		this.adjacentTetrahedra[0] = t1;
 		this.adjacentTetrahedra[1] = t2;
 	}

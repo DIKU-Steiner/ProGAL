@@ -22,28 +22,16 @@ public class CTetrahedron extends Tetrahedron{
 	public void setFlat(boolean flat) {				this.flat = flat;			}
 	public void setModified(boolean modified) {		this.modified = modified;	}
 
-	public CVertex getPoint(int i){
-		return (CVertex)corners[i];
-	}
-	public void setPoint(CVertex p, int i){
-		super.corners[i] = p;
-	}
+	public void setPoint(CVertex p, int i){					super.corners[i] = p;	}
+	public void setNeighbour(int index, CTetrahedron t){	neighbours[index] = t;	}
+	public void setTriangle(int index, CTriangle t){		triangles[index] = t;	}
 	
-	public void setNeighbour(int index, CTetrahedron t){
-		neighbours[index]=t;
-	}
-	public void setTriangle(int index, CTriangle t){
-		triangles[index] = t;
-	}
-	public CTetrahedron getNeighbour(int index) {
-		return neighbours[index];
-	}
-	public CTriangle getTriangle(int index){
-		return triangles[index];
-	}
+	public CVertex getPoint(int i){						return (CVertex)corners[i];	}
+	public CTetrahedron getNeighbour(int index) {		return neighbours[index];	}
+	public CTriangle getTriangle(int index){			return triangles[index];	}
 
-	public boolean isModified() {					return modified;			}
-	public boolean isFlat() {						return flat;				}
+	public boolean isModified() {			return modified;			}
+	public boolean isFlat() {				return flat;				}
 	
 
 	public boolean containsBigPoint() {
@@ -88,9 +76,16 @@ public class CTetrahedron extends Tetrahedron{
 		for(int p=0;p<4;p++){
 			if(!base.containsPoint(getPoint(p))) return getPoint(p); 
 		}
-		throw new Error("The triangle is not part of this tetrahedron");
+		throw new RuntimeException("The triangle is not part of this tetrahedron");
 	}
 
+	public CTriangle oppositeTriangle(CVertex v) {
+		for(CTriangle t: triangles){
+			if(t!=null && !t.containsPoint(v)) return t;
+		}
+		throw new RuntimeException("The vertex is not part of this tetrahedron");
+	}
+	
 	//given a point index this method finds the index of the apex - meaning the opposite point id that is in the tetrahedron opposite the given point id 
 	//input: point index 
 	//output: point index of the point opposite
@@ -108,5 +103,6 @@ public class CTetrahedron extends Tetrahedron{
 		return -1;
 
 	}
+	
 
 }

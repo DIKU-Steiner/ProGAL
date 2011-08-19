@@ -246,16 +246,16 @@ public class PointTest {
 	public void testTranslate() {
 		Point p = new Point(2,1,1);
 		Point q = p.clone();
-		p.translate(0, 0, 0);
+		p.translateThis(0, 0, 0);
 		assertTrue(p.equals(q));
 		
-		p.translate(0.001, 0, 0);
+		p.translateThis(0.001, 0, 0);
 		assertFalse(p.equals(q));
 		assertTrue(p.getX()==2.001);
 		assertTrue(p.getY()==1);
 		assertTrue(p.getZ()==1);
 
-		p.translate(0.001, 2.001, 3.001);
+		p.translateThis(0.001, 2.001, 3.001);
 		assertFalse(p.equals(q));
 		assertEquals(2.002, p.getX(), Constants.EPSILON);
 		assertEquals(3.001, p.getY(), Constants.EPSILON);
@@ -266,21 +266,21 @@ public class PointTest {
 	public void testScale() {
 		Point p = new Point(2,1,1);
 		Point q = p.clone();
-		p.scale(1);
+		p.scaleThis(1);
 		assertTrue(p.equals(q));
 
-		p.scale(3);
+		p.scaleThis(3);
 		assertFalse(p.equals(q));
 		assertTrue(p.getX()==6);
 		assertTrue(p.getY()==3);
 		assertTrue(p.getZ()==3);
 
-		p.scale(0);
+		p.scaleThis(0);
 		assertTrue(p.getX()==0);
 		assertTrue(p.getY()==0);
 		assertTrue(p.getZ()==0);
 
-		p.scale(2);
+		p.scaleThis(2);
 		assertTrue(p.getX()==0);
 		assertTrue(p.getY()==0);
 		assertTrue(p.getZ()==0);
@@ -375,16 +375,16 @@ public class PointTest {
 	public void testGetDistanceSquared() {
 		Point p = new Point(3,2,1);
 		Point q = new Point(-3,1,1);
-		assertEquals(37, p.getDistanceSquared(q), Constants.EPSILON);
-		assertEquals(0, p.getDistanceSquared(p), Constants.EPSILON);
+		assertEquals(37, p.distanceSquared(q), Constants.EPSILON);
+		assertEquals(0, p.distanceSquared(p), Constants.EPSILON);
 	}
 
 	@Test
 	public void testGetDistance() {
 		Point p = new Point(3,2,1);
 		Point q = new Point(-3,1,1);
-		assertEquals(Math.sqrt(37),	p.getDistance(q), Constants.EPSILON);
-		assertEquals(0,				p.getDistance(p), Constants.EPSILON);
+		assertEquals(Math.sqrt(37),	p.distance(q), Constants.EPSILON);
+		assertEquals(0,				p.distance(p), Constants.EPSILON);
 	}
 
 	@Test
@@ -411,7 +411,7 @@ public class PointTest {
 		Point p = new Point(3,2,1);
 		Point q = new Point(0,2,1);
 		Point midpoint = Point.getMidpoint(p,q);
-		assertTrue(midpoint.getDistanceSquared(p)==midpoint.getDistanceSquared(q));
+		assertTrue(midpoint.distanceSquared(p)==midpoint.distanceSquared(q));
 		assertTrue(	Point.collinear(p, q, midpoint) );
 		
 		q = p.clone();

@@ -38,5 +38,11 @@ public class CEdge extends LineSegment{
 	public int hashCode(){
 		return a.hashCode()^b.hashCode();
 	}
+
+	public CVertex opposite(CVertex v) {
+		if(v==a) return (CVertex)b;
+		if(v==b) return (CVertex)a;
+		throw new Error("Vertex is not an end-point of this edge");
+	}
 }
 

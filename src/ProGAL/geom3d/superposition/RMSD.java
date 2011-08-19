@@ -1,5 +1,6 @@
 package ProGAL.geom3d.superposition;
 
+import java.util.Iterator;
 import java.util.List;
 
 import ProGAL.geom3d.Point;
@@ -60,7 +61,18 @@ public class RMSD {
 	}
 	
 	public static double getRMSD(List<Point> points1, List<Point> points2){
-		return 0;
+		List<Point> superposed = optimalSuperposition(points1, points2).transform(points1);
+		double rmsd = 0;
+		int n=0;
+		Iterator<Point> it1 = superposed.iterator();
+		Iterator<Point> it2 = points2.iterator();
+		while(it1.hasNext() && it2.hasNext()){
+			Point p1 = it1.next();
+			Point p2 = it2.next();
+			rmsd+=p1.distanceSquared(p2);
+			n++;
+		}
+		return Math.sqrt(rmsd/n);
 	}
 
 }
