@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.superposition.RMSD;
@@ -167,7 +166,7 @@ public class PDBFile extends File{
 	private AtomRecord locateOccupancyPartner(AtomRecord r, PDBChain chain){
 		for(AtomRecord ar: chain.atomRecords){
 			if(ar==r) break;
-			if(ar.atomName.equalsIgnoreCase(r.atomName) && ar.residueNumber==r.residueNumber) return ar;
+			if(ar.atomType.equalsIgnoreCase(r.atomType) && ar.residueNumber==r.residueNumber) return ar;
 		}
 		return null;
 	}
@@ -198,6 +197,23 @@ public class PDBFile extends File{
 		return getAtomRecords(standardModel, standardChain);
 	}
 
+	/** Returns the ATOM-records. Only the records with the types specified in the comma-separated string
+	 * are returned.
+	 * @param atomTypes A comma separated list of atom types. Could, for example, be "CA,C,N,O" to specify
+	 * backbone atoms only.*/
+	public List<AtomRecord> getAtomRecords(String atomTypes){
+		String[] atomTypeArr = atomTypes.split(",");
+		List<AtomRecord> records = getAtomRecords();
+		List<AtomRecord> ret = new ArrayList<AtomRecord>(records.size());
+		for(AtomRecord rec: records) {
+			for(String atomType: atomTypeArr)
+				if(rec.atomType.equalsIgnoreCase(atomType)){
+					ret.add(rec);
+				}
+		}
+		return ret;
+	}
+	
 	/** Returns the ATOM-records of CA-atoms. Only the records in the first chain of the first model are returned. */
 	public List<AtomRecord> getCARecords(){
 		return getCARecords(standardModel, standardChain);
@@ -211,6 +227,17 @@ public class PDBFile extends File{
 	/** Returns all atom-coordinates in the first chain in the first model. */
 	public List<Point> getAtomCoords(){
 		return getAtomCoords(standardModel, standardChain);
+	}
+
+	/** Returns the coordinates of the specified atom types.
+	 * @param atomTypes A comma separated list of atom types. Could, for example, be "CA,C,N,O" to specify
+	 * backbone atoms only.*/
+	public List<Point> getAtomCoords(String atomTypes){
+		List<AtomRecord> records = getAtomRecords(atomTypes);
+		List<Point> ret = new ArrayList<Point>(records.size());
+		for(AtomRecord rec: records) 
+			ret.add(rec.coords);
+		return ret;
 	}
 
 	/** Returns the ATOM-records of the specified model and chain. */
@@ -246,7 +273,7 @@ public class PDBFile extends File{
 	public List<AtomRecord> getCARecords(int modelNum, int chainNum){
 		List<AtomRecord> ret = new ArrayList<AtomRecord>();
 		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
-			if(ar.atomName.equalsIgnoreCase("CA")) 
+			if(ar.atomType.equalsIgnoreCase("CA")) 
 				ret.add(ar);
 		}
 		
@@ -257,7 +284,7 @@ public class PDBFile extends File{
 	public List<Point> getCACoords(int modelNum, int chainNum){
 		List<Point> caCoords = new ArrayList<Point>();
 		for(AtomRecord a: getAtomRecords(modelNum,chainNum)) 
-			if(a.atomName.equalsIgnoreCase("CA"))
+			if(a.atomType.equalsIgnoreCase("CA"))
 				caCoords.add(a.coords);
 		return caCoords;
 	}
@@ -284,7 +311,7 @@ public class PDBFile extends File{
 			if(prevRes!=ar.residueNumber) c++;
 			prevRes = ar.residueNumber;
 			try{
-				chain.atom(c, ar.atomName).set(ar.coords);
+				chain.atom(c, ar.atomType).set(ar.coords);
 			}catch(RuntimeException exc){}
 		}
 		Point O = new Point(0,0,0);
@@ -292,7 +319,7 @@ public class PDBFile extends File{
 		for(int aa=0;aa<aas.length;aa++){
 			for(Atom a: aas[aa].atoms()){
 				if(a.equals(O)) 
-					System.err.printf("Warning: %s%d_%s not set",aas[aa].typeThreeLetter(),aa,a.name());
+					System.err.printf("Warning: %s%d_%s not set\n",aas[aa].typeThreeLetter(),aa,a.name());
 			}
 		}
 		
@@ -309,15 +336,6 @@ public class PDBFile extends File{
 		return ret;
 	}
 
-	public static void main(String[] args){
-		Locale.setDefault(Locale.ENGLISH);
-		PDBFile f = new PDBFile("/Users/ras/Documents/CypA_packing/3K0N.pdb");
-		f.setIncludeHetatms(true);
-//		for(PDBRecord r: f.getRemarkRecords()) System.out.println(r);
-//		System.out.println(f.getResolution());
-		for(AtomRecord ar: f.getAtomRecords()) System.out.println(ar);
-	}
-	
 	
 	private static List<PDBRecord> readPDBFile(File f, boolean onlySS){
 		List<PDBRecord> ret = new ArrayList<PDBRecord>();
@@ -357,7 +375,7 @@ public class PDBFile extends File{
 	public String getSequence(){
 		StringBuilder sb = new StringBuilder();
 		for(AtomRecord a: getAtomRecords()){
-			if(a.atomName.equalsIgnoreCase("CA")){
+			if(a.atomType.equalsIgnoreCase("CA")){
 				sb.append(a.getSingleCharAAType());
 			}
 		}
@@ -451,7 +469,13 @@ public class PDBFile extends File{
 
 	
 	public static class AtomRecord implements PDBRecord{
-		public String atomName, aaType, element;
+		/** The type of atom. Backbone types are N, CA, C and O. Side-chain types can be CB, CG1 etc. */
+		public String atomType;
+		/** The type of amino acid in a three-letter code, for example: TYR, ALA or ARG */
+		public String aaType;
+		/** The atom element. Typically either of C, N, O, S or H. */
+		public String element;
+		/** A character identifying the chain */
 		public char chain;
 		public int atomNumber, residueNumber;
 		public Point coords;
@@ -461,7 +485,7 @@ public class PDBFile extends File{
 		AtomRecord(String pdbLine){
 			try{
 			atomNumber = Integer.parseInt(pdbLine.substring(6,11).trim());
-			atomName = pdbLine.substring(13,16).trim();
+			atomType = pdbLine.substring(13,16).trim();
 			aaType = pdbLine.substring(17, 20).trim();
 			chain = pdbLine.charAt(21);
 			residueNumber = Integer.parseInt(pdbLine.substring(22,26).trim());
@@ -479,7 +503,7 @@ public class PDBFile extends File{
 		}
 		public boolean isHydrogen() {
 			if(element==null || element.isEmpty()){
-				return atomName.startsWith("H");
+				return atomType.startsWith("H");
 			}else{
 				return element.equalsIgnoreCase("H");
 			}
@@ -509,7 +533,7 @@ public class PDBFile extends File{
 			return String.format("%6s%5d  %-3s%c%3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f          %2s%2s",
 					(this instanceof HetatmRecord)?"HETATM":"ATOM  ",
 					atomNumber, 
-					atomName,
+					atomType,
 					' ',
 					aaType,
 					chain,

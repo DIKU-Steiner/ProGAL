@@ -64,14 +64,14 @@ public class PDBWebReader {
 		return null;
 	}
 
-	public static String readPDBFile(String pdbId){
-		return readPDBFile(pdbId, true);
+	public static String downloadPDBFile(String pdbId){
+		return downloadPDBFile(pdbId, true);
 	}
 	
 	/**
 	 * Downloads a PDB-file to a temporary file and returns the path
 	 */
-	public static String readPDBFile(String pdbId, boolean displayStatus){
+	public static String downloadPDBFile(String pdbId, boolean displayStatus){
 		JFrame dialog = null;
 		if(displayStatus){
 			dialog = new JFrame("Downloading .. ");
@@ -110,7 +110,7 @@ public class PDBWebReader {
 	}
 
 	public static void main(String[] args){
-		String fileName = readPDBFile("3DEX");
+		String fileName = downloadPDBFile("3DEX");
 		System.out.println(fileName);
 		System.out.println(new PDBFile(fileName).getSequence());
 	}
