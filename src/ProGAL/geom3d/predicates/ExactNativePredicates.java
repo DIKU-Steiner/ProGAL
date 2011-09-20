@@ -46,10 +46,10 @@ public class ExactNativePredicates extends Predicates{
 	
 	@Override
 	public double circumradius(Point p0, Point p1, Point p2, Point p3){
-		double x0 = p0.getX(); double y0 = p0.getY(); double z0 = p0.getZ();
-		double x1 = p1.getX(); double y1 = p1.getY(); double z1 = p1.getZ();
-		double x2 = p2.getX(); double y2 = p2.getY(); double z2 = p2.getZ();
-		double x3 = p3.getX(); double y3 = p3.getY(); double z3 = p3.getZ();
+		double x0 = p0.x(); double y0 = p0.y(); double z0 = p0.z();
+		double x1 = p1.x(); double y1 = p1.y(); double z1 = p1.z();
+		double x2 = p2.x(); double y2 = p2.y(); double z2 = p2.z();
+		double x3 = p3.x(); double y3 = p3.y(); double z3 = p3.z();
 
 		return tetcircumradius(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 	}
@@ -61,18 +61,18 @@ public class ExactNativePredicates extends Predicates{
 	
 	@Override
 	public double circumradius(Point p0, Point p1, Point p2){
-		double radius = tricircumradius3d(	p0.getX(),p0.getY(),p0.getZ(),
-				p1.getX(),p1.getY(),p1.getZ(),
-				p2.getX(),p2.getY(),p2.getZ());
+		double radius = tricircumradius3d(	p0.x(),p0.y(),p0.z(),
+				p1.x(),p1.y(),p1.z(),
+				p2.x(),p2.y(),p2.z());
 
 		return radius;
 	}
 
 	@Override
 	public double circumradius(Triangle tri){
-		double radius = tricircumradius3d(	tri.getPoint(0).getX(),tri.getPoint(0).getY(),tri.getPoint(0).getZ(),
-				tri.getPoint(1).getX(),tri.getPoint(1).getY(),tri.getPoint(1).getZ(),
-				tri.getPoint(2).getX(),tri.getPoint(2).getY(),tri.getPoint(2).getZ() );
+		double radius = tricircumradius3d(	tri.getPoint(0).x(),tri.getPoint(0).y(),tri.getPoint(0).z(),
+				tri.getPoint(1).x(),tri.getPoint(1).y(),tri.getPoint(1).z(),
+				tri.getPoint(2).x(),tri.getPoint(2).y(),tri.getPoint(2).z() );
 
 		return radius;
 	}
@@ -80,10 +80,10 @@ public class ExactNativePredicates extends Predicates{
 
 	@Override
 	public double orient(Point p0, Point p1, Point p2, Point q){
-		double orient = orient3d(	p0.getX(),p0.getY(),p0.getZ(),
-				p1.getX(),p1.getY(),p1.getZ(),
-				p2.getX(),p2.getY(),p2.getZ(),
-				q.getX(),q.getY(),q.getZ());
+		double orient = orient3d(	p0.x(),p0.y(),p0.z(),
+				p1.x(),p1.y(),p1.z(),
+				p2.x(),p2.y(),p2.z(),
+				q.x(),q.y(),q.z());
 
 		return orient;
 	}
@@ -95,11 +95,11 @@ public class ExactNativePredicates extends Predicates{
 			return SphereConfig.COPLANAR;
 		}
 
-		double result = insphere(	p0.getX(),p0.getY(),p0.getZ(),
-				p1.getX(),p1.getY(),p1.getZ(),
-				p2.getX(),p2.getY(),p2.getZ(),
-				p3.getX(),p3.getY(),p3.getZ(),
-				q.getX(),q.getY(),q.getZ());
+		double result = insphere(	p0.x(),p0.y(),p0.z(),
+				p1.x(),p1.y(),p1.z(),
+				p2.x(),p2.y(),p2.z(),
+				p3.x(),p3.y(),p3.z(),
+				q.x(),q.y(),q.z());
 
 		if(orient>0){
 			if(result>0){
@@ -133,10 +133,10 @@ public class ExactNativePredicates extends Predicates{
 
 	@Override
 	public SphereConfig insphere(Point p0, Point p1, Point p2, Point q){
-		double result = inspheretri(	p0.getX(),p0.getY(),p0.getZ(),
-				p1.getX(),p1.getY(),p1.getZ(),
-				p2.getX(),p2.getY(),p2.getZ(),
-				q.getX(),q.getY(),q.getZ()	);
+		double result = inspheretri(	p0.x(),p0.y(),p0.z(),
+				p1.x(),p1.y(),p1.z(),
+				p2.x(),p2.y(),p2.z(),
+				q.x(),q.y(),q.z()	);
 
 		if(result>0) 		return SphereConfig.INSIDE;
 		else if(result<0) 	return SphereConfig.OUTSIDE;		

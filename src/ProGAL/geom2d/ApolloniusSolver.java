@@ -16,14 +16,14 @@ public class ApolloniusSolver {
 	 * @hops 68
 	 */
 	public static Circle solveApollonius(Circle c1, Circle c2, Circle c3, int s1, int s2, int s3){
-		double x1 = c1.center.getX();
-		double y1 = c1.center.getY();
+		double x1 = c1.center.get(0);
+		double y1 = c1.center.get(1);
 		double r1 = c1.radius;
-		double x2 = c2.center.getX();
-		double y2 = c2.center.getY();
+		double x2 = c2.center.get(0);
+		double y2 = c2.center.get(1);
 		double r2 = c2.radius;
-		double x3 = c3.center.getX();
-		double y3 = c3.center.getY();
+		double x3 = c3.center.get(0);
+		double y3 = c3.center.get(1);
 		double r3 = c3.radius;
 
 		double v11 = 2*x2 - 2*x1;

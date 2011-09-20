@@ -50,10 +50,10 @@ class Hemisphere3D extends Shape3D {
 
 		int i=0;
 		float[] vertArr = new float[verts.size()*3];
-		for(Point v: verts){ vertArr[i++] = (float)v.getX(); vertArr[i++] = (float)v.getY(); vertArr[i++] = (float)v.getZ(); }
+		for(Point v: verts){ vertArr[i++] = (float)v.x(); vertArr[i++] = (float)v.y(); vertArr[i++] = (float)v.z(); }
 		i=0;
 		float[] normArr = new float[normals.size()*3];
-		for(Vector v: normals){ normArr[i++] = (float)v.getX(); normArr[i++] = (float)v.getY(); normArr[i++] = (float)v.getZ(); }
+		for(Vector v: normals){ normArr[i++] = (float)v.x(); normArr[i++] = (float)v.y(); normArr[i++] = (float)v.z(); }
 
 		TriangleArray caps = new TriangleArray(vertArr.length/3, TriangleArray.COORDINATES | TriangleArray.NORMALS);
 

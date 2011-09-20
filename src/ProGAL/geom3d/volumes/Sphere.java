@@ -44,17 +44,17 @@ public class Sphere implements Volume{
 	public LineSegment getIntersection(Line line) {
 		Point p1 = line.getP();
 		Point p2 = line.getPoint(1.0);
-		double dx = p2.getX() - p1.getX();
-		double dy = p2.getY() - p1.getY();
-		double dz = p2.getZ() - p1.getZ();
-		double ex = p1.getX() - center.getX();
-		double ey = p1.getY() - center.getY();
-		double ez = p1.getZ() - center.getZ();
+		double dx = p2.x() - p1.x();
+		double dy = p2.y() - p1.y();
+		double dz = p2.z() - p1.z();
+		double ex = p1.x() - center.x();
+		double ey = p1.y() - center.y();
+		double ez = p1.z() - center.z();
 		double a = dx*dx + dy*dy + dz*dz;
 		double b = 2*(dx*ex + dy*ey + dz*ez);
-		double c = center.getX()*center.getX() + center.getY()*center.getY() + center.getZ()*center.getZ() + 
-		p1.getX()*p1.getX() + p1.getY()*p1.getY() + p1.getZ()*p1.getZ() - 
-		2*(center.getX()*p1.getX() + center.getY()*p1.getY() + center.getZ()*p1.getZ()) - radius*radius;
+		double c = center.x()*center.x() + center.y()*center.y() + center.z()*center.z() + 
+		p1.x()*p1.x() + p1.y()*p1.y() + p1.z()*p1.z() - 
+		2*(center.x()*p1.x() + center.y()*p1.y() + center.z()*p1.z()) - radius*radius;
 		double delta = b*b - 4*a*c; 
 		if (delta < 0) return null;
 		double u1, u2;
@@ -64,8 +64,8 @@ public class Sphere implements Volume{
 			u1 = (-b + sqr)/(2*a);
 			u2 = (-b - sqr)/(2*a);
 		}
-		return new LineSegment(new Point(p1.getX() + u1*dx, p1.getY() + u1*dy, p1.getZ() + u1*dz),
-				new Point(p1.getX() + u2*dx, p1.getY() + u2*dy, p1.getZ() + u2*dz));
+		return new LineSegment(new Point(p1.x() + u1*dx, p1.y() + u1*dy, p1.z() + u1*dz),
+				new Point(p1.x() + u2*dx, p1.y() + u2*dy, p1.z() + u2*dz));
 	}
 
 
@@ -147,7 +147,7 @@ public class Sphere implements Volume{
 
 	/** Get the smallest sphere through three points. */
 	public static Sphere getMinSphere(Point p0, Point p1, Point p2) {
-		Point center = new Point((p0.getX()+p1.getX()+p2.getX())/3, (p0.getY()+p1.getY()+p2.getY())/3, (p0.getZ()+p1.getZ()+p2.getZ())/3);
+		Point center = new Point((p0.x()+p1.x()+p2.x())/3, (p0.y()+p1.y()+p2.y())/3, (p0.z()+p1.z()+p2.z())/3);
 		double radius = p0.distance(center);
 		return new Sphere(center, radius);
 	}
@@ -155,10 +155,10 @@ public class Sphere implements Volume{
 	/** Constructs the smallest sphere through four points. An error is thrown 
 	 * if the points are coplanar. */ 
 	public static Sphere getMinSphere(Point p0, Point p1, Point p2, Point p3) {
-		double x0 = p0.getX(); double y0 = p0.getY(); double z0 = p0.getZ();
-		double x1 = p1.getX(); double y1 = p1.getY(); double z1 = p1.getZ();
-		double x2 = p2.getX(); double y2 = p2.getY(); double z2 = p2.getZ();
-		double x3 = p3.getX(); double y3 = p3.getY(); double z3 = p3.getZ();
+		double x0 = p0.x(); double y0 = p0.y(); double z0 = p0.z();
+		double x1 = p1.x(); double y1 = p1.y(); double z1 = p1.z();
+		double x2 = p2.x(); double y2 = p2.y(); double z2 = p2.z();
+		double x3 = p3.x(); double y3 = p3.y(); double z3 = p3.z();
 
 		double xx0 = x0*x0 + y0*y0 + z0*z0, xx1 = x1*x1 + y1*y1 + z1*z1;
 		double xx2 = x2*x2 + y2*y2 + z2*z2, xx3 = x3*x3 + y3*y3 + z3*z3;
@@ -272,23 +272,23 @@ public class Sphere implements Volume{
 		//Each dimension is divided into <code>cells</code> cells.
 		int cells = 80;
 		double[] delta = {
-				(maxPoint.getX()-minPoint.getX())/cells,
-				(maxPoint.getY()-minPoint.getY())/cells,
-				(maxPoint.getZ()-minPoint.getZ())/cells
+				(maxPoint.x()-minPoint.x())/cells,
+				(maxPoint.y()-minPoint.y())/cells,
+				(maxPoint.z()-minPoint.z())/cells
 		};
 		//Determine which grid-vertices are inside at least one sphere
 		boolean[][][] bits = new boolean[cells+1][cells+1][cells+1];
 		int xC=0, yC=0, zC=0;
-		for(double x=minPoint.getX();x<=maxPoint.getX();x+=delta[0]){
+		for(double x=minPoint.x();x<=maxPoint.x();x+=delta[0]){
 			yC=0;
-			for(double y=minPoint.getY();y<=maxPoint.getY();y+=delta[1]){
+			for(double y=minPoint.y();y<=maxPoint.y();y+=delta[1]){
 				zC=0;
-				for(double z=minPoint.getZ();z<=maxPoint.getZ();z+=delta[2]){
+				for(double z=minPoint.z();z<=maxPoint.z();z+=delta[2]){
 					//Determine if (x,y,z) is inside a sphere
 					for(int i=0;i<centers.length;i++){
-						double dX = Math.abs(x-centers[i].getX());
-						double dY = Math.abs(y-centers[i].getY());
-						double dZ = Math.abs(z-centers[i].getZ());
+						double dX = Math.abs(x-centers[i].x());
+						double dY = Math.abs(y-centers[i].y());
+						double dZ = Math.abs(z-centers[i].z());
 						if(dX>rads[i] || dY>rads[i] || dZ>rads[i]) continue;
 						if(dX*dX+dY*dY+dZ*dZ<radSqs[i]) {bits[xC][yC][zC] = true; break; } 
 					}

@@ -57,8 +57,8 @@ public class InfCylinder {
 	public static InfCylinder createMinRadCylinderFromDirection(PointList points, Vector dir){
 		Plane p = new Plane(dir);
 		List<ProGAL.geom2d.Point> points2d = new ArrayList<ProGAL.geom2d.Point>();
-		Vector x = new Vector(dir.getX(), dir.getY(), dir.getZ()+1);
-		if(dir.getX()==0 && dir.getX()==0) x.setX(x.getX()+1);
+		Vector x = new Vector(dir.x(), dir.y(), dir.z()+1);
+		if(dir.x()==0 && dir.x()==0) x.setX(x.x()+1);
 		x = x.cross(dir).scaleToLength(1);
 
 		Vector y = x.cross(dir).scaleToLength(1);
@@ -71,7 +71,7 @@ public class InfCylinder {
 		}
 		Circle mec = Circle.minimumEnclosingCircle_Welzl(points2d);//minimumEnclosingCircle_bruteforce(points2d);
 		
-		Point linePoint = x.multiply(mec.center().getX()).addThis(y.multiply(mec.center().getY())).toPoint();
+		Point linePoint = x.multiply(mec.center().x()).addThis(y.multiply(mec.center().y())).toPoint();
 		return new InfCylinder(new Line(linePoint, dir.clone()), mec.getRadius()+mec.getRadius()*0.001);
 	}
 

@@ -12,7 +12,7 @@ public class Line {
 	 */
 	public Line(Point p, Vector n) { 
 		this.p = p; 
-		this.n = n.createUnitVector(); 
+		this.n = n.normalize(); 
 	}
 	
 	/*
@@ -20,8 +20,8 @@ public class Line {
 	 */
 	public Line(Point p, Point q) {
 		this.p = p;
-		n = new Vector(p.y-q.y, q.x-p.x);
-		n.makeUnitVector();
+		n = new Vector(p.y()-q.y(), q.x()-p.x());
+		n.normalizeThis();
 	}
 	
 	/*
@@ -29,7 +29,7 @@ public class Line {
 	 */
 	public Line(double a, double b, double c) {
 		n = new Vector(a,b);
-		n.makeUnitVector();
+		n.normalizeThis();
 		if (b != 0.0) p = new Point(0.0,-c/b); else p = new Point(-c/a,0.0);
 	}
 
@@ -50,8 +50,8 @@ public class Line {
 	 * project point p onto this line
 	 */
 	public Point projectPoint(Point q) {
-		double t = n.y*(q.x-p.x) - n.x*(q.y-p.y);
-		return new Point(n.y*t+p.x, p.y-n.x*t);
+		double t = n.y*(q.x()-p.x()) - n.x*(q.y()-p.y());
+		return new Point(n.y*t+p.x(), p.y()-n.x*t);
 	}
 	
 	/*
@@ -63,8 +63,8 @@ public class Line {
 		double denom = l1.n.x*l2.n.y - l1.n.y*l2.n.x;
 		if (Math.abs(denom) < Constants.EPSILON) throw new RuntimeException("Lines are parallel");
 		else {
-			double e = l1.n.x*l1.p.x + l1.n.y*l1.p.y;
-			double f = l2.n.x*l2.p.x + l2.n.y*l2.p.y;
+			double e = l1.n.x*l1.p.x() + l1.n.y*l1.p.y();
+			double f = l2.n.x*l2.p.x() + l2.n.y*l2.p.y();
 			return new Point((e*l2.n.y - f*l1.n.y)/denom, (f*l1.n.x - e*l2.n.x)/denom);
 		}
 	}
@@ -80,15 +80,15 @@ public class Line {
 
 	public Point getPoint(double d) {
 		Vector dir = this.getDirection();
-		return new Point(p.x+d*dir.x, p.y+d*dir.y);
+		return new Point(p.x()+d*dir.x, p.y()+d*dir.y);
 	}
 
 	public double intersectionParameter(Line l) {
 		Vector dir = getDirection();
 		Vector lDir = l.getDirection();
-		double denom = lDir.getY()*dir.getX()-lDir.getX()*dir.getY();
+		double denom = lDir.y()*dir.x()-lDir.x()*dir.y();
 		Vector c = l.p.vectorTo(p);
-		double s = (lDir.getX()*c.getY()-lDir.getY()*c.getX())/denom;
+		double s = (lDir.x()*c.y()-lDir.y()*c.x())/denom;
 		return s;
 	}
 	

@@ -84,6 +84,6 @@ public class CVertex extends Point {
 	public String toString(){ return toString(2); }
 	
 	public String toString(int dec) {
-		return String.format("CVertex[x=%."+dec+"f,y=%."+dec+"f,z=%."+dec+"f%s]",getX(),getY(),getZ(),bigPoint?",big point":"");
+		return String.format("CVertex[x=%."+dec+"f,y=%."+dec+"f,z=%."+dec+"f%s]",x(),y(),z(),bigPoint?",big point":"");
 	}
 }

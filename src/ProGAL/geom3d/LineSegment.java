@@ -48,7 +48,7 @@ public class LineSegment implements Simplex{
 		Vector aq = a.vectorTo(q);;
 		double t = dir.dot(aq)/dir.getLengthSquared();
 		t = Math.min(1, Math.max(0,t));
-		return new Point(a.getX() + t*dir.getX(), a.getY() + t*dir.getY(), a.getZ() + t*dir.getZ());
+		return new Point(a.x() + t*dir.x(), a.y() + t*dir.y(), a.z() + t*dir.z());
 	}
 
 	/** Gets the squared distance from q to the nearest point on this segment. */

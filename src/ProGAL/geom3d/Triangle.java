@@ -38,9 +38,9 @@ public class Triangle implements Simplex{
 	/** Return the center of the triangle. Here average of the corners is used.*/
 	public Point getCenter() { 
 		return new Point( 
-			(p1.getX()+p2.getX()+p3.getX())/3, 
-			(p1.getY()+p2.getY()+p3.getY())/3, 
-			(p1.getZ()+p2.getZ()+p3.getZ())/3
+			(p1.x()+p2.x()+p3.x())/3, 
+			(p1.y()+p2.y()+p3.y())/3, 
+			(p1.z()+p2.z()+p3.z())/3
 		); 
 	}
 

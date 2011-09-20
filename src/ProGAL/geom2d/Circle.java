@@ -90,6 +90,38 @@ public class Circle implements Shape{
 	public Point center() { return center; }
 	public double getRadius() { return radius; }
 
+	public Point[] intersections(Circle c){
+		Point[] ret = null;
+		double centerDist =center.distance(c.center); 
+		if(centerDist<c.radius+radius){
+			ret = new Point[2];
+			
+			//From http://mathworld.wolfram.com/Circle-CircleIntersection.html
+			double dSq = c.center.distanceSquared(center); 
+			double d = Math.sqrt(dSq);
+			double RSq = radius*radius;
+			double rSq = c.radius*c.radius;
+			double tmp = dSq-rSq+RSq;
+
+			double d1 = tmp/(2*d);
+			double a = Math.sqrt( 4*dSq*RSq - tmp*tmp )/d; 
+			
+			Vector x = center.vectorTo(c.center).normalizeThis();
+			Vector y = x.rotate90();
+			x.multiplyThis(d1);
+			y.multiplyThis(a/2);
+			ret[0] = center.add(x).addThis(y);
+			ret[1] = center.add(x).subtractThis(y);
+			
+		}else if(centerDist==c.radius+radius){
+			ret = new Point[1];
+			Vector x = center.vectorTo(c.center).normalizeThis();
+			x.multiplyThis(radius);
+			ret[0] = center.add(x);
+		}
+		return ret;
+	}
+	
 
 	public static Circle minimumEnclosingCircle_Welzl(List<Point> points){
 		Point[] b = new Point[3];

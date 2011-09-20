@@ -49,7 +49,7 @@ public class PointList extends ArrayList<Point> {
 	public Point getCentroid() {
 		double x = 0.0, y = 0.0, z = 0.0;
 		for(Point p: this){  
-			x += p.getX(); y += p.getY(); z += p.getZ();
+			x += p.x(); y += p.y(); z += p.z();
 		}
 		int n = size();
 		return new Point(x/n, y/n, z/n);

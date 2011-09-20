@@ -22,7 +22,7 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	}
 	/** Construct a point at the coordinates of v. */
 	public Point(Vector v) { 
-		super(new double[]{v.getX(),v.getY(),v.getZ()});
+		super(new double[]{v.x(),v.y(),v.z()});
 	}
 
 	
@@ -40,11 +40,11 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	public double get(int i) { return getCoord(i); }
 
 	/** Get the first coordinate. */
-	public double getX() { return coords[0]; }
+	public double x() { return coords[0]; }
 	/** Get the second coordinate. */
-	public double getY() { return coords[1]; }
+	public double y() { return coords[1]; }
 	/** Get the third coordinate. */
-	public double getZ() { return coords[2]; }
+	public double z() { return coords[2]; }
 	
 	/** Set the first coordinate */
 	public void setX(double x) { this.coords[0] = x; }
@@ -105,16 +105,16 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	}
 	
 	/** Returns p added to this (changing this object). */
-	public Point addThis(Vector p) { translateThis(p.getX(),p.getY(),p.getZ()); return this; }
+	public Point addThis(Vector p) { translateThis(p.x(),p.y(),p.z()); return this; }
 	
 	/** Returns p added to this (without changing this object). */
-	public Point add(Vector p) { return new Point(coords[0]+p.getX(), coords[1]+p.getY(), coords[2]+p.getZ()); }
+	public Point add(Vector p) { return new Point(coords[0]+p.x(), coords[1]+p.y(), coords[2]+p.z()); }
 	
 	/** Returns p subtracted from this (changing this object). */
-	public Point subtractThis(Vector p) { coords[0]-=p.getX(); coords[1]-=p.getY(); coords[2]-=p.getZ(); return this;	}
+	public Point subtractThis(Vector p) { coords[0]-=p.x(); coords[1]-=p.y(); coords[2]-=p.z(); return this;	}
 	
 	/** Returns p subtracted from this (without changing this object). */
-	public Point subtract(Vector p) {return new Point(coords[0]-p.getX(),coords[1]-p.getY(),coords[2]-p.getZ());	}
+	public Point subtract(Vector p) {return new Point(coords[0]-p.x(),coords[1]-p.y(),coords[2]-p.z());	}
 	
 	/** Reflects this point through origo. */
 	public Point reflectThroughOrigoThis() { coords[0]*=-1; coords[1]*=-1; coords[2]*=-1; return this; }

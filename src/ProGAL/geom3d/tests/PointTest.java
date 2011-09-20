@@ -14,88 +14,88 @@ public class PointTest {
 	@Test
 	public void testPoint3dDoubleDoubleDouble() {
 		Point p = new Point(0.1, 0.2, 0.3);
-		assertEquals(0.1, p.getX(), Constants.EPSILON);
+		assertEquals(0.1, p.x(), Constants.EPSILON);
 		assertEquals(0.1, p.get(0), Constants.EPSILON);
-		assertEquals(0.2, p.getY(), Constants.EPSILON);
+		assertEquals(0.2, p.y(), Constants.EPSILON);
 		assertEquals(0.2, p.get(1), Constants.EPSILON);
-		assertEquals(0.3, p.getZ(), Constants.EPSILON);
+		assertEquals(0.3, p.z(), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 	}
 
 	@Test
 	public void testPoint3dPoint3d() {
 		Point p = new Point(new Point(0.1, 0.2, 0.3));
-		assertEquals(0.1, p.getX(), Constants.EPSILON);
+		assertEquals(0.1, p.x(), Constants.EPSILON);
 		assertEquals(0.1, p.get(0), Constants.EPSILON);
-		assertEquals(0.2, p.getY(), Constants.EPSILON);
+		assertEquals(0.2, p.y(), Constants.EPSILON);
 		assertEquals(0.2, p.get(1), Constants.EPSILON);
-		assertEquals(0.3, p.getZ(), Constants.EPSILON);
+		assertEquals(0.3, p.z(), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 	}
 
 	@Test
 	public void testPoint3dVector3d() {
 		Point p = new Point(new Vector(0.1, 0.2, 0.3));
-		assertEquals(0.1, p.getX(), Constants.EPSILON);
+		assertEquals(0.1, p.x(), Constants.EPSILON);
 		assertEquals(0.1, p.get(0), Constants.EPSILON);
-		assertEquals(0.2, p.getY(), Constants.EPSILON);
+		assertEquals(0.2, p.y(), Constants.EPSILON);
 		assertEquals(0.2, p.get(1), Constants.EPSILON);
-		assertEquals(0.3, p.getZ(), Constants.EPSILON);
+		assertEquals(0.3, p.z(), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 	}
 
 	@Test
 	public void testGetCoord() {
 		Point p = new Point(new Vector(0.1, 0.2, 0.3));
-		assertEquals(0.1, p.getX(), Constants.EPSILON);
+		assertEquals(0.1, p.x(), Constants.EPSILON);
 		assertEquals(0.1, p.get(0), Constants.EPSILON);
-		assertEquals(0.2, p.getY(), Constants.EPSILON);
+		assertEquals(0.2, p.y(), Constants.EPSILON);
 		assertEquals(0.2, p.get(1), Constants.EPSILON);
-		assertEquals(0.3, p.getZ(), Constants.EPSILON);
+		assertEquals(0.3, p.z(), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 	}
 
 	@Test
 	public void testGet() {
 		Point p = new Point(new Vector(0.1, 0.2, 0.3));
-		assertEquals(0.1, p.getX(), Constants.EPSILON);
+		assertEquals(0.1, p.x(), Constants.EPSILON);
 		assertEquals(0.1, p.get(0), Constants.EPSILON);
-		assertEquals(0.2, p.getY(), Constants.EPSILON);
+		assertEquals(0.2, p.y(), Constants.EPSILON);
 		assertEquals(0.2, p.get(1), Constants.EPSILON);
-		assertEquals(0.3, p.getZ(), Constants.EPSILON);
+		assertEquals(0.3, p.z(), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 	}
 
 	@Test
 	public void testGetX() {
 		Point p = new Point(new Vector(0.1, 0.2, 0.3));
-		assertEquals(0.1, p.getX(), Constants.EPSILON);
+		assertEquals(0.1, p.x(), Constants.EPSILON);
 		assertEquals(0.1, p.get(0), Constants.EPSILON);
-		assertEquals(0.2, p.getY(), Constants.EPSILON);
+		assertEquals(0.2, p.y(), Constants.EPSILON);
 		assertEquals(0.2, p.get(1), Constants.EPSILON);
-		assertEquals(0.3, p.getZ(), Constants.EPSILON);
+		assertEquals(0.3, p.z(), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 	}
 
 	@Test
 	public void testGetY() {
 		Point p = new Point(new Vector(0.1, 0.2, 0.3));
-		assertEquals(0.1, p.getX(), Constants.EPSILON);
+		assertEquals(0.1, p.x(), Constants.EPSILON);
 		assertEquals(0.1, p.get(0), Constants.EPSILON);
-		assertEquals(0.2, p.getY(), Constants.EPSILON);
+		assertEquals(0.2, p.y(), Constants.EPSILON);
 		assertEquals(0.2, p.get(1), Constants.EPSILON);
-		assertEquals(0.3, p.getZ(), Constants.EPSILON);
+		assertEquals(0.3, p.z(), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 	}
 
 	@Test
 	public void testGetZ() {
 		Point p = new Point(new Vector(0.1, 0.2, 0.3));
-		assertEquals(0.1, p.getX(), Constants.EPSILON);
+		assertEquals(0.1, p.x(), Constants.EPSILON);
 		assertEquals(0.1, p.get(0), Constants.EPSILON);
-		assertEquals(0.2, p.getY(), Constants.EPSILON);
+		assertEquals(0.2, p.y(), Constants.EPSILON);
 		assertEquals(0.2, p.get(1), Constants.EPSILON);
-		assertEquals(0.3, p.getZ(), Constants.EPSILON);
+		assertEquals(0.3, p.z(), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 	}
 
@@ -105,11 +105,11 @@ public class PointTest {
 		p.setCoord(0, 0.4);
 		p.setCoord(1, 0.5);
 		p.setCoord(2, 0.6);
-		assertEquals(0.4, p.getX(), Constants.EPSILON);
+		assertEquals(0.4, p.x(), Constants.EPSILON);
 		assertEquals(0.4, p.get(0), Constants.EPSILON);
-		assertEquals(0.5, p.getY(), Constants.EPSILON);
+		assertEquals(0.5, p.y(), Constants.EPSILON);
 		assertEquals(0.5, p.get(1), Constants.EPSILON);
-		assertEquals(0.6, p.getZ(), Constants.EPSILON);
+		assertEquals(0.6, p.z(), Constants.EPSILON);
 		assertEquals(0.6, p.get(2), Constants.EPSILON);
 	}
 
@@ -119,11 +119,11 @@ public class PointTest {
 		p.set(0, 0.4);
 		p.set(1, 0.5);
 		p.set(2, 0.6);
-		assertEquals(0.4, p.getX(), Constants.EPSILON);
+		assertEquals(0.4, p.x(), Constants.EPSILON);
 		assertEquals(0.4, p.get(0), Constants.EPSILON);
-		assertEquals(0.5, p.getY(), Constants.EPSILON);
+		assertEquals(0.5, p.y(), Constants.EPSILON);
 		assertEquals(0.5, p.get(1), Constants.EPSILON);
-		assertEquals(0.6, p.getZ(), Constants.EPSILON);
+		assertEquals(0.6, p.z(), Constants.EPSILON);
 		assertEquals(0.6, p.get(2), Constants.EPSILON);
 	}
 
@@ -131,7 +131,7 @@ public class PointTest {
 	public void testSetX() {
 		Point p = new Point(new Vector(0.1, 0.2, 0.3));
 		p.setX(0.4);
-		assertEquals(0.4, p.getX(), Constants.EPSILON);
+		assertEquals(0.4, p.x(), Constants.EPSILON);
 		assertEquals(0.4, p.get(0), Constants.EPSILON);
 		assertEquals(0.3, p.get(2), Constants.EPSILON);
 	}
@@ -141,7 +141,7 @@ public class PointTest {
 		Point p = new Point(new Vector(0.1, 0.2, 0.3));
 		p.setY(0.5);
 		p.setCoord(0, 0.6);
-		assertEquals(0.5, p.getY(), Constants.EPSILON);
+		assertEquals(0.5, p.y(), Constants.EPSILON);
 		assertEquals(0.5, p.get(1), Constants.EPSILON);
 	}
 
@@ -149,7 +149,7 @@ public class PointTest {
 	public void testSetZ() {
 		Point p = new Point(0.1, 0.2, 0.3);
 		p.setZ(0.6);
-		assertEquals(0.6, p.getZ(), Constants.EPSILON);
+		assertEquals(0.6, p.z(), Constants.EPSILON);
 		assertEquals(0.6, p.get(2), Constants.EPSILON);
 	}
 
@@ -251,15 +251,15 @@ public class PointTest {
 		
 		p.translateThis(0.001, 0, 0);
 		assertFalse(p.equals(q));
-		assertTrue(p.getX()==2.001);
-		assertTrue(p.getY()==1);
-		assertTrue(p.getZ()==1);
+		assertTrue(p.x()==2.001);
+		assertTrue(p.y()==1);
+		assertTrue(p.z()==1);
 
 		p.translateThis(0.001, 2.001, 3.001);
 		assertFalse(p.equals(q));
-		assertEquals(2.002, p.getX(), Constants.EPSILON);
-		assertEquals(3.001, p.getY(), Constants.EPSILON);
-		assertEquals(4.001, p.getZ(), Constants.EPSILON);
+		assertEquals(2.002, p.x(), Constants.EPSILON);
+		assertEquals(3.001, p.y(), Constants.EPSILON);
+		assertEquals(4.001, p.z(), Constants.EPSILON);
 	}
 
 	@Test
@@ -271,19 +271,19 @@ public class PointTest {
 
 		p.scaleThis(3);
 		assertFalse(p.equals(q));
-		assertTrue(p.getX()==6);
-		assertTrue(p.getY()==3);
-		assertTrue(p.getZ()==3);
+		assertTrue(p.x()==6);
+		assertTrue(p.y()==3);
+		assertTrue(p.z()==3);
 
 		p.scaleThis(0);
-		assertTrue(p.getX()==0);
-		assertTrue(p.getY()==0);
-		assertTrue(p.getZ()==0);
+		assertTrue(p.x()==0);
+		assertTrue(p.y()==0);
+		assertTrue(p.z()==0);
 
 		p.scaleThis(2);
-		assertTrue(p.getX()==0);
-		assertTrue(p.getY()==0);
-		assertTrue(p.getZ()==0);
+		assertTrue(p.x()==0);
+		assertTrue(p.y()==0);
+		assertTrue(p.z()==0);
 	}
 
 	@Test
@@ -297,15 +297,15 @@ public class PointTest {
 		assertFalse(p.equals(q));
 		assertTrue(p.equals(r));
 		assertTrue(p==r);
-		assertTrue(p.getX()==2.001);
-		assertTrue(p.getY()==1);
-		assertTrue(p.getZ()==1);
+		assertTrue(p.x()==2.001);
+		assertTrue(p.y()==1);
+		assertTrue(p.z()==1);
 
 		p.addThis( new Vector(0.001, 2.001, 3.001) );
 		assertFalse(p.equals(q));
-		assertEquals(2.002, p.getX(), Constants.EPSILON);
-		assertEquals(3.001, p.getY(), Constants.EPSILON);
-		assertEquals(4.001, p.getZ(), Constants.EPSILON);
+		assertEquals(2.002, p.x(), Constants.EPSILON);
+		assertEquals(3.001, p.y(), Constants.EPSILON);
+		assertEquals(4.001, p.z(), Constants.EPSILON);
 	}
 
 	@Test
@@ -316,12 +316,12 @@ public class PointTest {
 		Point r = p.add( new Vector(0.001, 0.002, 0.003) );
 		assertTrue(p.equals(q));
 		assertFalse(p.equals(r));
-		assertTrue(p.getX()==2);
-		assertTrue(p.getY()==1);
-		assertTrue(p.getZ()==1);
-		assertTrue(r.getX()==2.001);
-		assertTrue(r.getY()==1.002);
-		assertTrue(r.getZ()==1.003);
+		assertTrue(p.x()==2);
+		assertTrue(p.y()==1);
+		assertTrue(p.z()==1);
+		assertTrue(r.x()==2.001);
+		assertTrue(r.y()==1.002);
+		assertTrue(r.z()==1.003);
 	}
 
 	@Test
@@ -335,15 +335,15 @@ public class PointTest {
 		assertFalse(p.equals(q));
 		assertTrue(p.equals(r));
 		assertTrue(p==r);
-		assertTrue(p.getX()==1.999);
-		assertTrue(p.getY()==1);
-		assertTrue(p.getZ()==1);
+		assertTrue(p.x()==1.999);
+		assertTrue(p.y()==1);
+		assertTrue(p.z()==1);
 
 		p.subtractThis( new Vector(0.001, 2.001, 3.001) );
 		assertFalse(p.equals(q));
-		assertEquals( 1.998, p.getX(), Constants.EPSILON);
-		assertEquals(-1.001, p.getY(), Constants.EPSILON);
-		assertEquals(-2.001, p.getZ(), Constants.EPSILON);
+		assertEquals( 1.998, p.x(), Constants.EPSILON);
+		assertEquals(-1.001, p.y(), Constants.EPSILON);
+		assertEquals(-2.001, p.z(), Constants.EPSILON);
 	}
 
 	@Test
@@ -354,12 +354,12 @@ public class PointTest {
 		Point r = p.subtract( new Vector(0.001, 0.002, 0.003) );
 		assertTrue(p.equals(q));
 		assertFalse(p.equals(r));
-		assertTrue(p.getX()==2);
-		assertTrue(p.getY()==1);
-		assertTrue(p.getZ()==1);
-		assertTrue(r.getX()==1.999);
-		assertTrue(r.getY()==0.998);
-		assertTrue(r.getZ()==0.997);
+		assertTrue(p.x()==2);
+		assertTrue(p.y()==1);
+		assertTrue(p.z()==1);
+		assertTrue(r.x()==1.999);
+		assertTrue(r.y()==0.998);
+		assertTrue(r.z()==0.997);
 	}
 
 	@Test

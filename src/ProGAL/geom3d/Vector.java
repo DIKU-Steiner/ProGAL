@@ -11,7 +11,6 @@ import static java.lang.Math.sin;
  *  Vector3d object.
  */
 public class Vector extends ProGAL.geomNd.Vector{
-//	protected double x,y,z;
 		
 	/** Construct a vector with the specified coordinates. */
 	public Vector(double x, double y, double z) { 
@@ -28,13 +27,11 @@ public class Vector extends ProGAL.geomNd.Vector{
 	
 	
 	/** Get the first coordinate. */
-	public double getX() { return coords[0]; }
-	
+	public double x() { return coords[0]; }
 	/** Get the second coordinate. */
-	public double getY() { return coords[1]; }
-	
+	public double y() { return coords[1]; }
 	/** Get the third coordinate. */
-	public double getZ() { return coords[2]; }
+	public double z() { return coords[2]; }
 	
 	/** Set the first coordinate */
 	public void setX(double x) { this.coords[0] = x; }

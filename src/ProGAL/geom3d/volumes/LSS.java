@@ -92,7 +92,7 @@ public class LSS implements Volume{
 		Plane p = new Plane(new Point(0,0,0),dir);
 		
 		//Rand is guaranteed not to be parallel with dir
-		Vector rand = new Vector(1,(dir.getX()==-1||dir.getX()==1)?1:0,0);
+		Vector rand = new Vector(1,(dir.x()==-1||dir.x()==1)?1:0,0);
 		
 		Vector x = rand.cross(dir).scaleToLength(1);	//10HOps
 		Vector y = x.cross(dir);						//6HOps
@@ -107,7 +107,7 @@ public class LSS implements Volume{
 		//10+6+12*3=52HOps so far
 
 		ProGAL.geom2d.Circle mec = new ProGAL.geom2d.Circle( cArr[0],cArr[1],cArr[2]);//68HOps
-		Point linePoint = x.multiply(mec.center().getX()).add(y.multiply(mec.center().getY())).toPoint();//6HOps
+		Point linePoint = x.multiply(mec.center().x()).add(y.multiply(mec.center().y())).toPoint();//6HOps
 		return new InfCylinder(new Line(linePoint,dir), mec.getRadius());
 	}
 	

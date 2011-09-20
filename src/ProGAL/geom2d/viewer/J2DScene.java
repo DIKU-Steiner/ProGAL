@@ -54,10 +54,10 @@ public class J2DScene {
 		double maxY=Double.NEGATIVE_INFINITY;
 		for(ShapeOptions so: shapes){
 			Point p = so.shape.getCenter();
-			if(p.getX()<minX) minX = p.getX();
-			if(p.getY()<minY) minY = p.getY();
-			if(p.getX()>maxX) maxX = p.getX();
-			if(p.getY()>maxY) maxY = p.getY();
+			if(p.x()<minX) minX = p.x();
+			if(p.y()<minY) minY = p.y();
+			if(p.x()>maxX) maxX = p.x();
+			if(p.y()>maxY) maxY = p.y();
 		}
 		camCenter = new Point((minX+maxX)/2, (minY+maxY)/2);
 		repaint();
@@ -69,10 +69,10 @@ public class J2DScene {
 		double maxY=Double.NEGATIVE_INFINITY;
 		for(ShapeOptions so: shapes){
 			Point p = so.shape.getCenter();
-			if(p.getX()<minX) minX = p.getX();
-			if(p.getY()<minY) minY = p.getY();
-			if(p.getX()>maxX) maxX = p.getX();
-			if(p.getY()>maxY) maxY = p.getY();
+			if(p.x()<minX) minX = p.x();
+			if(p.y()<minY) minY = p.y();
+			if(p.x()>maxX) maxX = p.x();
+			if(p.y()>maxY) maxY = p.y();
 		}
 		int w = canvasPanel.getWidth();
 		int h = canvasPanel.getHeight();
@@ -153,8 +153,8 @@ public class J2DScene {
 		java.awt.Point transformPoint(Point p){
 			int w = canvasPanel.getWidth();
 			int h = canvasPanel.getHeight();
-			int gX = (int)(scale*(p.getX()-camCenter.getX())+w/2);
-			int gY = (int)(-scale*(p.getY()-camCenter.getY())+h/2);
+			int gX = (int)(scale*(p.x()-camCenter.x())+w/2);
+			int gY = (int)(-scale*(p.y()-camCenter.y())+h/2);
 			return new java.awt.Point(gX,gY);
 		}
 		

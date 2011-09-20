@@ -358,9 +358,9 @@ public class Matrix {
 	}
 
 	public static Matrix createRotationMatrix(double angle, Vector v){
-		double ux = v.getX();
-		double uy = v.getY();
-		double uz = v.getZ();
+		double ux = v.x();
+		double uy = v.y();
+		double uz = v.z();
 		double cosA = Math.cos(angle);
 		double sinA = Math.sin(angle);
 

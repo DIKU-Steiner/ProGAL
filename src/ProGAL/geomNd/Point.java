@@ -97,15 +97,24 @@ public class Point implements Serializable{
 		return new Point(newArr);
 	}
 	
+	
+	public String toString(){
+		return toString(2);
+	}
+	public String toString(int dec){
+		StringBuilder ret = new StringBuilder();
+		ret.append("Point[");
+		for(int d=0;d<dim-1;d++) ret.append(String.format("%."+dec+"f, ", coords[d]));
+		if(dim>0)
+			ret.append(String.format("%."+dec+"f]", coords[dim-1]));
+		return ret.toString();
+	}
 	public void toConsole() {
 		toConsole(2);
 	}
 
 	public void toConsole(int dec) {
-		System.out.print("Point[");
-		for(int d=0;d<dim-1;d++) System.out.printf("%."+dec+"f, ", coords[d]);
-		if(dim>0)
-			System.out.printf("%."+dec+"f]\n", coords[dim-1]);
+		System.out.println(toString(dec));
 	}
 
 }

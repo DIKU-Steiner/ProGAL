@@ -28,13 +28,13 @@ public class Superposition {
 		double[][] yArr = new double[y.size()][3];
 		for(int i=0;i<x.size();i++){
 			Point p = x.get(i);
-			xArr[i][0] = p.getX();
-			xArr[i][1] = p.getY();
-			xArr[i][2] = p.getZ();
+			xArr[i][0] = p.x();
+			xArr[i][1] = p.y();
+			xArr[i][2] = p.z();
 			p = y.get(i);
-			yArr[i][0] = p.getX();
-			yArr[i][1] = p.getY();
-			yArr[i][2] = p.getZ();
+			yArr[i][0] = p.x();
+			yArr[i][1] = p.y();
+			yArr[i][2] = p.z();
 		}
 		
 		return Superposition.fast_rmsd(xArr, yArr);

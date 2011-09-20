@@ -20,14 +20,15 @@ import ProGAL.geom3d.predicates.Predicates.SphereConfig;
 /**	<p>
  *  An alpha complex for a set of d-dimensional points and a real number alpha is a subset of the Delaunay complex 
  *  where all simplices that can be enclosed by an alpha-probe (a hypersphere of radius alpha), without the probe 
- *  enclosing any points, are removed. 
+ *  enclosing any points, are removed. The alpha-filtration is a generalization of the alpha complex that associates
+ *  with each simplex the alpha value at which it enters the alpha-complex. 
  *  </p>
  *  
  *  <p>
  *  This class builds the three-dimensional alpha filtration. The alpha complex is easily extracted by using the 
  *  <code>List<Simplex> getSimplices(double alpha)</code> method. For convenience there are also methods to retrieve 
  *  only the edges, triangles and tetrahedra of the alpha complex. The alpha complex is built in the constructor of 
- *  <code>AlphaComplex</code>.
+ *  <code>AlphaComplex</code>. Lists of simplices are always returned in non-decreasing order of alpha.
  *  
  *  
  *  The following example displays the alpha-complex of 20 random points using an alpha probe of radius 0.2.   
@@ -87,7 +88,6 @@ public class AlphaFiltration {
 	}
 
 	private void compute(){
-//		vertices.addAll(del3d.getVertices());
 		computeTetrahedraIntervals();
 		computeTriangleIntervals();
 		computeEdgeIntervals();
@@ -276,8 +276,10 @@ public class AlphaFiltration {
 	 * complexes on the 3-sphere. C.J.A. Delfinado and H. Edelsbrunner. Computer Aided Geometric 
 	 * Design, vol. 12, p. 771-784, 1995. 
 	 * 
-	 * @return an array of int-arrays. The first entry holds the zero'th Betti numbers for each 
-	 * simplex, the second entry the first Betti numbers etc. 
+	 * @return an array of int-arrays. The zero'th entry holds the zero'th Betti numbers for each 
+	 * simplex, the next entry the first Betti numbers etc. The fifth entry holds 1 if the 
+	 * corresponding simplex was marked and 0 otherwise. The length of each entry is n, where n 
+	 * is the number of simplices in the AlphaFiltration.  
 	 */
 	public int[][] getBettiNumbers(){
 		if(bettiNumbers==null){
