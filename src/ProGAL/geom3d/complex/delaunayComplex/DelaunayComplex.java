@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.PointList;
+
 import ProGAL.geom3d.Vector;
 import ProGAL.geom3d.complex.CEdge;
 import ProGAL.geom3d.complex.CTriangle;

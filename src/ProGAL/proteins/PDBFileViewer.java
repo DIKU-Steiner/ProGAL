@@ -33,7 +33,7 @@ public class PDBFileViewer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		showPDBFile(PDBFile.downloadPDBFile("2L6E"));
+		showPDBFile(PDBFile.downloadPDBFile("2CRO"));
 	}
 
 }

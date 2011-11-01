@@ -34,7 +34,7 @@ public class PDBFile extends File{
 	private static final long serialVersionUID = 1791445213018199901L;
 	
 	private boolean includeHydrogens = false;
-	private boolean includeHetAtms = true;
+	private boolean includeHetAtms = false;
 	private int standardModel = 0;
 	private int standardChain = 0;
 	private final List<PDBRecord> records;
@@ -294,12 +294,13 @@ public class PDBFile extends File{
 		List<Point> coords = new ArrayList<Point>();
 		for(AtomRecord a: getAtomRecords(modelNum,chainNum)) {
 			if(!includeHydrogens && a.isHydrogen()) continue;
+			if(!includeHetAtms && a instanceof HetatmRecord) continue;
 			coords.add(a.coords);
 		}
-		for(HetatmRecord a: getHetatmRecords(modelNum, chainNum)){
-			if(!includeHydrogens && a.isHydrogen()) continue;
-			coords.add(a.coords);
-		}
+//		for(HetatmRecord a: getHetatmRecords(modelNum, chainNum)){
+//			if(!includeHydrogens && a.isHydrogen()) continue;
+//			coords.add(a.coords);
+//		}
 		return coords;
 	}
 	
@@ -500,6 +501,9 @@ public class PDBFile extends File{
 			}catch(StringIndexOutOfBoundsException exc){
 				element = pdbLine.charAt(13)+""; 
 			}
+		}
+		public boolean isOnBackbone() {
+			return atomType.equals("C") || atomType.equals("CA") || atomType.equals("N");
 		}
 		public boolean isHydrogen() {
 			if(element==null || element.isEmpty()){

@@ -11,6 +11,8 @@ import ProGAL.geom3d.complex.CTetrahedron;
 import ProGAL.geom3d.complex.CTriangle;
 import ProGAL.geom3d.complex.CVertex;
 import ProGAL.geom3d.complex.alphaComplex.AlphaComplex;
+import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.geom3d.volumes.LSS;
 import ProGAL.proteins.PDBFile;
 import ProGAL.proteins.PDBFile.AtomRecord;
 
@@ -167,7 +169,7 @@ public class ProteinComplex extends AlphaComplex {
 
 	public class Cavity{
 		public final List<CTetrahedron> tetrahedrons = new ArrayList<CTetrahedron>();
-		private final static double largeProbeRadius = 3;
+		private final static double largeProbeRadius = 3000;
 
 		public Cavity(CTetrahedron representative){
 			List<CTetrahedron> candidates = new LinkedList<CTetrahedron>();
@@ -199,22 +201,22 @@ public class ProteinComplex extends AlphaComplex {
 
 
 	public static void main(String[] args){
-		PDBFile f = new PDBFile("/Users/ras/Documents/Datasets/CASP8Training/T0490/T0490.pdb");
-
+//		PDBFile f = new PDBFile("/Users/ras/Documents/Datasets/CASP8Training/T0490/T0490.pdb");
+		PDBFile f = new PDBFile("/Volumes/Home/pawel/Downloads/1CTF.pdb");
 		ProteinComplex pc = new ProteinComplex(f);
 		System.out.println(pc.getTetrahedra().size());
-		//		J3DScene scene = J3DScene.createJ3DSceneInFrame();
-		//		List<AtomRecord> allAtoms = f.getAtomRecords();
-		//		AtomRecord prev = null;
-		//		for(AtomRecord ca: f.getCARecords()){
-		//			if(prev!=null){
-		//				scene.addShape(new LSS(prev.coords, ca.coords, 0.1),java.awt.Color.GRAY,5);
-		//			}
-		//			scene.addText(allAtoms.indexOf(ca)+"", ca.coords, 1.0f);
-		//			
-		//			prev = ca;
-		//		}
-		//		System.out.println("Finding shortest paths:");
+				J3DScene scene = J3DScene.createJ3DSceneInFrame();
+				List<AtomRecord> allAtoms = f.getAtomRecords();
+				AtomRecord prev = null;
+				for(AtomRecord ca: f.getCARecords()){
+					if(prev!=null){
+						scene.addShape(new LSS(prev.coords, ca.coords, 0.1),java.awt.Color.GRAY,5);
+					}
+					scene.addText(allAtoms.indexOf(ca)+"", ca.coords, 1.0f);
+					
+					prev = ca;
+				}
+				System.out.println("Finding shortest paths:");
 		//		
 		//		List<CVertex> vertices = pc.getVertices();
 		//		System.out.printf("> %d-%d: %d\n",0,1,		pc.getCovalentBondDistance(vertices.get(0), vertices.get(1)));

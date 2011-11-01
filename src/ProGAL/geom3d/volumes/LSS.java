@@ -44,11 +44,15 @@ public class LSS implements Volume{
 		if(points.size()==2)	return new LSS(points.get(0).clone(), points.get(1).clone(), 0);
 
 		Matrix3x3 covMatr = points.getCovariance();
+		covMatr.toConsole(3);
 		Vector[] eigenVecs = covMatr.getEigenvectors();
+		eigenVecs[0].toConsole(3);
+		eigenVecs[1].toConsole(3);
+		eigenVecs[2].toConsole(3);
 		
 		Vector dir = eigenVecs[0];
-		if(eigenVecs[1].length()>dir.length()) dir = eigenVecs[1];
-		if(eigenVecs[2].length()>dir.length()) dir = eigenVecs[2];
+		if ((eigenVecs[1] != null) && (eigenVecs[1].length()>dir.length())) dir = eigenVecs[1];
+		if ((eigenVecs[2] != null) && (eigenVecs[2].length()>dir.length())) dir = eigenVecs[2];
 
 		InfCylinder iCyl = InfCylinder.createMinRadCylinderFromDirection(points, dir.normalizeThis());
 		LSS ret = iCyl.capWithHalfSpheres(points);

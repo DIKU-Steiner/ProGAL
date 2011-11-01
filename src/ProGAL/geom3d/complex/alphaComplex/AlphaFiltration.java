@@ -107,7 +107,16 @@ public class AlphaFiltration {
 	/** Get a list of tetrahedra that are part of the alpha-complex with the specified probe radius. */
 	public List<CTetrahedron> getTetrahedra(double alpha){
 		List<CTetrahedron> ret = new ArrayList<CTetrahedron>();
-		for(CTetrahedron t: tetrahedra)	if(getInAlpha(t)<alpha) ret.add(t);
+		for(CTetrahedron t: tetrahedra)	
+			if (getInAlpha(t) < alpha) ret.add(t);
+		return ret;
+	}
+	
+	/** Get a list of tetrahedra that are part of the alpha-complex with the probe radius in a specified interval.  Added by PW*/
+	public List<CTetrahedron> getTetrahedra(double alphaLow, double alphaHigh){
+		List<CTetrahedron> ret = new ArrayList<CTetrahedron>();
+		for(CTetrahedron t: tetrahedra)	
+			if ((getInAlpha(t)>=alphaLow) && (getInAlpha(t)<alphaHigh)) ret.add(t);
 		return ret;
 	}
 
@@ -137,6 +146,11 @@ public class AlphaFiltration {
 		return ret;
 	}
 
+	public List<CTriangle> getAlphaShape(double alpha) {
+		List<CTriangle> ret = new ArrayList<CTriangle>();
+		for (CTriangle t: getTriangles(alpha)) System.out.println(getInAlpha(t));
+		return ret;
+	}
 
 	public int getDim(Simplex s){
 		SimplexAlphaProperties prop = propertyMap.get(s);
@@ -333,7 +347,7 @@ public class AlphaFiltration {
 				}
 			}
 			
-			//The only tetrahedron that be	longs to a 3-cycle at the time it is processed is sigma_n. 
+			//The only tetrahedron that belongs to a 3-cycle at the time it is processed is sigma_n. 
 			//This is the only tetrahedron that gets marked.
 			int lastTetIdx = simplices.indexOf(tetrahedra.get(tetrahedra.size()-1));
 			marked[lastTetIdx] = true;
