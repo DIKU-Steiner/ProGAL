@@ -63,6 +63,9 @@ public class Matrix {
 		return new Matrix(newCoords);
 	}
 	
+	/** Get the transpose of this matrix */
+	public Matrix transpose(){	return getTranspose();	}
+	
 
 	/** Apply this matrix to the vector v and return the result (this will change v). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
@@ -90,7 +93,15 @@ public class Matrix {
 		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to vectors");
 	}
 	
-	/** Apply this matrix to the vector v and return the result (this will change v). 
+	/** Apply this matrix to the point p and return the result (this will NOT change p). 
+	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
+	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
+	public Point applyTo(Point p){
+		return applyToIn(p.clone());
+	}
+	
+	
+	/** Apply this matrix to the point p and return the result (this will change p). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
 	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
 	public Point applyToIn(Point p){
@@ -157,10 +168,10 @@ public class Matrix {
 	public Matrix applyTo(Matrix m) {
 		if(N!=m.M)
 			throw new Error("Incompatible matrix sizes");
-		Matrix ret = new Matrix(M, N);
+		Matrix ret = new Matrix(M, m.N);
 		double[][] newCoords = ret.coords;
 		for(int r=0;r<M;r++){
-			for(int c=0;c<N;c++){
+			for(int c=0;c<m.N;c++){
 				newCoords[r][c] = 0; 
 				for(int i=0;i<N;i++) newCoords[r][c]+=coords[r][i]*m.coords[i][c];
 			}

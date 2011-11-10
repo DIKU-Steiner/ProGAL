@@ -20,7 +20,7 @@ public class Vector extends ProGAL.geomNd.Vector{
 	public Vector(Point p) { 	super(p);	}
 	
 	/** Construct a vector that is a clone of v. */
-	public Vector(Vector v) {	super(v);	}	
+	public Vector(ProGAL.geomNd.Vector v) {	this(v.get(0), v.get(1), v.get(2)); }	
 	
 	/** Construct a vector using the double-array as coordinates. Note: The array is not cloned */
 	public Vector(double[] coords) {	super(coords);	}
@@ -40,6 +40,12 @@ public class Vector extends ProGAL.geomNd.Vector{
 	/** Set the third coordinate */
 	public void setZ(double z) { this.coords[2] = z; }
 
+	/** Set all coordinates of this vector equal to those of v */
+	public void set(Vector v) {
+		this.coords[0] = v.coords[0];
+		this.coords[1] = v.coords[1];
+		this.coords[2] = v.coords[2];
+	}
 
 	/** Get the dot-product of this vector and v. */
 	public double dot(Vector v){ 
@@ -164,7 +170,7 @@ public class Vector extends ProGAL.geomNd.Vector{
 	public static Vector X = new ImmutableVector3d(1,0,0);
 	
 	/** An immutable vector pointing in the (0,1,0)-direction. */
-		public static Vector Y = new ImmutableVector3d(0,1,0);
+	public static Vector Y = new ImmutableVector3d(0,1,0);
 		
 	/** An immutable vector pointing in the (0,0,1)-direction. */
 	public static Vector Z = new ImmutableVector3d(0,0,1);
@@ -191,6 +197,7 @@ public class Vector extends ProGAL.geomNd.Vector{
 		public Vector scaleToLengthThis(double length) { return multiply(length/length()); }
 		public Vector crossThis(Vector v){ return cross(v); }
 	}
+
 	
 }
 

@@ -67,5 +67,8 @@ public class Vector {
 		return x*v.x + y*v.y;
 	}
 
+	public Vector clone(){
+		return new Vector(x,y);
+	}
 }
 

@@ -11,6 +11,10 @@ import org.junit.runners.Suite.SuiteClasses;
 	ProGAL.geom3d.tests.PointTest.class,
 	ProGAL.geom3d.tests.TriangleTest.class,
 	ProGAL.math.test.CombinatoricsTest.class,
-	ProGAL.math.test.PolynomialTest.class
+	ProGAL.math.test.PolynomialTest.class,
+	ProGAL.math.test.MatrixTest.class,
+	ProGAL.proteins.belta.tests.SecondaryStructureTest.class,
+	ProGAL.proteins.belta.tests.SheetTopologyTest.class,
+	ProGAL.proteins.belta.tests.BetaTopologyTest.class
 	})
 public class AllTests {}

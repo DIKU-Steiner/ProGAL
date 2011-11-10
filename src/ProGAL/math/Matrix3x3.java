@@ -7,6 +7,11 @@ public class Matrix3x3 extends Matrix{
 	public Matrix3x3(){
 		super(3,3);
 	}
+	
+	public Matrix3x3(double[][] coords){
+		super(coords);
+		if(M!=3 || N!=3) throw new RuntimeException("Dimensions dont fit");
+	}
 
 	public Vector getColumn(int c){
 		return new Vector(coords[0][c],coords[1][c],coords[2][c]);
@@ -55,7 +60,6 @@ public class Matrix3x3 extends Matrix{
 		newCoords[2][2] = coords[0][0]*coords[1][1] - coords[0][1]*coords[1][0];//18HOPs
 
 		double det = coords[0][0]*newCoords[0][0]+coords[0][1]*newCoords[1][0]+coords[0][2]*newCoords[2][0]; //3HOPs
-		System.out.println("DET: "+det);
 		this.coords = newCoords;
 		return multiplyThis(1/det);//10HOps
 	}

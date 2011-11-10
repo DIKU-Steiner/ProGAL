@@ -37,8 +37,8 @@ public class PDBFile extends File{
 	private boolean includeHetAtms = false;
 	private int standardModel = 0;
 	private int standardChain = 0;
-	private final List<PDBRecord> records;
-	private final List<PDBModel> models = new ArrayList<PDBModel>();
+	protected final List<PDBRecord> records;
+	protected final List<PDBModel> models = new ArrayList<PDBModel>();
 	
 	/** The name of this PDB-file. Typically the PDB-id. */
 	public String name;
@@ -64,8 +64,8 @@ public class PDBFile extends File{
 		
 		//Build models and chains and fill them with ATOM-records
 		for(int r=0;r<records.size();r++){
-			if(records.get(r) instanceof AtomRecord) r = buildModel(r);
-			else if(records.get(r) instanceof ModelRecord) r = buildModel(r);
+			if(records.get(r) instanceof AtomRecord) 		r = buildModel(r);
+			else if(records.get(r) instanceof ModelRecord) 	r = buildModel(r);
 			
 		}
 		
@@ -99,7 +99,7 @@ public class PDBFile extends File{
 				//TODO: Do something about PARENT's (ignore them perhaps?)
 			}else{ break; }
 		}
-		if(model==null) throw new RuntimeException("Expected a model at "+name+":"+(r+1));
+//		if(model==null) throw new RuntimeException("Expected a model at "+name+":"+(r+1));
 		models.add(model);
 
 		return r;
@@ -269,6 +269,10 @@ public class PDBFile extends File{
 		return ret;
 	}
 
+	/** Returns all records of the specified model and chain. */
+	public List<PDBRecord> getRecords(){
+		return new ArrayList<PDBRecord>(records);
+	}
 	/** Returns the CA ATOM-records of the specified model and chain. */
 	public List<AtomRecord> getCARecords(int modelNum, int chainNum){
 		List<AtomRecord> ret = new ArrayList<AtomRecord>();
