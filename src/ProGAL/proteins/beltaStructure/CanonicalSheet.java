@@ -42,10 +42,10 @@ public class CanonicalSheet {
 	private Matrix sheetOrientation;
 
 	public Point strandCenter(int strand){
-		return sheetOrientation.applyTo(strandCenters[strand]).addThis(sheetCenter);
+		return sheetOrientation.multiply(strandCenters[strand]).addThis(sheetCenter);
 	}
 	public Vector strandOrientation(int strand){
-		return sheetOrientation.applyTo(strandOrientations[strand]);
+		return sheetOrientation.multiply(strandOrientations[strand]);
 	}
 	
 	
@@ -80,8 +80,8 @@ public class CanonicalSheet {
 		//Normalize strand centers and orientations
 		for(int i=0;i<N;i++) {
 			ret.strandCenters[i].subtractThis(ret.sheetCenter);
-			orientationInv.applyToIn(ret.strandCenters[i]);
-			orientationInv.applyToIn(ret.strandOrientations[i]);
+			orientationInv.multiplyIn(ret.strandCenters[i]);
+			orientationInv.multiplyIn(ret.strandOrientations[i]);
 		}
 		
 		//Make uni-directed strand orientations

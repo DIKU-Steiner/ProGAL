@@ -8,6 +8,9 @@ import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Simplex;
 import ProGAL.geom3d.complex.*;
 import ProGAL.geom3d.complex.delaunayComplex.DelaunayComplex;
+import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.proteins.PDBFile;
+import ProGAL.proteins.PDBWebReader;
 
 /**	<p>
  *  An alpha complex for a set of d-dimensional points and a real number alpha is a subset of the Delaunay complex 
@@ -121,4 +124,13 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 		return d;
 	}
 
+	public static void main(String[] args){
+		List<Point> points = new PDBFile(PDBWebReader.downloadPDBFile("2CRO")).getAtomCoords();
+		AlphaComplex ac = new AlphaComplex(points, 2.8);
+		J3DScene scene = J3DScene.createJ3DSceneInFrame();
+		//Display triangles
+		for(CTriangle tri: ac.getTriangles()){
+		   scene.addShape(tri, java.awt.Color.BLUE);
+		}
+	}
 }

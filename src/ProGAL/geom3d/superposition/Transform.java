@@ -39,13 +39,13 @@ public class Transform {
 	public Point transform(Point p){
 		Point newPoint = p.clone();
 		if(preTranslation!=null) newPoint.addThis(preTranslation);
-		rotation.applyToIn(newPoint);
+		rotation.multiplyIn(newPoint);
 		newPoint.addThis(postTranslation);
 		return newPoint;
 	}
 	public Point transformIn(Point p){
 		if(preTranslation!=null) p.addThis(preTranslation);
-		rotation.applyToIn(p);
+		rotation.multiplyIn(p);
 		p.addThis(postTranslation);
 		return p;
 	}

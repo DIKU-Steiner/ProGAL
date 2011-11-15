@@ -70,7 +70,7 @@ public class Matrix {
 	/** Apply this matrix to the vector v and return the result (this will change v). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
 	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
-	public Vector applyToIn(Vector v){
+	public Vector multiplyIn(Vector v){
 		if(M==3 && N==3){
 			double[] ret = new double[3];
 			for(int i=0;i<3;i++) {
@@ -81,13 +81,17 @@ public class Matrix {
 			return v;
 		}
 		if( (M==4 || M==3) && N==4){
-			double[] ret = new double[3];
-			for(int i=0;i<3;i++) {
-				for(int j=0;j<3;j++)
-					ret[i] += v.get(j)*coords[i][j];
-				ret[i] += coords[i][3];
+			double[] ret = new double[4];
+			for(int i=0;i<4;i++) {
+				for(int j=0;j<4;j++){
+					ret[i] += coords[i][j]*(j==3?1:v.get(j));
+				}
+//				ret[i] += coords[i][3];
 			}
+			if(Math.abs(ret[3]-1)>Constants.EPSILON)
+				throw new RuntimeException("Multiplication with non-homogeneous coordinates failed");
 			for(int i=0;i<3;i++) v.set(i,ret[i]);
+			
 			return v;
 		}
 		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to vectors");
@@ -96,15 +100,15 @@ public class Matrix {
 	/** Apply this matrix to the point p and return the result (this will NOT change p). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
 	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
-	public Point applyTo(Point p){
-		return applyToIn(p.clone());
+	public Point multiply(Point p){
+		return multiplyIn(p.clone());
 	}
 	
 	
 	/** Apply this matrix to the point p and return the result (this will change p). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
 	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
-	public Point applyToIn(Point p){
+	public Point multiplyIn(Point p){
 		if(M==3 && N==3){
 			double[] ret = new double[3];
 			for(int i=0;i<3;i++) {
@@ -130,7 +134,7 @@ public class Matrix {
 	/** Apply this matrix to the vector v and return the result (without changing v). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
 	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
-	public Vector applyTo(Vector v){
+	public Vector multiply(Vector v){
 		if(M==3 && N==3){
 			double[] ret = new double[3];
 			for(int i=0;i<3;i++) {
@@ -151,8 +155,8 @@ public class Matrix {
 		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to vectors");
 	}
 
-	/** Apply this matrix to another matrix. This matrix is changed and then returned */
-	public Matrix applyToThis(Matrix m){
+	/** Multiply this matrix to another matrix. This matrix is changed and then returned */
+	public Matrix multiplyThis(Matrix m){
 		double[][] newCoords = new double[M][N];
 		for(int r=0;r<M;r++){
 			for(int c=0;c<N;c++){
@@ -164,16 +168,16 @@ public class Matrix {
 		return this;
 	}
 
-	/** Apply this matrix to another matrix and return the result. */
-	public Matrix applyTo(Matrix m) {
+	/** Multiply this matrix to another matrix and return the result. */
+	public Matrix multiply(Matrix m) {
 		if(N!=m.M)
 			throw new Error("Incompatible matrix sizes");
 		Matrix ret = new Matrix(M, m.N);
 		double[][] newCoords = ret.coords;
 		for(int r=0;r<M;r++){
 			for(int c=0;c<m.N;c++){
-				newCoords[r][c] = 0; 
-				for(int i=0;i<N;i++) newCoords[r][c]+=coords[r][i]*m.coords[i][c];
+				for(int i=0;i<N;i++) 
+					newCoords[r][c]+=coords[r][i]*m.coords[i][c];
 			}
 		}
 		return ret;
@@ -344,8 +348,8 @@ public class Matrix {
 		return ret;
 	}
 
-	public static Matrix createColumnMatrix(Vector v1, Vector v2, Vector v3){
-		Matrix ret = new Matrix3x3();
+	public static Matrix3x3 createColumnMatrix(Vector v1, Vector v2, Vector v3){
+		Matrix3x3 ret = new Matrix3x3();
 		for(int i=0;i<3;i++) ret.coords[i][0] = v1.get(i);
 		for(int i=0;i<3;i++) ret.coords[i][1] = v2.get(i);
 		for(int i=0;i<3;i++) ret.coords[i][2] = v3.get(i);
@@ -360,8 +364,8 @@ public class Matrix {
 		ret.coords[3][3] = 1;
 		return ret;
 	}
-	public static Matrix createRowMatrix(Vector v1, Vector v2, Vector v3){
-		Matrix ret = new Matrix3x3();
+	public static Matrix3x3 createRowMatrix(Vector v1, Vector v2, Vector v3){
+		Matrix3x3 ret = new Matrix3x3();
 		for(int i=0;i<3;i++) ret.coords[0][i] = v1.get(i);
 		for(int i=0;i<3;i++) ret.coords[1][i] = v2.get(i);
 		for(int i=0;i<3;i++) ret.coords[2][i] = v3.get(i);
@@ -1188,7 +1192,7 @@ public class Matrix {
 			super(coords);
 		}
 		public void set(int r, int c, double v){throw new RuntimeException("This matrix is immutable");}
-		public Matrix applyToThis(Matrix m){ return applyTo(m); }
+		public Matrix multiplyThis(Matrix m){ return multiply(m); }
 		public Matrix addThis(Matrix m){ return add(m); }
 		public Matrix multiplyThis(double s){ return multiply(s); }
 		public Matrix invertThis(){ return invert(); }

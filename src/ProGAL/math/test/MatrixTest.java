@@ -70,7 +70,7 @@ public class MatrixTest {
 				new double[]{1,0,1},
 				new double[]{1,1,1},
 				});
-		Matrix prod = A.applyTo(B);
+		Matrix prod = A.multiply(B);
 		assertEquals(4, prod.getM());
 		assertEquals(3, prod.getN());
 		assertEquals(1.0, prod.get(0, 0), 0.000001);
