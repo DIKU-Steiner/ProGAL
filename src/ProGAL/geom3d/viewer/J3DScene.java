@@ -1285,7 +1285,7 @@ public class J3DScene {
 		ProGAL.geom3d.volumes.Tetrahedron tetr = new ProGAL.geom3d.volumes.Tetrahedron(new Point(0,0,1), new Point(-0.5,0,1), new Point(-0.5,0.5,1), new Point(-0.25,0.25, 1.25));
 		j3ds.addShape(tetr, new Color(50,50,255));
 		j3ds.addShape(new ProGAL.geom3d.Triangle(new Point(0.2f, -0.2f, 0.1f), new Point(0.8, -0.8, 0.1), new Point(1,-0.3, 0.1)), new Color(150,50,255));
-		j3ds.addShape(new RSS(new Point(0.5,0,0),new Vector[]{new Vector(0.23,0.23,0),new Vector(-0.15,0.15,0)},0.16), new Color(0,250,50));
+		j3ds.addShape(new RSS(new Point(0.5,0,0),new Vector[]{new Vector(0.23,0.23,0),new Vector(-0.15,0.15,0)},0.1), new Color(0,250,50));
 
 		j3ds.centerCamera();
 		j3ds.autoZoom();
@@ -1293,8 +1293,10 @@ public class J3DScene {
 	}
 
 
-	/** Create a frame containing a canvas, display it and return the  
-	 * J3DScene object shown in the frame. */
+	/** 
+	 * Create a frame containing a canvas, display it and return the  J3DScene object shown in the frame. 
+	 * The frame can be retrieved using the <code>J3DScene.frame</code> field.  
+	 */
 	public static J3DScene createJ3DSceneInFrame() {
 		JFrame f = new JFrame("J3DScene-viewer");
 		f.setSize(1200,800);
