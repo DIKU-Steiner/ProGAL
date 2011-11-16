@@ -6,7 +6,8 @@ import java.util.List;
 import ProGAL.geom3d.Point;
 
 public class CVertex extends Point {
-
+	private static final long serialVersionUID = 1L;
+	
 	private boolean degenerate=false;	
 	public  enum DegenerateCase { ONFACE, ONEDGE };	
 	private DegenerateCase degCase;

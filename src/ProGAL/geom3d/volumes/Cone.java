@@ -3,54 +3,38 @@ package ProGAL.geom3d.volumes;
 import ProGAL.geom3d.Point;
 
 /** 
- *  
+ * A three-dimensional cone represented by two points on its central axis. The first point 
+ * is the bottom and the second is the tip of the cone.   
  */
 public class Cone implements Volume{
-	
-	/**  */
-	public Cone() {
+	public Point p1, p2;
+	public float rad;
+
+	public Cone(Point p1, Point p2, float r){
+		this.p1 = p1;
+		this.p2 = p2;
+		this.rad = r;
 	}
 
-	
-	
-	/**
-	 * Returns true if the specified point p is inside cone with the specified apex.
-	 */
-	public static boolean isInCone(Point p0, Point[] face, Point p) {
-//		if (Point.isBehind(p0, face[0], face[2], face[1])) {
-//			Point temp = face[1];
-//			face[1]= face[2];
-//			face[2] = temp;
-//		}
-//		//		System.out.println("p0 = " + p0.toString(3));
-//		//		System.out.println("Face: " + face[0] + " " + face[1] + " " + face[2]);
-//		for (int i = 0; i < 3 ; i++) {
-//			//			System.out.println("p = " + p.toString(3));
-//			if (!Point.isBehind(p, face[i], p0, face[(i+1)%3])) return false;
-//		}
-//		return true;
-		// TODO Adapt to Cone. Moved from Point
-		return false;
-	}
-	
-	
+	@Override
 	public double getVolume() {
-		// TODO Auto-generated method stub
-		return 0;
+		return Math.PI*rad*rad*p1.distance(p2)/3f;
 	}
 
-	public boolean overlaps(Volume vol) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	public Point getCenter() {
-		// TODO Auto-generated method stub
-		return null;
+		return Point.getMidpoint(p1,p2);
 	}
 
 	public Cone clone(){
-		return null;
+		return new Cone(p1.clone(), p2.clone(), rad);
 	}
+
+	@Override
+	public boolean overlaps(Volume vol) {
+		throw new RuntimeException("overlaps not implemented");
+	}
+
+
 }
 

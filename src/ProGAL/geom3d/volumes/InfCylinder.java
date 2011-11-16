@@ -38,19 +38,18 @@ public class InfCylinder {
 		return new LSS(line.getPoint(lowerT), line.getPoint(upperT), radius);
 	}
 
-//	public Cylinder3d capWithDiscs(PointList enclosedPoints){
-//		double lowerT = Float.POSITIVE_INFINITY, upperT=Float.NEGATIVE_INFINITY;
-//		//System.out.println("capWithDiscs(..) .. "+line);
-//		for(Point p: enclosedPoints){
-//			Plane plane = new Plane(line.getDir(), p);
-//			double intersection = plane.intersectionParameter(line);
-//			//System.out.println("> Point "+p+" .. intersection "+intersection);
-//			if(intersection>upperT) upperT = intersection;
-//			if(intersection<lowerT) lowerT = intersection;
-//		}
-//
-//		return new Cylinder3d(line.getPoint(lowerT), line.getPoint(upperT), radius);
-//	}
+	public Cylinder capWithDiscs(PointList enclosedPoints){
+		double lowerT = Float.POSITIVE_INFINITY, upperT=Float.NEGATIVE_INFINITY;
+		//System.out.println("capWithDiscs(..) .. "+line);
+		for(Point p: enclosedPoints){
+			Plane plane = new Plane(p, line.getDir());
+			double intersection = plane.getIntersectionParameter(line);
+			if(intersection>upperT) upperT = intersection;
+			if(intersection<lowerT) lowerT = intersection;
+		}
+
+		return new Cylinder(line.getPoint(lowerT), line.getPoint(upperT), radius);
+	}
 
 
 	/** Assumes dir is normalized */

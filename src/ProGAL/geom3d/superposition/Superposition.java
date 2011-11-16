@@ -1,6 +1,5 @@
 package ProGAL.geom3d.superposition;
 
-import java.util.Arrays;
 import java.util.List;
 
 import ProGAL.geom3d.Point;
@@ -226,8 +225,9 @@ public class Superposition {
 
 		n_rot = 0;
 
+		count = 0;
 		/* 50 tries */
-		for (count=0; count<50; count++)     
+//		for (count=0; count<50; count++)     
 		{
 
 			/* sum off-diagonal elements */
@@ -342,7 +342,7 @@ public class Superposition {
 			return n_rot;
 		}
 
-		throw new Error("Too many iterations in jacobi3");
+//		throw new Error("Too many iterations in jacobi3");
 	}  
 
 
@@ -356,12 +356,14 @@ public class Superposition {
 			double eigen_vec[][], 
 			double eigenval[])
 	{
-		int n_rot, i, j, k;
+//		int n_rot;
+		int i, j, k;
 		double vec[][] = new double[3][3];
 		double val; 
 
 		try{
-			n_rot = jacobi3(matrix, eigenval, vec); 
+//			n_rot = 
+			jacobi3(matrix, eigenval, vec); 
 		}catch(Error err){
 			System.err.println("convergence failed\n");
 			return (0);
@@ -486,23 +488,23 @@ public class Superposition {
 
 
 
-	private static double calculate_rotation_rmsd(double ref_xlist[][],
-			double mov_xlist[][], 
-			int n_list,
-			double mov_com[],
-			double mov_to_ref[],
-			double U[][])
-	{
-		double Eo, residual;
-		double[][] R = new double[3][3];
-
-		Eo = setup_rotation(ref_xlist, mov_xlist, n_list, 
-				mov_com, mov_to_ref, R);
-		residual = calculate_rotation_matrix(R, U, Eo);
-
-		residual = abs(residual); /* avoids the awkward case of -0.0 */
-		return sqrt( abs((double) (residual)*2.0/((double)n_list)) ); 
-	}
+//	private static double calculate_rotation_rmsd(double ref_xlist[][],
+//			double mov_xlist[][], 
+//			int n_list,
+//			double mov_com[],
+//			double mov_to_ref[],
+//			double U[][])
+//	{
+//		double Eo, residual;
+//		double[][] R = new double[3][3];
+//
+//		Eo = setup_rotation(ref_xlist, mov_xlist, n_list, 
+//				mov_com, mov_to_ref, R);
+//		residual = calculate_rotation_matrix(R, U, Eo);
+//
+//		residual = abs(residual); /* avoids the awkward case of -0.0 */
+//		return sqrt( abs((double) (residual)*2.0/((double)n_list)) ); 
+//	}
 
 
 

@@ -5,17 +5,17 @@ import java.util.List;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Vector;
 
-public class Box implements Volume{
+public class OBB implements Volume{
 	protected Point anchor;  // midpoint of the box
 	protected Vector[] bases;   // unit vectors
 	public double[] extents;
 
-	public Box(Point anchor, Vector xdir, Vector ydir, Vector zdir) {
+	public OBB(Point anchor, Vector xdir, Vector ydir, Vector zdir) {
 		this.anchor = anchor;
 		extents = new double[]{xdir.length(), ydir.length(), zdir.length()}; 
 		bases = new Vector[]{xdir.scaleToLength(1), ydir.scaleToLength(1), zdir.scaleToLength(1)};
 	}
-	public Box(Point anchor, Vector[] bases, double[] extents){
+	public OBB(Point anchor, Vector[] bases, double[] extents){
 		this.anchor = anchor;
 		this.bases = bases;
 		this.extents = extents;
@@ -70,7 +70,7 @@ public class Box implements Volume{
 	 * bases.
 	 * @hops n*9+15
 	 */
-	public static Box createBoxFromBases(Vector[] bases, List<Point> points){
+	public static OBB createBoxFromBases(Vector[] bases, List<Point> points){
 		//Find point farthest back along each base
 //		Point[] fPoints = new Point[3];
 		double[][] extremeDots = {
@@ -96,7 +96,7 @@ public class Box implements Volume{
 		extents[1] = (extremeDots[1][1]-extremeDots[1][0])/2;//1HOps
 		extents[2] = (extremeDots[2][1]-extremeDots[2][0])/2;//1HOps
 		
-		return new Box(center,bases,extents);
+		return new OBB(center,bases,extents);
 		
 //		//Solve Ax=b
 //		double[][] array = {
@@ -137,7 +137,7 @@ public class Box implements Volume{
 
 	/** Returns true iff this box has an overlap with b. Uses the separating axis implementation 
 	 * described in "Realtime collision detection" by Christer Ericsson.  30 -> 27+9+9+18+54=117HOps*/
-	public boolean overlaps(Box b){
+	public boolean overlaps(OBB b){
 		double[][] R = new double[3][3], AbsR = new double[3][3];
 		double[] ae = extents, be = b.extents;
 
@@ -213,7 +213,7 @@ public class Box implements Volume{
 
 
 	public boolean overlaps(Volume s) {
-		if(s instanceof Box) return overlaps((Box)s);
+		if(s instanceof OBB) return overlaps((OBB)s);
 		throw new Error("Unknown volume");
 	}
 
@@ -221,11 +221,11 @@ public class Box implements Volume{
 		return extents[0]*extents[1]*extents[2]*8;
 	}
 
-	public Box clone(){
+	public OBB clone(){
 		Point aClone = anchor.clone();
 		Vector[] bClone = {bases[0].clone(),bases[1].clone(),bases[2].clone()};
 		double[] eClone = {extents[0],extents[1],extents[2]};
-		return new Box(aClone,bClone,eClone);
+		return new OBB(aClone,bClone,eClone);
 
 	}
 
