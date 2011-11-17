@@ -36,6 +36,11 @@ import ProGAL.proteins.beltaStructure.sheet.ParametricParaboloid;
 import ProGAL.proteins.beltaStructure.sheet.SurfaceSheetStructure;
 import ProGAL.proteins.structure.Atom;
 
+/** 
+ * A viewer and editor of SheetLoopStructures.
+ *  
+ * @author R.Fonseca
+ */
 public class SheetLoopGUI implements ClickListener{
 
 	private final SheetLoopStructure struc;
@@ -49,10 +54,11 @@ public class SheetLoopGUI implements ClickListener{
 		this.struc = struc;
 		this.scene = J3DScene.createJ3DSceneInFrame();
 		this.frame = scene.frame;
+		
 		scene.addClickListener(this);
 		setupScene();
+
 		frame.getContentPane().add(infoPanel = new InfoPanel(), BorderLayout.NORTH);
-		
 		JPanel p = new JPanel(new BorderLayout());
 		p.add(listPanel = new ElementListPanel(), BorderLayout.WEST);
 		p.add(propertiesPanel = new ElementPropertiesPanel(), BorderLayout.CENTER);

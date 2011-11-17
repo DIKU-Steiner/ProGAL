@@ -1,4 +1,4 @@
-package ProGAL.proteins.beltaStructure.loop;
+package ProGAL.proteins.chainTree;
 
 import ProGAL.geom3d.Vector;
 import ProGAL.geom3d.volumes.Volume;
@@ -9,7 +9,7 @@ import static java.lang.Math.sin;
 import static java.lang.Math.PI;
 
 class CTNode {
-	final CTLoop loop;
+	final ChainTree loop;
 	Volume boundingVolume;
 	CTNode left, right, parent = null;
 	Matrix transformation;
@@ -28,7 +28,7 @@ class CTNode {
 		this.height = Math.max(left.height, right.height)+1;
 	}
 	
-	CTNode(CTLoop loop, int bond){
+	CTNode(ChainTree loop, int bond){
 		this.loop = loop;
 		this.low = bond;
 		this.high = bond;
@@ -42,7 +42,7 @@ class CTNode {
 	
 	/** 
 	 * Recursively updates first this nodes transformation matrix and 
-	 * then every node up to the root. O(lgn).
+	 * then every node up to the root. O(lgn) running time.
 	 */
 	void updateTransformation(){
 		if(isLeaf()){

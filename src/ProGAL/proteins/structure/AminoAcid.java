@@ -1,8 +1,18 @@
 package ProGAL.proteins.structure;
 
+/**
+ * An amino acid containing the following properties:
+ * <ul>
+ * <li>Pointers to all atoms within this amino acid</li>
+ * <li>a pointer to the <code>AminoAcidChain</code> that contains this amino acid</li>
+ * <li>the type of the amino acid (Alanine, arginine etc.)</li>
+ * <li>an index specifying this amino acids placement in the 
+ * <code>aminoAcidChain().aminoAcids()</code>-array (for convenience)</li>
+ * </ul>
+ * @author R.Fonseca
+ */
 public class AminoAcid {
 	protected Atom[] atoms;
-//	protected CBond[] bonds;
 	private final char type;
 	
 	protected AminoAcidChain chain;
@@ -30,11 +40,6 @@ public class AminoAcid {
 		return ret;
 	}
 	
-
-	public char type(){
-		return type;
-	}
-	
 	public AminoAcidChain aminoAcidChain(){ return chain; }
 	
 	public int index(){ return index; }
@@ -50,6 +55,9 @@ public class AminoAcid {
 		return atoms[atomNumber];
 	}
 	
+	public char type(){
+		return type;
+	}
 	
 	public String typeName(){
 		switch(type){

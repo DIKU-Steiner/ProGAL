@@ -1,4 +1,4 @@
-package ProGAL.proteins.beltaStructure.loop;
+package ProGAL.proteins.chainTree;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -15,7 +15,7 @@ import ProGAL.proteins.belta.PrimaryStructure;
  *  
  * @author P.Winter, R.Fonseca
  */
-public class CTLoop {
+public class ChainTree {
 	
 	private Matrix firstTransformation;
 	private CTNode root;
@@ -28,19 +28,19 @@ public class CTLoop {
 	/** Construct a chain tree representing the structure of the specified sequence.
 	 * @param ps Primary structure specifying the sequence
 	 */
-	public CTLoop(PrimaryStructure ps){
+	public ChainTree(PrimaryStructure ps){
 		this(ps,0,ps.sequence.length());
 	}
 	
 	
 	/** 
-	 * Construct a chain tree representing the structure of all the residues in the specified 
-	 * interval.
+	 * Construct a chain tree representing the structure of the residues in the specified interval.
+	 * 
 	 * @param ps Primary structure specifying the sequence
 	 * @param firstRes The residue-index of the first residue in the loop.
 	 * @param lastRes The residue-index of the last residue in the loop.
 	 */
-	public CTLoop(PrimaryStructure ps, int firstRes, int lastRes){
+	public ChainTree(PrimaryStructure ps, int firstRes, int lastRes){
 		this.firstTransformation = Matrix.createIdentityMatrix(4);
 		
 		int residues = Math.max(firstRes, lastRes)-Math.min(firstRes, lastRes)+1;
@@ -88,11 +88,11 @@ public class CTLoop {
 	
 	private Matrix getTransformation(int i, int j){
 		//This is the dumb way
-		Matrix tmp = i==0?firstTransformation.clone():Matrix.createIdentityMatrix(4);
-		for(int c=i;c<j;c++){
-			tmp.multiplyThis(bonds[c].transformation);
-		}
-		if(true) return tmp;
+//		Matrix tmp = i==0?firstTransformation.clone():Matrix.createIdentityMatrix(4);
+//		for(int c=i;c<j;c++){
+//			tmp.multiplyThis(bonds[c].transformation);
+//		}
+//		if(true) return tmp;
 
 		//Clever tree traversal
 		CTNode split = root;
@@ -103,9 +103,12 @@ public class CTLoop {
 				else break;	
 			}
 		}
-		if ((split.low == i) && (split.high == j-1)) return split.transformation;
+		if ((split.low == i) && (split.high == j-1)) {
+			if(i==0)	return firstTransformation.multiply(split.transformation);
+			else 		return split.transformation;
+		}
 		CTNode nd = split;
-		Matrix rotMatrix = (i==0)?firstTransformation:Matrix.createIdentityMatrix(4);
+		Matrix rotMatrix = Matrix.createIdentityMatrix(4);
 		
 		// left subtree
 		nd = nd.left;
@@ -125,7 +128,9 @@ public class CTLoop {
 				else nd = nd.left;
 			}
 		}
-		return rotMatrix;
+
+		if(i==0) 	return firstTransformation.multiply(rotMatrix);
+		else		return rotMatrix;
 	}
 
 	private static Point getPos(Matrix m){				return new Point(m.get(0, 3), m.get(1, 3), m.get(2, 3));	}
@@ -221,14 +226,14 @@ public class CTLoop {
 	 */
 	public Point[] getAllBackboneAtoms(){
 		Point[] ret = new Point[bonds.length-2];
-//		Matrix trans = firstTransformation.clone();
-//		for(int i=0;i<bonds.length-2;i++){
-//			ret[i] = getPos(trans);
-//			trans.multiplyThis(bonds[i].transformation);
-//		}
+		Matrix trans = firstTransformation.clone();
 		for(int i=0;i<bonds.length-2;i++){
-			ret[i] = getPos(getTransformation(0, i));
+			ret[i] = getPos(trans);
+			trans.multiplyThis(bonds[i].transformation);
 		}
+//		for(int i=0;i<bonds.length-2;i++){
+//			ret[i] = getPos(getTransformation(0, i));
+//		}
 		return ret;
 	}
 	
@@ -261,51 +266,23 @@ public class CTLoop {
 	
 	
 	
-	
-//	static HashMap<Integer, Sphere> sphereMap = new HashMap<Integer,Sphere>();
-//	static CTLoop loop;
-//	static Point[] target;
-//	static int currentBond = 0;
-//	static J3DScene scene;
-//	public static void main(String[] args){
-//	PrimaryStructure ps = new PrimaryStructure("AAAAA");
-//	loop = new CTLoop(ps,0,4);
-//	
-//	scene = J3DScene.createJ3DSceneInFrame();
-//
-//	target = new Point[]{new Point(10,0,0),new Point(10,-1,0), new Point(11,-2,0)};
-////	target = new Point[]{loop.getBackboneAtom(4, 0),loop.getBackboneAtom(4, 1),loop.getBackboneAtom(4, 2)};
-//	loop.setTorsionAngle(0, 0, 3);
-//	loop.setTorsionAngle(2, 0, Math.PI/3);
-//	loop.setTorsionAngle(2, 0, Math.PI/3);
-//	for(Point p:target) scene.addShape(new Sphere(p,0.22), new java.awt.Color(250,0,0,100));
-//
-//	Point prev = null;
-//	for(int i=0;i<loop.bonds.length;i++){
-//		Matrix tr = loop.getTransformation(0, i);
-//		Point p = getPos(tr);//tr.multiply(new Point(0,0,0));
-//		Sphere s = new Sphere(p,0.2);
-//		scene.addShape(s);
-//		sphereMap.put(i, s);
-//		
-//		if(prev!=null)
-//			scene.addShape(new LSS(prev,p,0.02));
-//		prev = p;
-//	}
-//	
-//	scene.getCanvas().addKeyListener(new KeyAdapter(){
-//		public void keyReleased(KeyEvent arg0) {
-//			if(arg0.getKeyChar()=='n'){
-//				loop.closeCCD(target, 100);
-//				for(int a=0;a<loop.bonds.length;a++){
-//					Sphere s = sphereMap.get(a);
-//					s.getCenter().set(getPos(loop.getTransformation(0, a)));
-//				}
-//				
-//				scene.repaint();
-//			}
-//		}
-//	});
-//}
+	public static void main(String[] args){
+		PrimaryStructure ps = new PrimaryStructure("AAAAA");
+		ChainTree loop = new ChainTree(ps,0,4);
+		loop.setTorsionAngle(0, 0, -60*Math.PI/180);
+		loop.setTorsionAngle(0, 1, -30*Math.PI/180);
+		loop.setTorsionAngle(2, 0, -60*Math.PI/180);
+		loop.setTorsionAngle(2, 1, -30*Math.PI/180);
+		loop.setTorsionAngle(4, 0, -60*Math.PI/180);
+		loop.setTorsionAngle(4, 1, -30*Math.PI/180);
+		loop.getTransformation(0, 1).toConsole();
+		Vector x = new Vector(2,1,0).normalizeThis();
+		Vector y = new Vector(3,0,1).cross(x).normalizeThis();
+		Vector z = x.cross(y);
+		Vector d = new Vector(1,0,2);
+		Matrix first = Matrix.create4x4ColumnMatrix(x, y, z, d);
+		loop.setFirstTransformation(first);
+		loop.getTransformation(0, 1).toConsole();
+	}
 
 }

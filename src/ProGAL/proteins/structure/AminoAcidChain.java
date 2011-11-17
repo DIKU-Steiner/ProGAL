@@ -1,5 +1,17 @@
 package ProGAL.proteins.structure;
 
+/**
+ * A chain of amino acids. This class together with AminoAcid, Atom and CBond are meant as 
+ * convenient methods to maintain and traverse a protein structure. There are no methods 
+ * for changing a protein structure (such classes could appropriately extend AminoAcidChain).
+ * Furthermore the pointers between amino acids and atoms are not meant to be changed. 
+ * 
+ * In a Model-View-Control framework this class together with AminoAcid, Atom and CBond are 
+ * meant as the model. 
+ *  
+ * @author R.Fonseca
+ */
+
 public class AminoAcidChain {
 	protected AminoAcid[] aminoAcids;
 	protected CBond[] covalentBonds;

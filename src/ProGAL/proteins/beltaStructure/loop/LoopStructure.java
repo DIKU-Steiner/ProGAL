@@ -6,6 +6,7 @@ import ProGAL.proteins.belta.SSType;
 import ProGAL.proteins.belta.SecondaryStructure;
 import ProGAL.proteins.belta.SecondaryStructure.SSSegment;
 import ProGAL.proteins.beltaStructure.sheetLoop.PartialStructure;
+import ProGAL.proteins.chainTree.ChainTree;
 import ProGAL.proteins.structure.AminoAcidChain;
 import ProGAL.proteins.structure.Atom;
 
@@ -13,7 +14,7 @@ public class LoopStructure implements PartialStructure{
 	public final SecondaryStructure secondaryStructure;
 	public final SSSegment segment1, segment2;
 	public Atom[] targetAtoms;
-	private CTLoop chaintree;
+	private ChainTree chaintree;
 	
 	
 	public LoopStructure(SecondaryStructure ss, int seg1, int seg2, Atom[] targetAtoms){
@@ -21,7 +22,7 @@ public class LoopStructure implements PartialStructure{
 		this.segment1 = ss.segments[Math.min(seg1, seg2)];
 		this.segment2 = ss.segments[Math.max(seg1, seg2)];
 		this.targetAtoms = targetAtoms;
-		this.chaintree = new CTLoop(ss.primaryStructure, segment1.start, segment2.end);
+		this.chaintree = new ChainTree(ss.primaryStructure, segment1.start, segment2.end);
 		
 		//Lock helices
 		for(int s=seg1+1;s<seg2;s++){

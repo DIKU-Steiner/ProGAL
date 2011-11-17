@@ -2,6 +2,22 @@ package ProGAL.proteins.structure;
 
 import ProGAL.geom3d.Point;
 
+/**
+ * A class to represent the following properties of an atom:
+ * <ul>
+ * <li>Position</li>
+ * <li>Van der waals radius </li>
+ * <li>covalent bonds</li>
+ * <li>name</li>
+ * <li>an id unique to this atom among all the atoms within the same amino acid</li>
+ * <li>a pointer to the residue that the atom belongs to</li>
+ * </ul>
+ * The position is maintained in the super-class <code>Point</code>. The preferred way to change the 
+ * position of an atom is therefore not to replace it, but to call either the <code>set(Point p)</code>
+ * method or <code>setCoord(int d, double v)</code>. This changes the coordinates but not the Atom-pointer.
+ * 
+ * @author R.Fonseca
+ */
 public class Atom extends Point{
 	private static final long serialVersionUID = -6262882698432071090L;
 	
@@ -9,7 +25,6 @@ public class Atom extends Point{
 	private final char element;
 	private final String name;
 	final int id;
-//	private final Point center;
 	private CBond[] covalentBonds;
 	
 	protected AminoAcid aminoAcid;
@@ -28,7 +43,6 @@ public class Atom extends Point{
 		case 'H': radius = 1.2;break;
 		default: radius = 0;
 		}
-//		this.center = new Point(0,0,0);
 	}
 
 	public Atom(String name, char element, double radius){
@@ -37,7 +51,6 @@ public class Atom extends Point{
 		this.element = element;
 		this.id = name.hashCode();
 		this.radius = radius;
-//		center = new Point(0,0,0);
 	}
 	
 	public void setCovalentBonds(CBond[] bonds){
@@ -46,7 +59,6 @@ public class Atom extends Point{
 	
 	public double radius(){ return radius; }
 	public char element() { return element; }
-//	public Point center() { return center; }
 	public String name()  { return name; }
 	public AminoAcid aminoAcid(){ return aminoAcid; }
 	public int index()	  { return index; }
