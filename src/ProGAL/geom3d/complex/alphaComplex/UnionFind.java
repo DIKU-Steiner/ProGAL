@@ -8,14 +8,11 @@ package ProGAL.geom3d.complex.alphaComplex;
 //package jpaul.DataStructs;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.LinkedList;
 
 /**
 * <code>UnionFind</code> is a datastructure for performing

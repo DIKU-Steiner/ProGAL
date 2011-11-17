@@ -83,7 +83,7 @@ class Flip23 {
 		
 		if(p.isDegenerate()){
 			if(p.getDegCase()==DegenerateCase.ONEDGE){
-				
+				//TODO: There is some code missing from the C++ here
 			}			
 		}
 		

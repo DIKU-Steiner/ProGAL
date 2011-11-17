@@ -30,6 +30,27 @@ public class AminoAcid {
 		return ret;
 	}
 	
+
+	public char type(){
+		return type;
+	}
+	
+	public AminoAcidChain aminoAcidChain(){ return chain; }
+	
+	public int index(){ return index; }
+	
+	public Atom atom(String name){
+		int id = name.toUpperCase().hashCode();
+		for(Atom a: atoms)
+			if(a.id==id && a.name().equalsIgnoreCase(name.toUpperCase())) return a;
+		throw new RuntimeException(name+" not found in "+typeThreeLetter());
+	}
+	
+	public Atom atom(int atomNumber){
+		return atoms[atomNumber];
+	}
+	
+	
 	public String typeName(){
 		switch(type){
 		case 'A': return "Alanine";
@@ -83,22 +104,4 @@ public class AminoAcid {
 		return "Unk";
 
 	}
-	public char type(){
-		return type;
-	}
-	
-	public AminoAcidChain aminoAcidChain(){ return chain; }
-	public int index(){ return index; }
-	
-	public Atom atom(String name){
-		int id = name.toUpperCase().hashCode();
-		for(Atom a: atoms)
-			if(a.id==id && a.name().equalsIgnoreCase(name.toUpperCase())) return a;
-		throw new RuntimeException(name+" not found in "+typeThreeLetter());
-	}
-	
-	public Atom atom(int atomNumber){
-		return atoms[atomNumber];
-	}
-	
 }

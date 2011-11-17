@@ -1,5 +1,8 @@
 package ProGAL.geom2d;
 
+/** 
+ * A line-swept circle.
+ */
 public class LSC {
 	protected LineSegment segment;
 	protected double radius;
@@ -32,13 +35,4 @@ public class LSC {
 		return null;
 	}
 	
-	private static class InfCylinder{
-		private Line l;
-		private double radius;
-		
-		InfCylinder(Line l, double radius){
-			
-		}
-		
-	}
 }

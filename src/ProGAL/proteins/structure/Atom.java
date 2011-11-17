@@ -60,6 +60,14 @@ public class Atom extends Point{
 		name.equalsIgnoreCase("O");
 	}
 	
+	public String toString(){
+		return String.format("Atom[%s_%d,%s,%.2f,%s]",
+				aminoAcid.typeThreeLetter(),
+				aminoAcid.index, 
+				name,
+				radius,
+				super.toString());
+	}
 	
 	public Atom clone(){
 		Atom ret = new Atom(name);

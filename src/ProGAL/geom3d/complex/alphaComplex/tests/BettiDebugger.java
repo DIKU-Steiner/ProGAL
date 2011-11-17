@@ -3,7 +3,6 @@ package ProGAL.geom3d.complex.alphaComplex.tests;
 import java.awt.Color;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.List;
 
 import ProGAL.geom3d.Simplex;
