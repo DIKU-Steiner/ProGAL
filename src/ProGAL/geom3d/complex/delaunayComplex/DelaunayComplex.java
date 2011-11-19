@@ -204,13 +204,13 @@ public class DelaunayComplex implements SimplicialComplex{
 		
 		//Set faces of tetrahedra
 		for(CTriangle t: triangles){
-			CTetrahedron tet = t.getNeighbour(0);
+			CTetrahedron tet = t.getAdjacentTetrahedron(0);
 			if(tet.getNeighbour(0).containsTriangle(t)) tet.setTriangle(0, t);
 			else if(tet.getNeighbour(1).containsTriangle(t)) tet.setTriangle(1, t);
 			else if(tet.getNeighbour(2).containsTriangle(t)) tet.setTriangle(2, t);
 			else if(tet.getNeighbour(3).containsTriangle(t)) tet.setTriangle(3, t);
 
-			tet = t.getNeighbour(1);
+			tet = t.getAdjacentTetrahedron(1);
 			if(tet.getNeighbour(0).containsTriangle(t)) tet.setTriangle(0, t);
 			else if(tet.getNeighbour(1).containsTriangle(t)) tet.setTriangle(1, t);
 			else if(tet.getNeighbour(2).containsTriangle(t)) tet.setTriangle(2, t);
@@ -223,8 +223,8 @@ public class DelaunayComplex implements SimplicialComplex{
 		Set<CTetrahedron> hull = new HashSet<CTetrahedron>();
 		for(CEdge e: v.getAdjacentEdges()){
 			for(CTriangle tri: e.getAdjacentTriangles()){
-				hull.add(tri.getNeighbour(0));
-				hull.add(tri.getNeighbour(1));
+				hull.add(tri.getAdjacentTetrahedron(0));
+				hull.add(tri.getAdjacentTetrahedron(1));
 			}
 		}
 		return hull;

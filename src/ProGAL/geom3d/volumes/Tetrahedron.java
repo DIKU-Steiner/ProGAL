@@ -5,10 +5,10 @@ import ProGAL.geom3d.Simplex;
 import ProGAL.geom3d.Vector;
 
 /** 
- * A tetrahedron is a polyhedron with three triangular faces. It is defined using 
+ * A tetrahedron is a polyhedron with four triangular faces. It is defined using 
  * four corner-points.
  *  
- * @author R. Fonseca
+ * @author R.Fonseca
  */
 public class Tetrahedron implements Simplex, Volume {
 	protected Point[] corners = new Point[4];

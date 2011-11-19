@@ -3,7 +3,13 @@ package ProGAL.geom3d.complex;
 import ProGAL.geom3d.complex.delaunayComplex.DelaunayComplex;
 import ProGAL.geom3d.volumes.Tetrahedron;
 
-
+/**
+ * An extension of the normal Tetrahedron that is used in complexes. In addition to the four 
+ * corner-points, pointers to the triangular faces (of the type CTriangle) and the four 
+ * neighboring tetrahedra are maintained.   
+ *  
+ * @author R.Fonseca
+ */
 public class CTetrahedron extends Tetrahedron{
 	private CTetrahedron[] neighbours = new CTetrahedron[4];
 	private CTriangle[] triangles = new CTriangle[4];

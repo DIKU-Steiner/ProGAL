@@ -27,16 +27,16 @@ public class BettiDebugger {
 		System.out.print("simplex "+i+" ");
 		if(s instanceof CTriangle){
 			CTriangle t = (CTriangle)s;
-			CTetrahedron n0 = t.getNeighbour(0);
-			CTetrahedron n1 = t.getNeighbour(1);
+			CTetrahedron n0 = t.getAdjacentTetrahedron(0);
+			CTetrahedron n1 = t.getAdjacentTetrahedron(1);
 			if(n0.containsBigPoint()) n0 = bigTet;
 			if(n1.containsBigPoint()) n1 = bigTet;
 			CTetrahedron s0 = uf.find(n0);
 			CTetrahedron s1 = uf.find(n1);
 			if(  s0!=s1  ){
 				uf.union(n0, n1);
-				if(Math.min(t.getNeighbour(0).circumradius(), t.getNeighbour(1).circumradius())<5)
-				scene.addShape(new LSS(t.getNeighbour(0).getIncenter(), t.getNeighbour(1).getIncenter(), 0.05), Color.GRAY, 7);
+				if(Math.min(t.getAdjacentTetrahedron(0).circumradius(), t.getAdjacentTetrahedron(1).circumradius())<5)
+				scene.addShape(new LSS(t.getAdjacentTetrahedron(0).getIncenter(), t.getAdjacentTetrahedron(1).getIncenter(), 0.05), Color.GRAY, 7);
 				System.out.print("MARKED : ");
 			}
 			System.out.print("circumrad: "+t.getCircumradius()+" ");

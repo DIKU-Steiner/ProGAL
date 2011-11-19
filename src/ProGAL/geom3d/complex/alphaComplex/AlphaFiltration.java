@@ -192,10 +192,10 @@ public class AlphaFiltration {
 		for(CTriangle tri: del3d.getTriangles()){
 			triangles.add(tri);
 			
-			boolean ch = tri.getNeighbour(0).containsBigPoint()||tri.getNeighbour(1).containsBigPoint();
+			boolean ch = tri.getAdjacentTetrahedron(0).containsBigPoint()||tri.getAdjacentTetrahedron(1).containsBigPoint();
 			boolean att = 
-				p.insphere(tri, tri.getNeighbour(0).oppositeVertex(tri))==SphereConfig.INSIDE ||
-				p.insphere(tri, tri.getNeighbour(1).oppositeVertex(tri))==SphereConfig.INSIDE ;
+				p.insphere(tri, tri.getAdjacentTetrahedron(0).oppositeVertex(tri))==SphereConfig.INSIDE ||
+				p.insphere(tri, tri.getAdjacentTetrahedron(1).oppositeVertex(tri))==SphereConfig.INSIDE ;
 			double minmu = triminmu(tri, ch);
 			double maxmu = trimaxmu(tri, ch);
 			double rho = p.circumradius(tri);
@@ -206,15 +206,15 @@ public class AlphaFiltration {
 	}
 
 	private double triminmu(CTriangle tri, boolean ch){		//computes minmu 
-		if(tri.getNeighbour(0).containsBigPoint())	return getInAlpha(tri.getNeighbour(1));
-		if(tri.getNeighbour(1).containsBigPoint())	return getInAlpha(tri.getNeighbour(0));
-		else	return Math.min(getInAlpha(tri.getNeighbour(0)), getInAlpha(tri.getNeighbour(1)));
+		if(tri.getAdjacentTetrahedron(0).containsBigPoint())	return getInAlpha(tri.getAdjacentTetrahedron(1));
+		if(tri.getAdjacentTetrahedron(1).containsBigPoint())	return getInAlpha(tri.getAdjacentTetrahedron(0));
+		else	return Math.min(getInAlpha(tri.getAdjacentTetrahedron(0)), getInAlpha(tri.getAdjacentTetrahedron(1)));
 	}
 	private double trimaxmu(CTriangle tri, boolean ch){		//computes maxmu 
-		if(tri.getNeighbour(0).containsBigPoint())	return getInAlpha(tri.getNeighbour(1));
-		if(tri.getNeighbour(1).containsBigPoint())	return getInAlpha(tri.getNeighbour(0));
+		if(tri.getAdjacentTetrahedron(0).containsBigPoint())	return getInAlpha(tri.getAdjacentTetrahedron(1));
+		if(tri.getAdjacentTetrahedron(1).containsBigPoint())	return getInAlpha(tri.getAdjacentTetrahedron(0));
 //		if(ch)	return getInAlpha(tri.getNeighbour(0));     //always put in place 0
-		else	return Math.max(getInAlpha(tri.getNeighbour(0)), getInAlpha(tri.getNeighbour(1)));
+		else	return Math.max(getInAlpha(tri.getAdjacentTetrahedron(0)), getInAlpha(tri.getAdjacentTetrahedron(1)));
 	}
 
 	
@@ -329,8 +329,8 @@ public class AlphaFiltration {
 //			ds.makeSet(bigTet);
 			for(int iT=triangles.size()-1;iT>=0;iT--){
 				CTriangle t = triangles.get(iT);
-				CTetrahedron n0 = t.getNeighbour(0);
-				CTetrahedron n1 = t.getNeighbour(1);
+				CTetrahedron n0 = t.getAdjacentTetrahedron(0);
+				CTetrahedron n1 = t.getAdjacentTetrahedron(1);
 				if(n0.containsBigPoint()) n0 = bigTet;
 				if(n1.containsBigPoint()) n1 = bigTet;
 				CTetrahedron s0 = uf.find(n0);

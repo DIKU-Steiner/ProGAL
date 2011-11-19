@@ -19,7 +19,7 @@ public class CTriangle extends Triangle {
 		this.adjacentTetrahedra[index]=t;
 	}
 
-	public CTetrahedron getNeighbour(int index){ 
+	public CTetrahedron getAdjacentTetrahedron(int index){ 
 		return this.adjacentTetrahedra[index];
 	}
 
