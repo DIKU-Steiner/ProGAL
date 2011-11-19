@@ -193,6 +193,14 @@ public class SheetLoopGUI implements ClickListener{
 						scene.repaint();
 					}});
 				add(b);
+				b = new JButton("Rebuild (CCD)");
+				b.addActionListener(new ActionListener(){
+					public void actionPerformed(ActionEvent arg0) {
+						ls.rebuildCCD();
+						ls.updateAtoms(struc);
+						scene.repaint();
+					}});
+				add(b);
 			}
 		}
 		class SheetPanel extends JPanel{
@@ -205,7 +213,6 @@ public class SheetLoopGUI implements ClickListener{
 				//slider for c
 				ParametricParaboloid pp = (ParametricParaboloid)SheetPanel.this.sss.getSurface();
 				int c = (int)(pp.getC()*1000);
-				System.out.println(c);
 				JSlider slider = new JSlider(JSlider.HORIZONTAL, -100,100, c);
 				slider.addChangeListener(new ChangeListener(){
 					public void stateChanged(ChangeEvent arg0) {

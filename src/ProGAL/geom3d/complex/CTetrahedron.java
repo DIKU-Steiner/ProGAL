@@ -1,5 +1,6 @@
 package ProGAL.geom3d.complex;
 
+import ProGAL.geom3d.complex.delaunayComplex.DelaunayComplex;
 import ProGAL.geom3d.volumes.Tetrahedron;
 
 
@@ -33,7 +34,12 @@ public class CTetrahedron extends Tetrahedron{
 	public boolean isModified() {			return modified;			}
 	public boolean isFlat() {				return flat;				}
 	
-
+	/** 
+	 * For computational convenience, the representation of a complex is based on a big tetrahedron 
+	 * that encloses all vertices. It has 4 so-called 'big points' as corners. This method indicates 
+	 * if this tetrahedron has one of these 'big points' as corners.
+	 * @see DelaunayComplex   
+	 */
 	public boolean containsBigPoint() {
 		if(getPoint(0).isBigpoint() || getPoint(1).isBigpoint() || getPoint(2).isBigpoint() || getPoint(3).isBigpoint()) return true;
 		return false;

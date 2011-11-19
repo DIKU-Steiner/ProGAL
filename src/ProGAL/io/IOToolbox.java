@@ -44,20 +44,20 @@ public abstract class IOToolbox {
 			if(zip){
 				String appendString = null;
 				if(append && new java.io.File(fileName).exists()) appendString = readFromFile(fileName);
-					
+
 				out = new BufferedWriter(
 						new OutputStreamWriter( 
 								new GZIPOutputStream(
 										new FileOutputStream(fileName, false) 
-								) 
-						)
-				);
-				
+										) 
+								)
+						);
+
 				if(appendString!=null) out.write(appendString);
 			} else {
 				out = new BufferedWriter(new FileWriter(fileName, append));
 			}
-			
+
 			out.write(contents);
 			out.close();
 		}catch (Exception e){//Catch exception if any
@@ -81,25 +81,25 @@ public abstract class IOToolbox {
 			BufferedReader in;
 			if(zip){
 				in = new BufferedReader(
-							new InputStreamReader(	
-									new GZIPInputStream(new FileInputStream( fName )	
-									) 
-							) 
-					);
+						new InputStreamReader(	
+								new GZIPInputStream(new FileInputStream( fName )	
+										) 
+								) 
+						);
 			}else{
 				in = new BufferedReader(new FileReader(fName));
 			}
-			
-			
+
+
 			StringBuilder sb = new StringBuilder();
 			String line;
 			while( (line=in.readLine())!=null ){
 				sb.append(line);
 				sb.append('\n');
 			}
-			
+
 			in.close();
-			
+
 			return sb.toString();
 		}catch(Exception exc){
 			exc.printStackTrace();
@@ -117,7 +117,7 @@ public abstract class IOToolbox {
 	 * is required).
 	 */
 	public static String readFromInternalFile(String fName) throws Error{ 
-		
+
 		try{
 			StringBuilder sb = new StringBuilder();
 			InputStream input = IOToolbox.class.getResourceAsStream("/"+fName);

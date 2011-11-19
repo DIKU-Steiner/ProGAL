@@ -198,6 +198,10 @@ public class ChainTree {
 		locked[res*3+bond] = true;
 	}
 	
+	public boolean isLocked(int res, int bond){
+		return locked[res*3+bond];
+	}
+	
 	/** 
 	 * Change the orientation and translation of the entire chain. In practice this is done by changing 
 	 * the transformation applied to the first leaf. 

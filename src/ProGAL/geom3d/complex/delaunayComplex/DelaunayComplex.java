@@ -47,8 +47,9 @@ import ProGAL.math.Randomization;
  *  between the point and the vertex is less than 0.0001.</p>
  *  
  *  <p>The complex is bounded by a big tetrahedron whose corner-points are located sufficiently far from any of 
- *  the vertices of the complex. The simplices that have one of these 'big points' as corners can not be accessed 
- *  directly via the getter-methods, but they will be neighbors of other normal simplices. For instance:
+ *  the vertices of the complex. These points are part of the tessellation. The simplices that have one of these 
+ *  'big points' as corners can not be accessed directly via the getter-methods, but they will be neighbors of 
+ *  other normal simplices. For instance:
  *  <pre>
  *  DelaunayComplex dc = new DelaunayComplex( PointList.generatePointsInCube(4) );
  *  for(CTetrahedron t: dc.getTetrahedra()){
@@ -59,9 +60,10 @@ import ProGAL.math.Randomization;
  *  	System.out.println( t.getNeighbor(3).containsBigPoint() );
  *  }
  *  </pre> 
- *  Will print false, true, true, true and true.</p>
- *  
- *  @author R.Fonseca
+ *  Will print false, true, true, true and true. A tetrahedron will contain a big-point if and only if it is 
+ *  outside the convex hull.
+ *  </p>
+ *  @author P.Sterner, H.Sterner, R.Fonseca
  */
 public class DelaunayComplex implements SimplicialComplex{
 
