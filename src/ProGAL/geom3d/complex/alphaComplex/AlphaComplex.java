@@ -9,6 +9,7 @@ import ProGAL.geom3d.Simplex;
 import ProGAL.geom3d.complex.*;
 import ProGAL.geom3d.complex.delaunayComplex.DelaunayComplex;
 import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.geom3d.volumes.Sphere;
 import ProGAL.proteins.PDBFile;
 import ProGAL.proteins.PDBWebReader;
 
@@ -125,12 +126,15 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 	}
 
 	public static void main(String[] args){
-		List<Point> points = new PDBFile(PDBWebReader.downloadPDBFile("2CRO")).getAtomCoords();
+		List<Point> points = new PDBFile(PDBWebReader.downloadPDBFile("1GZX")).getAtomCoords();
 		AlphaComplex ac = new AlphaComplex(points, 2.8);
 		J3DScene scene = J3DScene.createJ3DSceneInFrame();
 		//Display triangles
 		for(CTriangle tri: ac.getTriangles()){
-		   scene.addShape(tri, java.awt.Color.BLUE);
+		   scene.addShape(tri, new java.awt.Color(40,40,200));
+		}
+		for(CVertex v: ac.getVertices()){
+			scene.addShape(new Sphere(v, 0.5), new java.awt.Color(100,60,60));
 		}
 	}
 }

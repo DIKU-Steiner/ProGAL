@@ -103,6 +103,7 @@ public class AlphaFiltration {
 	public List<Simplex> getSimplices() {		return simplices;	}
 	public List<CTetrahedron> getTetrahedra() {	return tetrahedra;	}
 	public List<CTriangle> getTriangles() {		return triangles;	}
+	public List<CEdge> getEdges() {				return edges;	}
 	
 	/** Get a list of tetrahedra that are part of the alpha-complex with the specified probe radius. */
 	public List<CTetrahedron> getTetrahedra(double alpha){
