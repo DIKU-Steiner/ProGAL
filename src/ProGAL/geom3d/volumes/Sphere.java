@@ -7,6 +7,7 @@ import ProGAL.geom3d.Line;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.LineSegment;
+import ProGAL.geom3d.PointWeighted;
 import ProGAL.geom3d.Vector;
 
 /** 
@@ -20,6 +21,12 @@ public class Sphere implements Volume{
 	public Sphere(Point center, double radius) {
 		this.center = center;
 		this.radius = radius;
+	}
+	/** Constructs a sphere with the weighted point as center and a radius with 
+	 * the square root of the points weight. */
+	public Sphere(PointWeighted p) {
+		this.center = p;
+		this.radius = Math.sqrt(p.getWeight());
 	}
 
 	/** Get the center */

@@ -44,7 +44,7 @@ public class ExactJavaPredicates extends Predicates{
 //				tri.getPoint(2).getX(),tri.getPoint(2).getY(),tri.getPoint(2).getZ() );
 //		
 //		return radius;
-		return tri.getCircumradius();
+		return tri.circumradius();
 	}
 
 
@@ -63,7 +63,6 @@ public class ExactJavaPredicates extends Predicates{
 	public SphereConfig insphere(Point p0, Point p1, Point p2, Point p3, Point q){
 		double orient = orient(p0,p1,p2,p3);
 		if(orient==0){
-//			System.out.println("insphere(...) COPLANAR");
 			return SphereConfig.COPLANAR;
 		}
 
@@ -73,43 +72,11 @@ public class ExactJavaPredicates extends Predicates{
 				p3.x(),p3.y(),p3.z(),
 				q.x(),q.y(),q.z());
 
-		if(orient>0){
-			if(result>0){
-
-//				System.out.println("insphere(...) INSIDE");
-				return SphereConfig.INSIDE;
-			}
-			if(result<0){
-
-//				System.out.println("insphere(...) OUTSIDE");
-				return SphereConfig.OUTSIDE;
-			}
-			if(result==0){
-
-//				System.out.println("insphere(...) ON");
-				return SphereConfig.ON;
-			}
-		}
-		if(orient<0){
-			if(result>0){
-
-//				System.out.println("insphere(...) OUTSIDE");
-				return SphereConfig.OUTSIDE;
-			}
-			if(result<0){
-
-//				System.out.println("insphere(...) INSIDE");
-				return SphereConfig.INSIDE;
-			}
-			if(result==0){
-
-				System.out.println("insphere(...) ON");
-				return SphereConfig.ON;
-			} 
-		}
-
-//		System.out.println("insphere(...) NULL");
-		return null;
+		if(result==0) 		return SphereConfig.ON;
+		if(Math.signum(result)*Math.signum(orient)<0)//Signum for faster multiplication	
+			return SphereConfig.OUTSIDE;
+		else
+			return SphereConfig.INSIDE;
 	}
 
 	@Override
@@ -125,14 +92,11 @@ public class ExactJavaPredicates extends Predicates{
 				q.x(),q.y(),q.z()	);
 
 		if(result>0){
-//			System.out.println("insphere(...4x...) INSIDE");
 			return SphereConfig.INSIDE;
 		}
 		else if(result<0) {
-//			System.out.println("insphere(...4x...) OUTSIDE");
 			return SphereConfig.OUTSIDE;		
 		}else {
-//			System.out.println("insphere(...4x...) ON");
 			return SphereConfig.ON;
 		}
 	}
@@ -145,20 +109,15 @@ public class ExactJavaPredicates extends Predicates{
 	@Override
 	public PlaneConfig diffsides(Point p0, Point p1, Point p2, Point q0, Point q1){
 		double a,b;
-//		System.out.printf("p0=%s p1=%s p2=%s q0=%s q1=%s\n",p0.toString(),p1.toString(),p2.toString(),q0.toString(),q1.toString());
 		a=orient(p0,p1,p2,q0);
 		b=orient(p0,p1,p2,q1);
-//		System.out.printf("a=%f, b=%f\n",a,b);
 		if(a==0 || b==0) {
-//			System.out.println("diffsides() COPLANAR");
 			return PlaneConfig.COPLANAR;
 		}
 		if((a>0 && b<0) || (a<0 && b>0)) {
-//			System.out.println("diffsides() DIFF");
 			return PlaneConfig.DIFF;
 		}
 		if((a>0 && b>0) || (a<0 && b<0)) {
-//			System.out.println("diffsides() SAME");
 			return PlaneConfig.SAME;
 		}
 
@@ -3180,7 +3139,7 @@ public class ExactJavaPredicates extends Predicates{
 		return (Math.sqrt(t1+t2+t3));
 	}
 
-	private void tricircumcenter3d(double[] a, double[] b, double[] c, double[] circumcenter, double[] xi, double[] eta)
+	private void tricircumcenter3d(double[] a, double[] b, double[] c, double[] circumcenter)
 	{
 		double xba, yba, zba, xca, yca, zca;
 		double balength, calength;
@@ -3202,10 +3161,6 @@ public class ExactJavaPredicates extends Predicates{
 		xcrossbc = yba * zca - yca * zba;
 		ycrossbc = zba * xca - zca * xba;
 		zcrossbc = xba * yca - xca * yba;
-//		xcrossbc = orient2d(b[1], b[2], c[1], c[2], a[1], a[2]); 
-//		ycrossbc = orient2d(b[2], b[0], c[2], c[0], a[2], a[0]); 
-//		zcrossbc = orient2d(b[0], b[1], c[0], c[1], a[0], a[1]); 
-
 
 		denominator = 0.5 / (xcrossbc * xcrossbc + ycrossbc * ycrossbc +
 				zcrossbc * zcrossbc);
@@ -3217,26 +3172,11 @@ public class ExactJavaPredicates extends Predicates{
 				(balength * xca - calength * xba) * zcrossbc) * denominator;
 		zcirca = ((balength * xca - calength * xba) * ycrossbc -
 				(balength * yca - calength * yba) * xcrossbc) * denominator;
-		circumcenter[0] = xcirca;
-		circumcenter[1] = ycirca;
-		circumcenter[2] = zcirca;
+		circumcenter[0] = xcirca+a[0];
+		circumcenter[1] = ycirca+a[1];
+		circumcenter[2] = zcirca+a[2];
 
-		if (xi != null) {
-
-			if (((xcrossbc >= ycrossbc) ^ (-xcrossbc > ycrossbc)) &&
-					((xcrossbc >= zcrossbc) ^ (-xcrossbc > zcrossbc))) {
-				xi[0] = (ycirca * zca - zcirca * yca) / xcrossbc;
-				eta[0] = (zcirca * yba - ycirca * zba) / xcrossbc;
-			} else if ((ycrossbc >= zcrossbc) ^ (-ycrossbc > zcrossbc)) {
-				xi[0] = (zcirca * xca - xcirca * zca) / ycrossbc;
-				eta[0] = (xcirca * zba - zcirca * xba) / ycrossbc;
-			} else {
-				xi[0] = (xcirca * yca - ycirca * xca) / zcrossbc;
-				eta[0] = (ycirca * xba - xcirca * yba) / zcrossbc;
-			}
-		}
 	}
-
 
 	//	 jdouble Java_Delaunay3D_Predicates_Primitives_tricircumradius3d(JNIEnv *, jobject, jdouble a1, jdouble a2, jdouble a3, jdouble b1, jdouble b2, jdouble b3, jdouble c1, jdouble c2, jdouble c3){
 	private double tricircumradius3d(double a1, double a2, double a3, double b1, double b2, double b3,double c1, double c2, double c3)
@@ -3247,7 +3187,7 @@ public class ExactJavaPredicates extends Predicates{
 		b[0] = b1; b[1] = b2; b[2] = b3;
 		c[0] = c1; c[1] = c2; c[2] = c3;
 
-		tricircumcenter3d(a, b, c, circumcenter, null, null);
+		tricircumcenter3d(a, b, c, circumcenter);
 		t1= circumcenter[0]-a[0]; t1 = t1*t1;
 		t2= circumcenter[1]-a[1]; t2 = t2*t2;
 		t3= circumcenter[2]-a[2]; t3 = t3*t3;
@@ -3269,7 +3209,7 @@ public class ExactJavaPredicates extends Predicates{
 		q[0] = q1; q[1] = q2; q[2] = q3;
 
 
-		tricircumcenter3d(a,b,c,circumcenter,null,null);
+		tricircumcenter3d(a,b,c,circumcenter);
 
 
 		t1= circumcenter[0]-a[0]; t1 = t1*t1;

@@ -8,7 +8,7 @@ public class InexactJavaPredicates extends Predicates{
 	public double circumradius(Point p0, Point p1, Point p2, Point p3){				return circumradius(new Tetrahedron(p0,p1,p2,p3)); 	}
 	public double circumradius(Tetrahedron t){										return t.circumradius();							}
 	public double circumradius(Point p0, Point p1, Point p2){						return circumradius(new Triangle(p0,p1,p2));		}
-	public double circumradius(Triangle t){											return t.getCircumradius(); 						}
+	public double circumradius(Triangle t){											return t.circumradius(); 						}
 	
 	public double orient(Point p0, Point p1, Point p2, Point q){					
 		Vector q0 = q.vectorTo(p0);
@@ -21,13 +21,14 @@ public class InexactJavaPredicates extends Predicates{
 	public SphereConfig insphere(Tetrahedron t, Point q){
 		Point tCenter = t.circumcenter();
 		double diff = tCenter.distance(q)-tCenter.distance(t.getCorner(0));
+		if(Double.isNaN(diff)) return SphereConfig.COPLANAR;
 		if(Math.abs(diff)<Constants.EPSILON) return SphereConfig.ON;
 		if(diff<0) return SphereConfig.INSIDE;
 		return SphereConfig.OUTSIDE;
 	}
 	public SphereConfig insphere(Point p0, Point p1, Point p2, Point q){			return insphere(new Triangle(p0,p1,p2),q);			}
 	public SphereConfig insphere(Triangle tri, Point q){
-		Point tCenter = tri.getCircumcenter();
+		Point tCenter = tri.circumcenter();
 		double diff = tCenter.distance(q)-tCenter.distance(tri.getCorner(0));
 		if(Math.abs(diff)<Constants.EPSILON) return SphereConfig.ON;
 		if(diff<0) return SphereConfig.INSIDE;

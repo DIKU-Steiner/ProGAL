@@ -39,7 +39,7 @@ public class BettiDebugger {
 				scene.addShape(new LSS(t.getAdjacentTetrahedron(0).getIncenter(), t.getAdjacentTetrahedron(1).getIncenter(), 0.05), Color.GRAY, 7);
 				System.out.print("MARKED : ");
 			}
-			System.out.print("circumrad: "+t.getCircumradius()+" ");
+			System.out.print("circumrad: "+t.circumradius()+" ");
 //			scene.addShape(t, new Color(100,100,100,80));
 		}
 		System.out.println(s);

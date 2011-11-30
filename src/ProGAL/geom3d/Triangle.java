@@ -58,7 +58,7 @@ public class Triangle implements Simplex{
 	 * Return the circumradius of the triangle. If one side has zero length this method returns 
 	 * the length of the two remaining sides.
 	 */
-	public double getCircumradius(){
+	public double circumradius(){
 		double a = p1.distance(p2);
 		double b = p1.distance(p3);
 		double c = p2.distance(p3);
@@ -70,7 +70,7 @@ public class Triangle implements Simplex{
 	 * TODO: Test
 	 * TODO: Make more efficient (transform to origo with n as z and use 2D formula)	 
 	 */
-	public Point getCircumcenter() {
+	public Point circumcenter() {
 		Vector n = getNormal();
 		Point m1 = Point.getMidpoint(p1, p2);
 		Point m2 = Point.getMidpoint(p1, p3);
@@ -79,7 +79,7 @@ public class Triangle implements Simplex{
 		return l1.getIntersection(l2);
 	}
 
-	public double getInradius(){
+	public double inradius(){
 		double a = p1.distance(p2);
 		double b = p1.distance(p3);
 		double c = p2.distance(p3);
@@ -87,7 +87,7 @@ public class Triangle implements Simplex{
 		return Math.sqrt( ((s-a)*(s-b)*(s-c))/s );
 	}
 	
-	public Point getIncenter(){
+	public Point incenter(){
 		double a = p1.distance(p2);
 		double b = p1.distance(p3);
 		double c = p2.distance(p3);

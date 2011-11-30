@@ -17,4 +17,10 @@ import org.junit.runners.Suite.SuiteClasses;
 	ProGAL.proteins.belta.tests.SheetTopologyTest.class,
 	ProGAL.proteins.belta.tests.BetaTopologyTest.class
 	})
+
+/** 
+ * A collection of all unit-tests in ProGAL.
+ *  
+ * @author R.Fonseca
+ */
 public class AllTests {}

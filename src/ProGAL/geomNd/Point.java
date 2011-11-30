@@ -18,7 +18,13 @@ public class Point implements Serializable{
 	protected final double[] coords;
 	/** The dimension of this point. */
 	protected final int dim;
-	
+
+	public Point(Point p){
+		this.dim = p.coords.length;
+		this.coords = new double[dim];
+		for(int i=0;i<dim;i++) coords[i] = p.coords[i];
+	}
+
 	public Point(double[] coords){
 		this.coords = coords;
 		this.dim = coords.length;

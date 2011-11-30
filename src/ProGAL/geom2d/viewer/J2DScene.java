@@ -104,11 +104,13 @@ public class J2DScene {
 	
 	private final static ShapePainter[] shapePainters = {
 		new CirclePainter(),
-		new LineSegmentPainter()
+		new LineSegmentPainter(),
+		new TextPainter(),
 	};
 	private static ShapePainter getShapePainter(Shape s){
 		if(s instanceof Circle) return shapePainters[0];
 		if(s instanceof LineSegment) return shapePainters[1];
+		if(s instanceof TextShape) return shapePainters[2];
 			return null;
 	}
 

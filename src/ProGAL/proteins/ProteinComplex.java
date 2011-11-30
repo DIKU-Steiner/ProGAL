@@ -124,7 +124,7 @@ public class ProteinComplex extends AlphaComplex {
 				tetrahedra.add(c);
 
 				for(int n=0;n<4;n++)
-					if(c.getTriangle(n).getCircumradius()>=probeRad) candidates.add(c.getNeighbour(n));
+					if(c.getTriangle(n).circumradius()>=probeRad) candidates.add(c.getNeighbour(n));
 			}
 		}
 		public Hole(CTetrahedron representative){

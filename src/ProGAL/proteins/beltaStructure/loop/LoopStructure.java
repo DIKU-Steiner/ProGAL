@@ -8,6 +8,7 @@ import ProGAL.proteins.belta.SecondaryStructure;
 import ProGAL.proteins.belta.SecondaryStructure.SSSegment;
 import ProGAL.proteins.beltaStructure.sheetLoop.PartialStructure;
 import ProGAL.proteins.chainTree.ChainTree;
+import ProGAL.proteins.dunbrack.RamachandranDistribution;
 import ProGAL.proteins.structure.AminoAcidChain;
 import ProGAL.proteins.structure.Atom;
 
@@ -96,23 +97,29 @@ public class LoopStructure implements PartialStructure{
 	}
 
 	private void resampleFromRama(){
+		RamachandranDistribution distr = RamachandranDistribution.getDistribution();
+		
 		int length = segment2.end-segment1.start;
 		for(int r=0;r<length;r++){
 			if(chaintree.isLocked(r, 0) || chaintree.isLocked(r, 1)) continue;
 
-			double rand = Randomization.randBetween(0.0, 1.0), phi,psi;
-			if(rand<0.4){//Beta area
-				phi = Randomization.randBetween(-170.0, -50.0)*Math.PI/180;
-				psi = Randomization.randBetween( 100.0, 160.0)*Math.PI/180;
-			}else if(rand<0.8){//Alpha area
-				phi = Randomization.randBetween(-100.0, -50.0)*Math.PI/180;
-				psi = Randomization.randBetween( -40.0,  10.0)*Math.PI/180;
-			}else{//Left helix area
-				phi = Randomization.randBetween(50.0, -70.0)*Math.PI/180;
-				psi = Randomization.randBetween(20.0,  60.0)*Math.PI/180;
-			}
-			chaintree.setTorsionAngle(r, 0, phi);
-			chaintree.setTorsionAngle(r, 1, psi);
+//			double rand = Randomization.randBetween(0.0, 1.0), phi,psi;
+//			if(rand<0.4){//Beta area
+//				phi = Randomization.randBetween(-170.0, -50.0)*Math.PI/180;
+//				psi = Randomization.randBetween( 100.0, 160.0)*Math.PI/180;
+//			}else if(rand<0.8){//Alpha area
+//				phi = Randomization.randBetween(-100.0, -50.0)*Math.PI/180;
+//				psi = Randomization.randBetween( -40.0,  10.0)*Math.PI/180;
+//			}else{//Left helix area
+//				phi = Randomization.randBetween(50.0, -70.0)*Math.PI/180;
+//				psi = Randomization.randBetween(20.0,  60.0)*Math.PI/180;
+//			}
+//			chaintree.setTorsionAngle(r, 0, phi);
+//			chaintree.setTorsionAngle(r, 1, psi);
+			int type = distr.getTypes().indexOf(secondaryStructure.primaryStructure.getThreeLetterType(r+segment1.start).toUpperCase());
+			double[] phiPsi = distr.samplePhiPsi(type);
+			chaintree.setTorsionAngle(r, 0, phiPsi[0]);
+			chaintree.setTorsionAngle(r, 1, phiPsi[1]);
 
 		}
 	}

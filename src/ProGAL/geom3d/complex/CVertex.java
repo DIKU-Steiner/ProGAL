@@ -1,11 +1,12 @@
 package ProGAL.geom3d.complex;
 
-import java.util.ArrayList;
+import java.util.ArrayList; 
 import java.util.List;
 
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.PointWeighted;
 
-public class CVertex extends Point {
+public class CVertex extends PointWeighted {
 	private static final long serialVersionUID = 1L;
 	
 	private boolean degenerate=false;	
@@ -59,11 +60,9 @@ public class CVertex extends Point {
 	public CVertex(Point p){
 		this(p, false);
 	}
-	public CVertex(Point p, boolean bigpoint){ 	this(p,bigpoint, 1); 		}
-	
-	public CVertex(Point p, boolean bigpoint, double weight){
+	public CVertex(Point p, boolean bigpoint){ 	
 		super(p);
-        setDegenerate(false);
+		setDegenerate(false);
 		this.bigPoint = bigpoint;
 	}
 
