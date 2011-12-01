@@ -22,6 +22,11 @@ public class CTriangle extends Triangle {
 	public CTetrahedron getAdjacentTetrahedron(int index){ 
 		return this.adjacentTetrahedra[index];
 	}
+	
+	/*public CTriangle[] getNeighborTriangles() {
+		CTriangle[] triangles = new CTriangle[3];
+		return triangles;
+	}*/
 
 	public CEdge getEdge(int i){
 		return edges[i];

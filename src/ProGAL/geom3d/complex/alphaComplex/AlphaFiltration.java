@@ -356,7 +356,7 @@ public class AlphaFiltration {
 			
 			//The second phase counts the marked and unmarked simplices and derives the Betti numbers as 
 			//simple sums of these numbers.
-			bettiNumbers = new int[5][n];
+			bettiNumbers = new int[6][n];
 			int[] b = new int[4];
 			for(int i=0;i<n;i++){
 				Simplex s = simplices.get(i);
@@ -369,6 +369,7 @@ public class AlphaFiltration {
 				bettiNumbers[2][i] = b[2];
 				bettiNumbers[3][i] = b[3];
 				bettiNumbers[4][i] = marked[i]?1:0;//For testing purposes the marks are stored as well.
+				bettiNumbers[5][i] = k;
 			}
 		}
 		return bettiNumbers;
