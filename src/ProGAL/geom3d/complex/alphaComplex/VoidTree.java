@@ -1,7 +1,6 @@
 package ProGAL.geom3d.complex.alphaComplex;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,9 +29,9 @@ public class VoidTree {
 		v.add(vOne);
 		v.add(vTwo);
 		//List<CTriangle> tris = alphaFil.getTriangles(alpha);
-		for (CTriangle tri: tris){
+		/*for (CTriangle tri: tris){
 			scene.addShape(tri, java.awt.Color.YELLOW);
-		}
+		}*/
 		//List<CTetrahedron> tetra = alphaFil.getTetrahedra(); Might not be needed after all
 		beginning:
 			for (int i=0; i<2; i++){
@@ -92,9 +91,9 @@ public class VoidTree {
 	
 	public Node setRoot(){
 		//Empty root (rest)
-		//LinkedList<CTetrahedron> orgTetra = (LinkedList<CTetrahedron>) alphaFil.getTetrahedra();
-		LinkedList<CTetrahedron> emptyList = new LinkedList<CTetrahedron>();
-		root = new Node(0, emptyList);
+		LinkedList<CTetrahedron> orgTetra = new LinkedList<CTetrahedron>(alphaFil.getTetrahedra());
+		//LinkedList<CTetrahedron> emptyList = new LinkedList<CTetrahedron>();
+		root = new Node(0, orgTetra);
 		return root;
 	}
 	
@@ -109,9 +108,10 @@ public class VoidTree {
 			nodes.add(n);
 			return nodes;
 		}
-		else {
-			nodes.addAll(getLeafs(n.left));
+		else { 
 			nodes.addAll(getLeafs(n.right));
+			nodes.addAll(getLeafs(n.left));
+			
 			/*newNodes1 = getLeafs(n.left);
 			newNodes2 = getLeafs(n.right);
 			while (!newNodes1.isEmpty()){
@@ -156,7 +156,7 @@ public class VoidTree {
 			}*/
 			//System.out.println("dimension: "+table[5][i]);
 			if(table[5][i]==2){
-				//scene.addShape(simplices.get(i), new java.awt.Color(100,200,100,255));
+				scene.addShape(simplices.get(i), new java.awt.Color(100,200,100,255));
 				tris.add((CTriangle)simplices.get(i));
 			}
 			if(table[5][i]==0) 
@@ -167,7 +167,7 @@ public class VoidTree {
 			if (table[4][i]==1 && table[5][i]==2){
 				//first=1;
 				//System.out.println("index: "+i);
-				//scene.addShape(simplices.get(i), new java.awt.Color(0,200,0,255));
+				scene.addShape(simplices.get(i), new java.awt.Color(0,200,0,255));
 				double alpha = alphaFil.getInAlpha(simplices.get(i));
 				CTriangle marked = (CTriangle) simplices.get(i);
 				//System.out.print("Kald til voids.");
@@ -179,27 +179,32 @@ public class VoidTree {
 					return; //Error!
 				}
 				if (newVoids.get(0).isEmpty()){
-					System.out.print("0Void er tomt.");
+					System.out.println("0 Void er tomt.");
 					Node rest = getRest();
 					Node newNode = new Node(alpha, newVoids.get(1));
-					rest.setChild(rest, 0);
+					rest.getTetra().removeAll(newNode.getTetra());
+					Node newRest = new Node(0, rest.getTetra());
+					rest.setChild(newRest, 0);
 					rest.setChild(newNode, 1);
 				} else {
 					if (newVoids.get(1).isEmpty()){
-						System.out.print("1Void er tomt.");
+						System.out.println("1 Void er tomt.");
 						Node rest = getRest();
 						System.out.print(rest==root);
 						Node newNode = new Node(alpha, newVoids.get(0));
-						rest.setChild(rest, 0);
+						rest.getTetra().removeAll(newNode.getTetra());
+						Node newRest = new Node(0, rest.getTetra());
+						rest.setChild(newRest, 0);
 						rest.setChild(newNode, 1);
 					} else {
-						System.out.print("Begge voids findes.");
-						for (int j=0; j<2; j++){					
-							LinkedList<CTetrahedron> v = newVoids.get(j);
-							Node match = find(v);
-							Node newNode = new Node(alpha, v);
-							match.setChild(newNode, j);
-						}
+						System.out.print("Begge voids findes.");					
+						LinkedList<CTetrahedron> v1 = newVoids.get(0);
+						LinkedList<CTetrahedron> v2 = newVoids.get(1);
+						Node match = find(v1);
+						Node newNode1 = new Node(alpha, v1);
+						Node newNode2 = new Node(alpha, v2);
+						match.setChild(newNode1, 0);
+						match.setChild(newNode2, 1);
 					}
 				}
 			}
@@ -208,7 +213,7 @@ public class VoidTree {
 	
 	public static void main(String[] args){
 		Randomization.seed(0);
-		/*ArrayList<Point> points = new ArrayList<Point>();
+		ArrayList<Point> points = new ArrayList<Point>();
 		//Kube: 
 		points.add(new Point(0,1,0));
 		points.add(new Point(1,1,0));
@@ -224,7 +229,7 @@ public class VoidTree {
 		points.add(new Point(1,0,1));
 		points.add(new Point(2,3,2));
 		points.add(new Point(0,3,2));*/
-		List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(5);
+		//List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(4);
 		VoidTree vt = new VoidTree(points);
 		new ProGAL.datastructures.viewer.BinaryTreePainter(vt.root);
 	}

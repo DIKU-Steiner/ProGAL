@@ -22,6 +22,10 @@ public class Node implements InteractiveBinaryTree {
 		return alpha;
 	}
 	
+	public void changeAlpha(double newA){
+		alpha = newA;
+	}
+	
 	public LinkedList<CTetrahedron> getTetra(){
 		return tetra;
 	}
