@@ -1,10 +1,13 @@
 package ProGAL.geom3d.complex.alphaComplex;
 
+import java.awt.Color;
 import java.util.LinkedList;
 
+import ProGAL.datastructures.BinaryTree;
+import ProGAL.datastructures.viewer.InteractiveBinaryTree;
 import ProGAL.geom3d.complex.CTetrahedron;
 
-public class Node {
+public class Node implements InteractiveBinaryTree {
 	public Node left = null;
 	public Node right = null;
 	private double alpha;
@@ -30,4 +33,17 @@ public class Node {
 			right = n;
 		}
 	}
+
+	
+	
+	public BinaryTree left() {return left;}
+	public BinaryTree right() {return right;}
+	public Color leftLegColor() {return Color.BLACK;}
+	public Color rightLegColor() {return Color.BLACK;}
+	public Color nodeColor() {return Color.BLACK;}
+	public String label() {
+		if(tetra.size()==0) return "Rest";
+		return String.format("a: %.2f, tets: %d",alpha, tetra.size());
+	}
+	public void click() {}
 }

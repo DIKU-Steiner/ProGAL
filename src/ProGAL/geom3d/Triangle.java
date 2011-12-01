@@ -115,7 +115,9 @@ public class Triangle implements Simplex{
 		System.out.println(toString(dec)); 
 	}
 	
-
+	public Triangle clone(){
+		return new Triangle(p1.clone(), p2.clone(), p3.clone());
+	}
 
  
 }

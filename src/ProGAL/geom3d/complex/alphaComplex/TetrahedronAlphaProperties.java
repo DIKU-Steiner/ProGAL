@@ -12,6 +12,7 @@ public class TetrahedronAlphaProperties implements SimplexAlphaProperties {
     
     
     public double getInAlphaComplex(){ 		return inAlphaComplex; 		}
+    public boolean isAttached(){ 			return false; 				}
 
     public Interval getInteriorInterval(){	return interior; 			}
 

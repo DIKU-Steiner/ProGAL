@@ -31,6 +31,7 @@ public class VertexAlphaProperties implements SimplexAlphaProperties {
     
     public boolean getOnConvexHull(){ 		return onConvexHull; 		}
     public double getInAlphaComplex(){ 		return inAlphaComplex; 		}
+    public boolean isAttached(){			return false; 				}
 
     public Interval getSingularInterval(){	return singular; 			}
     public Interval getRegularInterval(){	return regular; 			}

@@ -164,6 +164,10 @@ public class AlphaFiltration {
 		return propertyMap.get(s).getInAlphaComplex();
 	}
 	
+	public boolean getAttached(Simplex s){
+		return propertyMap.get(s).isAttached();
+	}
+	
 	/** 
 	 * Return true iff the simplex is on the convex hull. Calling this method with a CTetrahedra 
 	 * will throw an error. 

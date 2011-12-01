@@ -225,7 +225,7 @@ public class VoidTree {
 		points.add(new Point(2,3,2));
 		points.add(new Point(0,3,2));*/
 		List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(5);
-		new VoidTree(points);
-		
+		VoidTree vt = new VoidTree(points);
+		new ProGAL.datastructures.viewer.BinaryTreePainter(vt.root);
 	}
 }

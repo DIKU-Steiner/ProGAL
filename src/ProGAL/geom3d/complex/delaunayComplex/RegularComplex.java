@@ -131,9 +131,9 @@ public class RegularComplex implements SimplicialComplex{
 		//TODO: Take care of degeneracies in a better way than permutation
 		for(CVertex v: points){
 			v.addThis(new Vector(
-					Randomization.randBetween(-0.001, 0.001),
-					Randomization.randBetween(-0.001, 0.001),
-					Randomization.randBetween(-0.001, 0.001)
+					Randomization.randBetween(-0.0001, 0.0001),
+					Randomization.randBetween(-0.0001, 0.0001),
+					Randomization.randBetween(-0.0001, 0.0001)
 					)
 			);
 		}
