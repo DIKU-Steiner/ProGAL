@@ -43,10 +43,16 @@ public class Node implements InteractiveBinaryTree {
 	public Node right() {return right;}
 	public Color leftLegColor() {return Color.BLACK;}
 	public Color rightLegColor() {return Color.BLACK;}
-	public Color nodeColor() {return Color.BLACK;}
-	public String label() {
-		if(tetra.size()==0) return "Rest";
-		return String.format("a: %.2f, tets: %d",alpha, tetra.size());
+	public Color nodeColor() {
+		if(tetra.size()==0){
+			return Color.RED;
+		}
+		return Color.BLACK;}
+	public String label() { return "";
+		//if(tetra.size()==0) return "Rest";
+		//return String.format("a: %.2f, tets: %d",alpha, tetra.size());
 	}
-	public void click() {}
+	public void click() {
+		System.out.println(String.format("a: %.2f, tets: %d",alpha, tetra.size()));
+	}
 }
