@@ -14,14 +14,12 @@ import java.util.Map;
 
 import javax.swing.*;
 
-import ProGAL.datastructures.BinaryTree;
-
 public class BinaryTreePainter extends JFrame{
 	private static final long serialVersionUID = 1L;
 	public PNode root;
 	private PaintPane pp;
 	
-	public BinaryTreePainter(BinaryTree treeRoot){
+	public BinaryTreePainter(InteractiveBinaryTree treeRoot){
 		super("Binary tree painter");
 		super.setSize(600,500);
 		
@@ -35,7 +33,7 @@ public class BinaryTreePainter extends JFrame{
 		super.getContentPane().add(pp);
 	}
 	
-	public void setRoot(BinaryTree treeRoot){
+	public void setRoot(InteractiveBinaryTree treeRoot){
 		this.root = new PNode(treeRoot,0);
 		pp.updateComponents();
 	}
@@ -66,7 +64,7 @@ public class BinaryTreePainter extends JFrame{
 				nodeMap.put(comp,n);
 				comp.addMouseListener(new MouseAdapter(){
 					public void mousePressed(MouseEvent evt){
-						BinaryTree bt = nodeMap.get(evt.getSource()).n;
+						InteractiveBinaryTree bt = nodeMap.get(evt.getSource()).n;
 						if(bt instanceof InteractiveBinaryTree){
 							((InteractiveBinaryTree)bt).click();
 							repaint();
@@ -89,31 +87,29 @@ public class BinaryTreePainter extends JFrame{
 		
 		private Point paintNode(PNode n, Graphics2D g){
 			Point p = toPoint(n.x,n.y);
-			BinaryTree bt = n.n;
+			InteractiveBinaryTree bt = n.n;
 			g.setColor(Color.black);
 			if(n.left!=null) {
 				Point leftP = paintNode(n.left,g);
-				if(bt instanceof InteractiveBinaryTree)
-					g.setColor( ((InteractiveBinaryTree)bt).leftLegColor() );
+				g.setColor( bt.leftLegColor() );
 				g.drawLine(p.x, p.y, leftP.x, leftP.y);
 			}
 			if(n.right!=null) {
 				Point rightP = paintNode(n.right,g);
-				if(bt instanceof InteractiveBinaryTree)
-					g.setColor( ((InteractiveBinaryTree)bt).rightLegColor() );
+				g.setColor( bt.rightLegColor() );
 				g.drawLine(p.x, p.y, rightP.x, rightP.y);
 			}
-			if(bt instanceof InteractiveBinaryTree)
-				g.setColor( ((InteractiveBinaryTree)bt).nodeColor() );
 			
+			g.setColor( bt.nodeColor() );
 			g.fillOval(p.x-3, p.y-3, 6,6);
-			g.setColor(Color.black);
-			if(bt instanceof InteractiveBinaryTree){
+			
+			if(bt.label().length()>0){
 				g.setColor(new Color(255,255,255,200));
 				g.fillRect(p.x, p.y+3, 60, 15);
 				g.setColor(Color.BLACK);
-				g.drawString( ((InteractiveBinaryTree)bt).label(), p.x, p.y+15);
+				g.drawString( bt.label(), p.x, p.y+15);
 			}
+			g.setColor(Color.black);
 			
 			componentMap.get(n).setBounds(p.x-5, p.y-5, 10,10);
 			
@@ -139,11 +135,11 @@ public class BinaryTreePainter extends JFrame{
 	}
 
 	public static class PNode{
-		BinaryTree n;
+		InteractiveBinaryTree n;
 		PNode left, right;
 		double x,y;
 		int height, depth;
-		public PNode(BinaryTree n, int depth){
+		public PNode(InteractiveBinaryTree n, int depth){
 			this.n = n;
 			this.depth = depth;
 			if(n.left()!=null) left = new PNode(n.left(), depth+1);
@@ -234,8 +230,8 @@ public class BinaryTreePainter extends JFrame{
 				this.o = o;
 			}
 			MyNode(Object o){this(null,null,o); }
-			public BinaryTree left() {	return left;		}
-			public BinaryTree right() {	return right;		}
+			public InteractiveBinaryTree left() {	return left;		}
+			public InteractiveBinaryTree right() {	return right;		}
 			public Color leftLegColor() {return Color.BLACK;}
 			public Color rightLegColor() {return Color.BLACK;}
 			public Color nodeColor() {return Color.BLACK;}

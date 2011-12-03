@@ -2,9 +2,9 @@ package ProGAL.datastructures.viewer;
 
 import java.awt.Color;
 
-import ProGAL.datastructures.BinaryTree;
-
-public interface InteractiveBinaryTree extends BinaryTree {
+public interface InteractiveBinaryTree {
+	public InteractiveBinaryTree left();
+	public InteractiveBinaryTree right();
 	public Color leftLegColor();
 	public Color rightLegColor();
 	public Color nodeColor();
