@@ -213,23 +213,23 @@ public class VoidTree {
 	
 	public static void main(String[] args){
 		Randomization.seed(0);
-		ArrayList<Point> points = new ArrayList<Point>();
+//		ArrayList<Point> points = new ArrayList<Point>();
 		//Kube: 
-		points.add(new Point(0,1,0));
-		points.add(new Point(1,1,0));
-		points.add(new Point(1,2,0));
-		points.add(new Point(0,2,0));
-		points.add(new Point(0,1,1));
-		points.add(new Point(1,1,1));
-		points.add(new Point(1,2,1));
-		points.add(new Point(0,2,1));
+//		points.add(new Point(0,1,0));
+//		points.add(new Point(1,1,0));
+//		points.add(new Point(1,2,0));
+//		points.add(new Point(0,2,0));
+//		points.add(new Point(0,1,1));
+//		points.add(new Point(1,1,1));
+//		points.add(new Point(1,2,1));
+//		points.add(new Point(0,2,1));
 		/*tetrahedra:
 		points.add(new Point(1,3,0));
 		points.add(new Point(1,6,1));
 		points.add(new Point(1,0,1));
 		points.add(new Point(2,3,2));
 		points.add(new Point(0,3,2));*/
-		//List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(4);
+		List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(40);
 		VoidTree vt = new VoidTree(points);
 		new ProGAL.datastructures.viewer.BinaryTreePainter(vt.root);
 	}
