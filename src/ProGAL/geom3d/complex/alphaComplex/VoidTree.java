@@ -35,8 +35,6 @@ public class VoidTree {
 		//List<CTetrahedron> tetra = alphaFil.getTetrahedra(); Might not be needed after all
 		beginning:
 			for (int i=0; i<2; i++){
-				System.out.println("v: "+v.get(i));
-				//System.out.print("inTetra");
 				LinkedList<CTetrahedron> tempVoid = v.get(i);
 
 				LinkedList<CTriangle> tempTris = new LinkedList<CTriangle>();
@@ -49,58 +47,43 @@ public class VoidTree {
 					tempTris.addFirst(inTet.getTriangle(j));
 				}
 				tempTris.remove(m);
-				//while (v.size() > 0){
 				while (tempTris.size()>0){
-					System.out.println(tempTris.size());
 					CTriangle tri = tempTris.removeFirst();
 					if (tris.contains(tri)){
-						System.out.println("Tri. is in complex");
 						continue;
 					}
 					for (int k=0; k<2; k++){
-						//System.out.println("before fail");
 						CTetrahedron adTetra = tri.getAdjacentTetrahedron(k);
-						//System.out.print("after fail");
 						//scene.addShape(adTetra, new java.awt.Color(200,0,0,100));
 						if (tempVoid.contains(adTetra)){
 							continue;
 						}
 						if (adTetra.containsBigPoint()){
-							System.out.print("Indeholder BigPoints");
 							tempVoid.clear();
-							System.out.println("Go-go Beginning!");
 							continue beginning;
 						}
 						tempVoid.addFirst(adTetra);
 						for (int l=0; l<4; l++){
-							System.out.println("Adding triangle");
 							tempTris.addFirst(adTetra.getTriangle(l));
 						}
-						/*Collection<CTriangle> rem = new ArrayList<CTriangle>();
-						rem.add(tri);
-						tempTris.removeAll(rem);*/
 						tempTris.remove(tri);
-						//System.out.println(tempTris.size());
 					}
 				}
-				//}
-			System.out.println("v1: "+v.get(0)+"\nv2: "+v.get(1));
 			}
 		return v;
 	}
 	
 	public Node setRoot(){
-		//Empty root (rest)
-		LinkedList<CTetrahedron> orgTetra = new LinkedList<CTetrahedron>(alphaFil.getTetrahedra());
+		if (root == null){
+			LinkedList<CTetrahedron> orgTetra = new LinkedList<CTetrahedron>(alphaFil.getTetrahedra());
 		//LinkedList<CTetrahedron> emptyList = new LinkedList<CTetrahedron>();
-		root = new Node(0, orgTetra);
+			root = new Node(0, orgTetra);
+		}
 		return root;
 	}
 	
 	public LinkedList<Node> getLeaves(Node n){
 		LinkedList<Node> nodes = new LinkedList<Node>();
-		/*LinkedList<Node> newNodes1 = new LinkedList<Node>();
-		LinkedList<Node> newNodes2 = new LinkedList<Node>();*/
 		if (n == null){
 			return null;
 		}
@@ -111,15 +94,6 @@ public class VoidTree {
 		else { 
 			nodes.addAll(getLeaves(n.right));
 			nodes.addAll(getLeaves(n.left));
-			
-			/*newNodes1 = getLeafs(n.left);
-			newNodes2 = getLeafs(n.right);
-			while (!newNodes1.isEmpty()){
-				nodes.add(newNodes1.removeFirst());
-			}
-			while (!newNodes2.isEmpty()){
-				nodes.add(newNodes2.removeFirst());
-			}*/
 			return nodes;
 		}
 	}
@@ -141,7 +115,7 @@ public class VoidTree {
 				return node;
 			}
 		}
-		return null; //TODO: return "rest"-node
+		return null;
 	}
 	
 	public void createTree(double interval){
@@ -149,12 +123,7 @@ public class VoidTree {
 		LinkedList<CTriangle> tris = new LinkedList<CTriangle>();
 		int[][] table = alphaFil.getBettiNumbers();
 		List<Simplex> simplices = alphaFil.getSimplices();
-		//int first = 0;
 		for (int i=0; i<table[0].length;i++){
-			/*if (first==1){
-				break;
-			}*/
-			//System.out.println("dimension: "+table[5][i]);
 			if(table[5][i]==2){
 				scene.addShape(simplices.get(i), new java.awt.Color(100,200,100,255));
 				tris.add((CTriangle)simplices.get(i));
@@ -174,22 +143,24 @@ public class VoidTree {
 						new Sphere( (Point)simplices.get(i),0.1 ), 
 						java.awt.Color.BLACK );
 			
+			if (table[5][i]==3){
+				LinkedList<CTetrahedron> tets = new LinkedList<CTetrahedron>();
+				CTetrahedron tetra = (CTetrahedron) simplices.get(i);
+				double d = alphaFil.getInAlpha(simplices.get(i));
+				tets.add(tetra);
+				Node m = find(tets);
+				m.changeDeath(d);
+			}
+			
 			if (table[4][i]==1 && table[5][i]==2){
-				//first=1;
-				//System.out.println("index: "+i);
 				scene.addShape(simplices.get(i), new java.awt.Color(0,200,0,255));
 				double alpha = alphaFil.getInAlpha(simplices.get(i));
 				CTriangle marked = (CTriangle) simplices.get(i);
-				//System.out.print("Kald til voids.");
 				ArrayList<LinkedList<CTetrahedron>> newVoids = getVoid(marked, tris);
-				System.out.print(newVoids.get(0).size()+"-");
-				System.out.print(newVoids.get(1).size());
 				if (newVoids.get(0).isEmpty() && newVoids.get(1).isEmpty()){
-					System.out.print("Begge voids er tomme.");
 					return; //Error!
 				}
 				if (newVoids.get(0).isEmpty()){
-					System.out.println("0 Void er tomt.");
 					Node rest = getRest();
 					Node newNode = new Node(alpha, newVoids.get(1));
 					rest.getTetra().removeAll(newNode.getTetra());
@@ -198,16 +169,13 @@ public class VoidTree {
 					rest.setChild(newNode, 1);
 				} else {
 					if (newVoids.get(1).isEmpty()){
-						System.out.println("1 Void er tomt.");
 						Node rest = getRest();
-						System.out.print(rest==root);
 						Node newNode = new Node(alpha, newVoids.get(0));
 						rest.getTetra().removeAll(newNode.getTetra());
 						Node newRest = new Node(0, rest.getTetra());
 						rest.setChild(newRest, 0);
 						rest.setChild(newNode, 1);
-					} else {
-						System.out.print("Begge voids findes.");					
+					} else {					
 						LinkedList<CTetrahedron> v1 = newVoids.get(0);
 						LinkedList<CTetrahedron> v2 = newVoids.get(1);
 						Node match = find(v1);

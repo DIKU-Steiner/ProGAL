@@ -10,10 +10,12 @@ public class Node implements InteractiveBinaryTree {
 	public Node left = null;
 	public Node right = null;
 	private double alpha;
+	private double death;
 	private LinkedList<CTetrahedron> tetra;
 	
 	public Node(double a, LinkedList<CTetrahedron> t){
 		alpha = a;
+		death = -1;
 		tetra = t;
 	}
 	
@@ -23,6 +25,14 @@ public class Node implements InteractiveBinaryTree {
 	
 	public void changeAlpha(double newA){
 		alpha = newA;
+	}
+	
+	public double getDeath(){
+		return death;
+	}
+	
+	public void changeDeath(double newD){
+		death = newD;
 	}
 	
 	public LinkedList<CTetrahedron> getTetra(){
