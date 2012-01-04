@@ -174,8 +174,6 @@ public class ExactJavaPredicates extends Predicates{
 		check = 1.0;
 
 
-
-
 		do {
 			lastcheck = check;
 			epsilon *= half;
@@ -2889,13 +2887,6 @@ public class ExactJavaPredicates extends Predicates{
 	}
 
 	double insphere(double[] pa,double[]  pb,double[]  pc,double[]  pd,double[]  pe)
-
-
-
-
-
-
-
 	{
 		double aex, bex, cex, dex;
 		double aey, bey, cey, dey;

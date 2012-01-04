@@ -144,6 +144,7 @@ public class RegularComplex implements SimplicialComplex{
 
 		//Iterate over points
 		for(CVertex p: points){
+			if(points.indexOf(p)%1000==0) System.out.println("Inserted "+points.indexOf(p)+" points");
 			next_t = walk.walk(next_t, p);
 			next_t = f14.flip14(next_t, p);
 			CTetrahedron tmp = flips.fixDelaunay();

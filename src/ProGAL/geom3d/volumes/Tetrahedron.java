@@ -104,7 +104,7 @@ public class Tetrahedron implements Simplex, Volume {
 	
 
 	/** Find the center of the inscribed sphere. */
-	public Point getIncenter(){
+	public Point incenter(){
 		Vector a = corners[3].vectorTo(corners[0]);
 		Vector b = corners[3].vectorTo(corners[1]);
 		Vector c = corners[3].vectorTo(corners[2]);
@@ -124,7 +124,10 @@ public class Tetrahedron implements Simplex, Volume {
 	
 	
 	public Point getCenter() {
-		return circumcenter();
+		Vector v = corners[0].vectorTo(corners[1]);
+		v.addThis(corners[0].vectorTo(corners[2]));
+		v.addThis(corners[0].vectorTo(corners[3]));
+		return corners[0].add(v.multiplyThis(0.25));
 	}
 
 	/** Returns true if the point p is inside this tetrahedron. */

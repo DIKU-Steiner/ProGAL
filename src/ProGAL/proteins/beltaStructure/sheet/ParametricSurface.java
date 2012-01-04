@@ -4,7 +4,6 @@ import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Vector;
 
 public abstract class ParametricSurface {
-	
 	public abstract Point getPoint(double u, double v);
 
 	public Point getPoint(ProGAL.geom2d.Point p) {

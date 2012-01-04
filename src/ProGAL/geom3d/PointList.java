@@ -1,8 +1,11 @@
 package ProGAL.geom3d;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.geom3d.volumes.Sphere;
 import ProGAL.math.Matrix3x3;
 import ProGAL.math.Randomization;
 
@@ -219,7 +222,7 @@ public class PointList extends ArrayList<Point> {
 	}
 
 	/** Construct a point-list containing n uniformly distributed random points in 
-	 * the unit cube. Uses the math.Randomization class.*/
+	 * the unit cube. Uses the ProGAL.math.Randomization class.*/
 	public static PointList generatePointsInCube(int n) {
 		PointList list = new PointList();
 		for (int i = 0; i < n; i++) 
@@ -231,8 +234,9 @@ public class PointList extends ArrayList<Point> {
 		return list;
 	}
 
-
-	public static PointList generatePointsOnSphere(int n) {
+	/** Construct a point-list of n uniformly distributed random points on the unit sphere.
+	 * Uses the ProGAL.math.Randomization class. */
+	public static PointList generateRandomPointsOnSphere(int n) {
 		PointList list = new PointList();
 		for(int i=0;i<n;i++){
 				double theta0 = Randomization.randBetween(0, 2*Math.PI);
@@ -245,5 +249,24 @@ public class PointList extends ArrayList<Point> {
 		}
 		return list;
 	}
+	
+
+	/** Construct a point-list of n evenly distributed points (not random) on the unit sphere.
+	 * Taken from http://www.cgafaq.info/wiki/Evenly_distributed_points_on_sphere */
+	public static PointList generatePointsOnSphere(int n){
+		PointList list = new PointList();
+		double l = 0;
+		double dl = Math.PI*(3-Math.sqrt(5));
+		double dz = 2.0/n;
+		double z = 1-dz/2;
+		for(int k=0;k<n;k++){
+			double r = Math.sqrt(1-z*z);
+			list.add(new Point(Math.cos(l)*r, Math.sin(l)*r,z));
+			z-=dz;
+			l+=dl;
+		}
+		return list;
+	}
+	
 }
 

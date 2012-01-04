@@ -22,6 +22,7 @@ import javax.swing.event.ListSelectionListener;
 
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Shape;
+import ProGAL.geom3d.surface.ParametricParaboloid;
 import ProGAL.geom3d.viewer.ClickListener;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.Sphere;
@@ -31,7 +32,6 @@ import ProGAL.proteins.belta.SSType;
 import ProGAL.proteins.belta.SecondaryStructure;
 import ProGAL.proteins.belta.SecondaryStructure.SSSegment;
 import ProGAL.proteins.beltaStructure.loop.LoopStructure;
-import ProGAL.proteins.beltaStructure.sheet.ParametricParaboloid;
 import ProGAL.proteins.beltaStructure.sheet.SurfaceSheetStructure;
 import ProGAL.proteins.structure.Atom;
 
@@ -235,7 +235,7 @@ public class SheetLoopGUI implements ClickListener{
 		SecondaryStructure ss = new SecondaryStructure(ps, "       EEEEEEE GGGHHHHHHHHHHHH   HHHHHHHHHT SEEEEEEE HHHHHHHHHHHHHHT EEEE ");
 		BetaTopology bt = new BetaTopology(ss, new boolean[][]{{false,true,true},{false,false,false},{false,false,false}});
 		SheetLoopStructure struc = new SheetLoopStructure(bt);
-		SheetLoopGUI gui = new SheetLoopGUI(struc);
+		new SheetLoopGUI(struc);
 	}
 
 }

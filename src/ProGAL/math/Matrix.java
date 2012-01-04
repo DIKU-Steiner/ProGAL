@@ -242,16 +242,33 @@ public class Matrix {
 		return ret;
 	}
 
+	public boolean isSquare(){ return M==N; }
+	
 	/** Return the inverse of this matrix. */
 	public Matrix invert(){
 		Matrix ret = clone();
 		return ret.invertThis();
 	}
 
-	/** Invert this matrix (overwrites this and returns it). 
-	 * @todo TODO: Implement general case. */
+	/** Invert this matrix (overwrites this and returns it).  */
 	public Matrix invertThis(){
-		throw new Error("Inversion not implemented for matrices of size "+M+"x"+N);
+		if(!isSquare()) 
+			throw new Error("Cant invert non-square matrix ("+M+"x"+N+")");
+		Matrix tmp = new Matrix(M,2*N);
+		for(int r=0;r<M;r++){
+			for(int c=0;c<N;c++){
+				tmp.set(r, c, get(r,c));
+			}
+			tmp.set(r,N+r, 1);
+		}
+		tmp.reduceThis();
+		
+		for(int r=0;r<M;r++){
+			for(int c=0;c<N;c++){
+				set(r, c, tmp.get(r,c+N));
+			}
+		}
+		return this;
 	}
 
 	/** Reduce this matrix to row canonical form (reduced row echelon form). A new 
@@ -330,7 +347,7 @@ public class Matrix {
 	public void toConsole(){ toConsole(2); 	}
 
 	public void toConsole(int dec){
-		System.out.println(toString(dec));
+		System.out.print(toString(dec));
 	}
 
 	/** Returns a clone of this matrix. */ 

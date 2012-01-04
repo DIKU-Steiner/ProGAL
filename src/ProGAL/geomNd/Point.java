@@ -48,13 +48,19 @@ public class Point implements Serializable{
 
 	public void set(int d, double v){		coords[d]=v;			}
 	public void setCoord(int d, double v){	coords[d]=v;			}
-	public void set(Point p){		
+	public Point set(Point p){		
 		for(int i=0;i<Math.min(dim, p.dim);i++) coords[i] = p.coords[i];
+		return this;
 	}
-	public void setCoord(Point p){	
+	public Point setCoord(Point p){	
 		for(int i=0;i<Math.min(dim, p.dim);i++) coords[i] = p.coords[i];
+		return this;
 	}
 	
+	public Point addThis(Vector v){
+		for(int i=0;i<Math.min(dim, v.dim);i++) coords[i] += v.coords[i];
+		return this;
+	}
 	
 	public double distanceSquared(Point p){
 		double sum = 0;

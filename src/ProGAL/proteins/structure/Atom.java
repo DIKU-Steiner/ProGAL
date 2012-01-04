@@ -83,7 +83,7 @@ public class Atom extends Point{
 	
 	public Atom clone(){
 		Atom ret = new Atom(name);
-		ret.set(this);
+		ret.setCoord(this);
 		return ret;
 	}
 }

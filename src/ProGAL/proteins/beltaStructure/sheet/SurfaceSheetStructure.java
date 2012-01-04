@@ -21,6 +21,8 @@ import javax.swing.event.ChangeListener;
 import ProGAL.geom2d.Point;
 import ProGAL.geom3d.Shape;
 import ProGAL.geom3d.Vector;
+import ProGAL.geom3d.surface.ParametricParaboloid;
+import ProGAL.geom3d.surface.ParametricSurface;
 import ProGAL.geom3d.viewer.ClickListener;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.Sphere;

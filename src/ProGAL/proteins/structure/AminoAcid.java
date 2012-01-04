@@ -18,9 +18,9 @@ public class AminoAcid {
 	protected AminoAcidChain chain;
 	protected int index; 
 	
-	public AminoAcid(char type){
-		this(type,HeavyAtomAminoAcidGenerator.generateAtoms(type));
-	}
+//	public AminoAcid(char type){
+//		this(type,HeavyAtomAminoAcidGenerator.generateAtoms(type));
+//	}
 
 	public AminoAcid(char type, Atom[] atoms){
 		this.type = type;

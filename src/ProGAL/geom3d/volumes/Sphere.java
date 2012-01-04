@@ -1,6 +1,7 @@
 package ProGAL.geom3d.volumes;
 
 import java.util.Collection;
+import java.util.List;
 
 import ProGAL.geom3d.Circle;
 import ProGAL.geom3d.Line;
@@ -100,7 +101,7 @@ public class Sphere implements Volume{
 
 
 	/** Returns true if none of the given points is in the sphere. */
-	public boolean containsNone(PointList points) {
+	public boolean containsNone(List<Point> points) {
 		double rr = radius*radius-0.000000001;
 		for(Point p: points)
 			if(p.distanceSquared(center)<rr) return false;
@@ -341,6 +342,17 @@ public class Sphere implements Volume{
 		double insideVol = cellVol*insideCells;
 		double borderVol = cellVol*borderCells;
 		return insideVol+borderVol/2;
+	}
+
+	/** TODO: Comment, move up and test */
+	public PointList generateRandomPointsOnSphere(int n){
+		PointList ret = PointList.generateRandomPointsOnSphere(n);
+		
+		for(Point p: ret){
+			p.scaleThis(radius);
+			p.addThis(center.toVector());
+		}
+		return ret;
 	}
 	
 	/** TODO: Comment, move up and test */

@@ -14,6 +14,7 @@ import ProGAL.proteins.beltaStructure.sheet.SheetAlignment;
 import ProGAL.proteins.beltaStructure.sheet.SurfaceSheetStructure;
 import ProGAL.proteins.structure.AminoAcidChain;
 import ProGAL.proteins.structure.Atom;
+import ProGAL.proteins.structure.generators.HeavyAtomAminoAcidGenerator;
 
 public class SheetLoopStructure extends AminoAcidChain implements PartialStructure {
 
@@ -26,7 +27,7 @@ public class SheetLoopStructure extends AminoAcidChain implements PartialStructu
 	
 	
 	public SheetLoopStructure(BetaTopology bTop){
-		super(bTop.secondaryStructure.primaryStructure.sequence);
+		super(bTop.secondaryStructure.primaryStructure.sequence, new HeavyAtomAminoAcidGenerator());
 		
 		this.betaTopology = bTop;
 		this.secondaryStructure = bTop.secondaryStructure;

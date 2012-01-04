@@ -1,18 +1,25 @@
 package ProGAL.proteins;
 
+import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.Vector;
+import ProGAL.geom3d.complex.CTetrahedron;
+import ProGAL.geom3d.complex.CTriangle;
 import ProGAL.geom3d.superposition.RMSD;
 import ProGAL.geom3d.superposition.Transform;
+import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.io.IOToolbox;
 import ProGAL.io.WebIOToolbox;
+import ProGAL.math.Randomization;
 import ProGAL.proteins.structure.AminoAcid;
 import ProGAL.proteins.structure.AminoAcidChain;
 import ProGAL.proteins.structure.Atom;
+import ProGAL.proteins.structure.generators.HeavyAtomAminoAcidGenerator;
 
 /**
  * A class for reading and representing a PDB-file. All lines are read but not all are parsed.
@@ -309,7 +316,7 @@ public class PDBFile extends File{
 	}
 	
 	public AminoAcidChain getChain(int modelNum, int chainNum){
-		AminoAcidChain chain = new AminoAcidChain(this.getSequence());
+		AminoAcidChain chain = new AminoAcidChain(this.getSequence(), new HeavyAtomAminoAcidGenerator());
 		int c=0;
 		int prevRes = getAtomRecords(modelNum,chainNum).get(0).residueNumber;
 		for(AtomRecord ar: getAtomRecords(modelNum, chainNum)){
@@ -700,6 +707,68 @@ public class PDBFile extends File{
 
 		PDBChain(char id){
 			chainId = id;
+		}
+		public List<AtomRecord> getAtoms(){
+			return new ArrayList<AtomRecord>(atomRecords);
+		}
+	}
+	
+	public static void main(String[] args){
+		Randomization.seed(2);
+//		PDBFile f = new PDBFile("/Users/rfonseca/Downloads/3ZVO.pdb");
+		PDBFile f = new PDBFile("/Users/rfonseca/Downloads/1GZX.pdb");
+		List<Point> points = f.getAtomCoords();
+//		List<Point> points = new ArrayList<Point>(40000);
+//		for(int i=0;i<500000;i++){
+//			points.add(new Point(Randomization.randBetween(-10.0, 10.0),Randomization.randBetween(-10.0, 10.0),Randomization.randBetween(-10.0, 10.0)));
+//		}
+
+		ProteinComplex af = new ProteinComplex(f, 2.8);
+		Vector v = new Vector(0,0,0);
+		for(Point p: points){
+			v.addThis(p.toVector());
+		}
+		v.divideThis(points.size());
+		
+		
+		List<Point> vertices = new ArrayList<Point>();
+		
+		J3DScene scene = J3DScene.createJ3DSceneInFrame();
+		for(CTetrahedron tet: af.getTetrahedra()){
+			if(af.getDepth(tet)!=0) continue;
+			for(int i=0;i<4;i++){
+				CTriangle t = tet.getTriangle(i);
+				CTetrahedron tet1 = t.getAdjacentTetrahedron(0);
+				CTetrahedron tet2 = t.getAdjacentTetrahedron(1);
+				int d1 = af.getDepth(tet1);
+				int d2 = af.getDepth(tet2);
+				if( d1==-1 || d2==-1 ){
+					scene.addShape(t, new Color(100,100,250));
+					if(!vertices.contains(t.getCorner(0))) vertices.add(t.getCorner(0));
+					if(!vertices.contains(t.getCorner(1))) vertices.add(t.getCorner(1));
+					if(!vertices.contains(t.getCorner(2))) vertices.add(t.getCorner(2));
+				}
+			}
+			
+		}
+
+		for(Point p: vertices){
+			System.out.printf("[%.2f, %.2f, %.2f],\n",p.x()-v.x(),p.y()-v.y(),p.z()-v.z());
+		}
+		for(CTetrahedron tet: af.getTetrahedra()){
+			if(af.getDepth(tet)!=0) continue;
+			for(int i=0;i<4;i++){
+				CTriangle t = tet.getTriangle(i);
+				CTetrahedron tet1 = t.getAdjacentTetrahedron(0);
+				CTetrahedron tet2 = t.getAdjacentTetrahedron(1);
+				int d1 = af.getDepth(tet1);
+				int d2 = af.getDepth(tet2);
+				if( d1==-1 || d2==-1 ){
+					System.out.printf("[%d, %d, %d],\n",vertices.indexOf(t.getCorner(0)), vertices.indexOf(t.getCorner(1)), vertices.indexOf(t.getCorner(2)));
+					
+				}
+			}
+			
 		}
 	}
 }

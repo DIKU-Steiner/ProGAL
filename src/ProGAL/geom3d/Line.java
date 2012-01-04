@@ -187,7 +187,7 @@ public class Line {
 	}
 	
 	/** 
-	 * Rotate point around this line, store the result in p and return the results. The rotation
+	 * Rotate point around this line, store the result in point and return the results. The rotation
 	 * is a right-handed one (thumb in the direction of dir)
 	 */
 	public Point rotateIn(Point point, double angle){

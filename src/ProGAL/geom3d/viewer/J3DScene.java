@@ -32,6 +32,8 @@ import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
 import ProGAL.geom3d.*;
+import ProGAL.geom3d.surface.ParametricParaboloid;
+import ProGAL.geom3d.surface.ParametricSurface;
 import ProGAL.geom3d.volumes.LSS;
 import ProGAL.geom3d.volumes.OBB;
 import ProGAL.geom3d.volumes.RSS;
@@ -142,6 +144,7 @@ public class J3DScene {
 
 	/** Add a volume object. The standard color gray will be used */
 	public void addShape(Shape v){	addShape(v,Color.gray);	}
+	
 	/** Add a volume object with a specified color */
 	public void addShape(Shape v, Color c){	
 		primitives.put(v, c);
@@ -149,6 +152,7 @@ public class J3DScene {
 		if(p!=null)
 			scene.addChild(p);
 	}
+	
 	/** Add a volume object with a specified color and detail-level */
 	public void addShape(Shape v, Color c, int divisions){	
 		primitives.put(v, c);
@@ -167,6 +171,19 @@ public class J3DScene {
 		addShape(new TextShape(t,pos,height), c);
 	}
 
+
+	public void addSurface(ParametricSurface surface){
+		addSurface(surface, Color.GRAY, -10, 10, 10, -10, 10, 10);
+	}
+	public void addSurface(ParametricSurface surface, Color col){
+		addSurface(surface, col, -10, 10, 10, -10, 10, 10);
+	}
+	public void addSurface(ParametricSurface surface, Color col, double uMin, double uMax, int uDivs, double vMin, double vMax, int vDivs){
+		primitives.put(surface, col);
+		Node p = genSurface(surface,uMin, uMax, uDivs, vMin, vMax, vDivs, col);
+		if(p!=null)	scene.addChild(p);
+	}
+	
 	/** Sets the location that the camera looks at to the center of all the shapes added 
 	 * to the scene.  */
 	public void centerCamera(){
@@ -282,6 +299,7 @@ public class J3DScene {
 		if(v instanceof ProGAL.geom3d.volumes.Tetrahedron) updateTetrahedronTransforms((ProGAL.geom3d.volumes.Tetrahedron)v);
 		if(v instanceof ProGAL.geom3d.Triangle) updateTriangleTransforms((ProGAL.geom3d.Triangle)v);
 		if(v instanceof TextShape) updateTextTransforms((TextShape)v);
+		if(v instanceof ParametricSurface) updateSurface((ParametricSurface)v);
 	}
 	private void updateSphereTransforms(ProGAL.geom3d.volumes.Sphere s){
 		TransformGroup tg = (TransformGroup)shapeTransforms.get(s).getChild(0);
@@ -448,8 +466,9 @@ public class J3DScene {
 		Transform3D trans = new Transform3D();
 		Vector v1 = new Vector(0,1,0);
 		Vector v2 = c.segment.getAToB();
-		if(v1.length()>0 && v2.length()>0 && v1.angle(v2)>0.00001){ 
-			Matrix m = Matrix.createRotationMatrix(v1.angle(v2), v1.cross(v2).scaleToLength(1));
+		double angle = v1.angle(v2);
+		if(v1.length()>0 && v2.length()>0 && angle>0.00001 && angle<Math.PI-0.00001){
+			Matrix m = Matrix.createRotationMatrix(angle, v1.cross(v2).scaleToLength(1));
 			trans.set(to4x4CoordArray(m));
 		}
 		trans.setScale(new Vector3d(c.rad, v2.length(), c.rad));
@@ -471,6 +490,11 @@ public class J3DScene {
 		trans.setTranslation(new Vector3d(0,-0.5,0));
 		trans.setScale(new Vector3d(1,c.rad/v2.length(),1));
 		((TransformGroup)bg.getChild(1)).setTransform(trans);
+	}
+
+	private void updateSurface(ProGAL.geom3d.surface.ParametricSurface s){
+		Surface3D surf3d = (Surface3D)((TransformGroup)shapeTransforms.get(s).getChild(0)).getChild(0);
+		surf3d.update();
 	}
 
 	private Appearance genAppearance(Color color){
@@ -840,6 +864,32 @@ public class J3DScene {
 		updateBoxTransforms(b);
 		return ret;
 	}
+	private Node genSurface(ProGAL.geom3d.surface.ParametricSurface s, double uMin, double uMax, int uDiv, double vMin, double vMax, int vDiv, Color color){
+		Appearance app = genAppearance(color);
+
+		PolygonAttributes pa = new PolygonAttributes();
+		pa.setCullFace(PolygonAttributes.CULL_NONE);
+		pa.setBackFaceNormalFlip(true);
+		app.setPolygonAttributes(pa);
+
+		Surface3D surf3d = new Surface3D(s, uMin, uMax, uDiv, vMin, vMax, vDiv, app);
+
+		pickMap.put(surf3d, s);
+
+		TransformGroup tg = new TransformGroup();
+//		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		tg.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+		tg.addChild(surf3d);
+
+		BranchGroup ret = new BranchGroup();
+		ret.addChild(tg);
+		ret.setCapability(BranchGroup.ALLOW_DETACH);
+		ret.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+		ret.compile();
+		shapeTransforms.put(s, ret);
+		updateSurface(s);
+		return ret;
+	}
 	private Node genPrimitive(Shape v, Color c){
 		//		if(		v instanceof ProGAL.geom3d.volumes.Cylinder)		return genCylinder((geom3d.Cylinder)v, c);
 		if(v instanceof ProGAL.geom3d.volumes.Sphere)				return genSphere((ProGAL.geom3d.volumes.Sphere)v, c, 32);
@@ -989,6 +1039,8 @@ public class J3DScene {
 		//tgroup.addChild(scene);
 		//scene.compile();
 		sceneRoot.compile();
+		
+		
 	}
 
 	public J3DScene(){
@@ -1032,7 +1084,9 @@ public class J3DScene {
 					}
 				}});
 
-			canvas.addMouseListener(new PickListener()); 
+			canvas.addMouseListener(new PickListener());
+
+			canvas.getView().setTransparencySortingPolicy(View.TRANSPARENCY_SORT_GEOMETRY);
 		}
 
 		return canvas;
@@ -1321,7 +1375,7 @@ public class J3DScene {
 		j3ds.setAxisEnabled(true);
 
 		j3ds.setBackgroundColor(Color.WHITE);
-		j3ds.addShape(new LSS(new Point(1,1,0), new Point(1.3,0,0), 0.1), new Color(20,200,20, 100));
+		j3ds.addShape(new LSS(new Point(1,1,0), new Point(1,0,0), 0.1), new Color(20,200,20, 100));
 		ProGAL.geom3d.volumes.Cylinder cyl = new ProGAL.geom3d.volumes.Cylinder(new Point(0.4,0,0.1), new Point(0.4,0.5,0), 0.1);
 		j3ds.addShape(cyl, Color.RED.darker().darker());
 		ProGAL.geom3d.volumes.Sphere s = new ProGAL.geom3d.volumes.Sphere(new Point(-1,-0.2,0), 0.3f);
@@ -1330,7 +1384,8 @@ public class J3DScene {
 		j3ds.addShape(tetr, new Color(50,50,255));
 		j3ds.addShape(new ProGAL.geom3d.Triangle(new Point(0.2f, -0.2f, 0.1f), new Point(0.8, -0.8, 0.1), new Point(1,-0.3, 0.1)), new Color(150,50,255));
 		j3ds.addShape(new RSS(new Point(0.5,0,0),new Vector[]{new Vector(0.23,0.23,0),new Vector(-0.15,0.15,0)},0.1), new Color(200,200,50));
-
+		j3ds.addSurface(new ParametricParaboloid(0.1, 0.1, 0.01, new Vector(0,0,-2)), new Color(255,165,0));
+		
 		j3ds.centerCamera();
 		j3ds.autoZoom();
 	}
