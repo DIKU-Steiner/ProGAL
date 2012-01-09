@@ -14,7 +14,7 @@ import ProGAL.math.Randomization;
 
 public class VoidTree {
 	private AlphaFiltration alphaFil;
-	private Node root = null;
+	public Node root = null;
 	J3DScene scene = J3DScene.createJ3DSceneInFrame();
 	
 	public VoidTree(List<Point> points, double interval) {
@@ -209,13 +209,13 @@ public class VoidTree {
 		points.add(new Point(1,0,1));
 		points.add(new Point(2,3,2));
 		points.add(new Point(0,3,2));*/
-//		List<Point> points = ProGAL.geom3d.PointList.generatePointsInCube(300);
+		List<Point> points = ProGAL.geom3d.PointList.generatePointsInCube(300);
 		List<Point> points2 = new ArrayList<Point>();
-//		for(Point p: points){
-//			if(p.x()>0.9 || p.x()<-0.9) points2.add(p);
-//			else if(p.y()>0.9 || p.y()<-0.9) points2.add(p);
-//			else if(p.z()>0.9 || p.z()<-0.9) points2.add(p);
-//		}
+		for(Point p: points){
+			if(p.x()>0.9 || p.x()<-0.9) points2.add(p);
+			else if(p.y()>0.9 || p.y()<-0.9) points2.add(p);
+			else if(p.z()>0.9 || p.z()<-0.9) points2.add(p);
+		}
 //		List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(30);
 		
 		System.out.println(points2.size());
