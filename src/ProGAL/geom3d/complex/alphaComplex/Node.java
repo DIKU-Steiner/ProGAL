@@ -68,7 +68,7 @@ public class Node implements InteractiveBinaryTree {
 			return Color.RED;
 		}
 		return Color.BLACK;}
-	public String label() { return "";
+	public String label() { return String.format("%.2f",alpha);
 	}
 	public void click() {
 		System.out.println(String.format("a: %.2f, tets: %d",alpha, tetra.size()));
@@ -99,7 +99,7 @@ public class Node implements InteractiveBinaryTree {
 		}
 		
 		//Now paint vertices and void-tetrahedra
-		for(Point p: vertices)		scene.addShape(new Sphere(p,0.05), Color.GRAY, 8);
+		for(Point p: vertices)		scene.addShape(new Sphere(p,0.5), Color.GRAY, 8);
 		for(CTetrahedron t: tetra)	scene.addShape(t, Color.RED);
 	}
 }
