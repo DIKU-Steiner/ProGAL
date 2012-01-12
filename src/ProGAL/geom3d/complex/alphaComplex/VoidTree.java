@@ -15,7 +15,7 @@ import ProGAL.math.Randomization;
 public class VoidTree {
 	private AlphaFiltration alphaFil;
 	public Node root = null;
-//	J3DScene scene = J3DScene.createJ3DSceneInFrame();
+	J3DScene scene = J3DScene.createJ3DSceneInFrame();
 	
 	public VoidTree(List<Point> points, double interval) {
 		this.alphaFil = new AlphaFiltration(points);
@@ -125,7 +125,7 @@ public class VoidTree {
 		List<Simplex> simplices = alphaFil.getSimplices();
 		for (int i=0; i<table[0].length;i++){
 			if(table[5][i]==2){
-//				scene.addShape(simplices.get(i), new java.awt.Color(100,200,100,255));
+				//scene.addShape(simplices.get(i), new java.awt.Color(100,200,100,255));
 				tris.add((CTriangle)simplices.get(i));
 			}
 			/*if (table[5][i]==3){
@@ -139,9 +139,9 @@ public class VoidTree {
 				}
 			}*/
 			if(table[5][i]==0) 
-//				scene.addShape(
-//						new Sphere( (Point)simplices.get(i),0.1 ), 
-//						java.awt.Color.BLACK );
+				scene.addShape(
+						new Sphere( (Point)simplices.get(i),0.5 ), 
+						java.awt.Color.BLUE );
 			
 			if (table[5][i]==3){
 				LinkedList<CTetrahedron> tets = new LinkedList<CTetrahedron>();
@@ -153,7 +153,7 @@ public class VoidTree {
 			}
 			
 			if (table[4][i]==1 && table[5][i]==2){
-//				scene.addShape(simplices.get(i), new java.awt.Color(0,200,0,255));
+				//scene.addShape(simplices.get(i), new java.awt.Color(0,200,0,255));
 				double alpha = alphaFil.getInAlpha(simplices.get(i));
 				CTriangle marked = (CTriangle) simplices.get(i);
 				ArrayList<LinkedList<CTetrahedron>> newVoids = getVoid(marked, tris);
@@ -190,36 +190,57 @@ public class VoidTree {
 	}
 	
 	public static void main(String[] args){
-		Randomization.seed(0);
+		Randomization.seed(1);
 //		ArrayList<Point> points = new ArrayList<Point>();
-//		//Kube: 
-//		points.add(new Point(0,1,0));
-//		points.add(new Point(1,1,0));
-//		points.add(new Point(1,2,0));
-//		points.add(new Point(0,2,0));
-//		points.add(new Point(0,1,1));
-//		points.add(new Point(1,1,1));
-//		points.add(new Point(1,2,1));
-//		points.add(new Point(0,2,1));
+		// disjoint spheres:
+		//List<Point> points = new DisjointSpheresPointList(2, 40);
+		
+		// joint spheres:
+		//List<Point> points = new OverlappingSpheresPointList(2, 40);
+		
+		// protein:
+		//List<Point> points = new ProteinPointList("3SQF");
+	
+		// Eiffel:
+		List<Point> points = new EiffelPointList();
+		
+//		//cube: 
+		/*points.add(new Point(0,1,0));
+		points.add(new Point(1,1,0));
+		points.add(new Point(1,2,0));
+		points.add(new Point(0,2,0));
+		points.add(new Point(0,1,1));
+		points.add(new Point(1,1,1));
+		points.add(new Point(1,2,1));
+		points.add(new Point(0,2,1));*/
 		
 //		points.add(new Point());
-		/*tetrahedra:
-		points.add(new Point(1,3,0));
-		points.add(new Point(1,6,1));
-		points.add(new Point(1,0,1));
-		points.add(new Point(2,3,2));
-		points.add(new Point(0,3,2));*/
-		List<Point> points = ProGAL.geom3d.PointList.generatePointsInCube(300);
-		List<Point> points2 = new ArrayList<Point>();
-		for(Point p: points){
-			if(p.x()>0.9 || p.x()<-0.9) points2.add(p);
-			else if(p.y()>0.9 || p.y()<-0.9) points2.add(p);
-			else if(p.z()>0.9 || p.z()<-0.9) points2.add(p);
-		}
+		//2tetrahedra:
+//		points.add(new Point(1,3,0));
+//		points.add(new Point(1,6,1));
+//		points.add(new Point(1,0,1));
+//		points.add(new Point(2,3,2));
+//		points.add(new Point(0,3,2));
+		
+		//4tetrahedra:
+		/*points.add(new Point(0,0,3));
+		points.add(new Point(2,3,6));
+		points.add(new Point(1,6,3));
+		points.add(new Point(6,5,3));
+		points.add(new Point(5,4,4));
+		points.add(new Point(2,3,0));*/
+		
+//		List<Point> points = ProGAL.geom3d.PointList.generatePointsInCube(300);
+//		List<Point> points2 = new ArrayList<Point>();
+//		for(Point p: points){
+//			if(p.x()>0.9 || p.x()<-0.9) points2.add(p);
+//			else if(p.y()>0.9 || p.y()<-0.9) points2.add(p);
+//			else if(p.z()>0.9 || p.z()<-0.9) points2.add(p);
+//		}
 //		List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(30);
 		
-		System.out.println(points2.size());
-		VoidTree vt = new VoidTree(points2, 0);
+		System.out.println(points.size());
+		VoidTree vt = new VoidTree(points, 0);
 		new ProGAL.datastructures.viewer.BinaryTreePainter(vt.root);
 	}
 }

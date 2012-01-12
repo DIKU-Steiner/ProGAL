@@ -1,10 +1,8 @@
 package ProGAL.geom3d.complex.alphaComplex;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
@@ -56,7 +54,38 @@ public class Node implements InteractiveBinaryTree {
 			right = n;
 		}
 	}
-
+// TEST AREA:	
+	private LinkedList<Node> getLeaves(Node n){
+		LinkedList<Node> nodes = new LinkedList<Node>();
+		//nodes.add(n);
+		//for (int i = 0; i<nodes.size())
+		
+		if (n == null){
+			return null;
+		}
+		if (n.left == null){
+			nodes.add(n);
+			return nodes;
+		}
+		else { 
+			nodes.addAll(getLeaves(n.right));
+			nodes.addAll(getLeaves(n.left));
+			return nodes;
+		}
+	}
+	
+	private double maxPersist(){
+		LinkedList<Node> leaves = getLeaves(this);
+		double b = this.alpha;
+		double d = 0;
+		for (int i = 0; i<leaves.size();i++) {
+			Node leaf = leaves.get(i);
+			if (d<leaf.death){
+				d=leaf.death;
+			}
+		}
+		return d-b;
+	}
 	
 	
 	public Node left() {return left;}
@@ -68,10 +97,10 @@ public class Node implements InteractiveBinaryTree {
 			return Color.RED;
 		}
 		return Color.BLACK;}
-	public String label() { return String.format("%.2f",alpha);
+	public String label() { return String.format("");
 	}
 	public void click() {
-		System.out.println(String.format("a: %.2f, tets: %d",alpha, tetra.size()));
+		System.out.println(String.format("a: %.20f, tets: %d, death: %.20f, persist: %.20f", alpha, tetra.size(), death, maxPersist()));
 		
 		J3DScene scene = J3DScene.createJ3DSceneInFrame();
 		scene.frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -99,7 +128,7 @@ public class Node implements InteractiveBinaryTree {
 		}
 		
 		//Now paint vertices and void-tetrahedra
-		for(Point p: vertices)		scene.addShape(new Sphere(p,0.5), Color.GRAY, 8);
-		for(CTetrahedron t: tetra)	scene.addShape(t, Color.RED);
+		for(Point p: vertices)		scene.addShape(new Sphere(p,1.5), Color.BLUE, 8);
+		for(CTetrahedron t: tetra)	scene.addShape(t, Color.GREEN);
 	}
 }
