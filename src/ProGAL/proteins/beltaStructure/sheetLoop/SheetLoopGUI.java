@@ -219,9 +219,9 @@ public class SheetLoopGUI implements ClickListener{
 						ParametricParaboloid pp = (ParametricParaboloid)SheetPanel.this.sss.getSurface();
 						pp.setC(newVal);
 						struc.updateAtoms(struc);
-						for(LoopStructure ls: struc.loopStructures)
-							ls.enforceClosureCCD();
-						struc.updateAtoms(struc);
+//						for(LoopStructure ls: struc.loopStructures)
+//							ls.enforceClosureCCD();
+//						struc.updateAtoms(struc);
 						scene.repaint();
 					}});
 				add(slider);
@@ -231,9 +231,9 @@ public class SheetLoopGUI implements ClickListener{
 	}
 	
 	public static void main(String[] args) {
-		PrimaryStructure ps = new PrimaryStructure("AAEEKTEFDVILKAAGANKVAVIKAVRGATGLGLKEAKDLVESAPAALKEGVSKDDAEALKKALEEAGAEVEVK");
+		PrimaryStructure ps = new PrimaryStructure("AAEEKTEFDVILKAAGANKVAVIKAVRGATGLGLKEAKDLVESAPAALKEGVSKDDAEALKKALEEAGAEVEVK");//1ctf
 		SecondaryStructure ss = new SecondaryStructure(ps, "       EEEEEEE GGGHHHHHHHHHHHH   HHHHHHHHHT SEEEEEEE HHHHHHHHHHHHHHT EEEE ");
-		BetaTopology bt = new BetaTopology(ss, new boolean[][]{{false,true,true},{false,false,false},{false,false,false}});
+		BetaTopology bt = new BetaTopology(ss, new boolean[][]{{false,false,false},{true,false,false},{true,false,false}});
 		SheetLoopStructure struc = new SheetLoopStructure(bt);
 		new SheetLoopGUI(struc);
 	}

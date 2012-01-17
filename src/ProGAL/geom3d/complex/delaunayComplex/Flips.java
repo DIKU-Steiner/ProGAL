@@ -28,7 +28,7 @@ class Flips {
 		f32 = new Flip32(f23,this);
 		f44 = new Flip44(f23, this);
 	}
-
+	
 	public CTetrahedron fixDelaunay(){
 		CTetrahedron next_t=null;
 		
@@ -205,6 +205,10 @@ class Flips {
 	public Stack<CTetrahedron> getTetrahedrastack() {
 		return tetrahedrastack;
 	}
+	
+	public Flip23 getFlip23() { return f23; }
+	public Flip32 getFlip32() { return f32; }
+	public Stack<Flip> getFlipstack() { return flipstack; }
 
 	public void setTetrahedrastack(Stack<CTetrahedron> tetrahedrastack) {
 		this.tetrahedrastack = tetrahedrastack;

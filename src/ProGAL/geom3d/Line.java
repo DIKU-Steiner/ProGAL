@@ -1,5 +1,8 @@
 package ProGAL.geom3d;
 
+import java.awt.Color;
+
+import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.math.Constants;
 
 /**
@@ -24,13 +27,13 @@ public class Line {
 	/** Constructs a line through origo with direction d. */
 	public Line(Vector d) {
 		p = new Point(0, 0, 0);
-		dir = d;
+		dir = d.normalize();
 	}
 	
 	/** Constructs a line through p with direction d.*/
 	public Line(Point p, Vector d) {
 		this.p = p;
-		dir = d;
+		dir = d.normalize();
 	}
 	
 	/** 
@@ -39,7 +42,7 @@ public class Line {
 	 */
 	public Line(LineSegment s) {
 		p = s.getA().clone();
-		dir = s.getAToB();
+		dir = s.getAToB().normalize();
 	}
 	
 	/** Constructs a line through the two specified points. */
@@ -240,5 +243,10 @@ public class Line {
 	/** Returns a string-representation of this line with <code>dec</code> decimals precision.*/
 	public String toString(int dec){
 		return String.format("Line3d[p:%s,dir:%s]", p.toString(dec), dir.toString(dec));
+	}
+	
+	public void toScene(J3DScene scene, double rad, Color clr) {
+		LineSegment seg = new LineSegment(this.p.add(dir.multiply(10)), p.add(dir.multiply(-10)));
+		seg.toScene(scene, rad, clr);
 	}
 }

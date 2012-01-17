@@ -20,6 +20,13 @@ public class Vector {
 		for(int d=0;d<dim;d++) coords[d] = p.coords[d];
 	}
 	
+	/** Constructs a vector between two points p1 and p2 - added by pawel 12-11-2011 */
+	public Vector(Point p1, Point p2) {
+		dim = p1.dim;
+		coords = new double[dim];
+		for(int d=0;d<dim;d++) coords[d] = p2.coords[d] - p1.coords[d];
+	}
+	
 	/** Construct a vector that is a clone of v. */
 	public Vector(Vector v) { 
 		dim = v.dim;
@@ -64,9 +71,9 @@ public class Vector {
 	public double length() {return Math.sqrt(getLengthSquared()); }
 
 	
-	/** Return true if the length of this vector is 0. */
+	/** Return true if the length of this vector is 0. */  // rettet af Pawel 12-11-2011
 	public boolean isZeroVector() {
-		for(int d=0;d<dim;d++) if(coords[d]>Constants.EPSILON) return false;
+		for(int d=0;d<dim;d++) if(Math.abs(coords[d])>Constants.EPSILON) return false;
 		return true;
 	}
 	

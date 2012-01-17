@@ -46,9 +46,12 @@ public class LSS implements Volume{
 		Matrix3x3 covMatr = points.getCovariance();
 		covMatr.toConsole(3);
 		Vector[] eigenVecs = covMatr.getEigenvectors();
-		eigenVecs[0].toConsole(3);
-		eigenVecs[1].toConsole(3);
-		eigenVecs[2].toConsole(3);
+//		eigenVecs[0].toConsole(3);
+//		eigenVecs[1].toConsole(3);
+//		eigenVecs[2].toConsole(3);
+		if(eigenVecs[0]==null) eigenVecs[0] = eigenVecs[1].cross(eigenVecs[2]);
+		if(eigenVecs[1]==null) eigenVecs[1] = eigenVecs[2].cross(eigenVecs[0]);
+		if(eigenVecs[2]==null) eigenVecs[2] = eigenVecs[0].cross(eigenVecs[1]);
 		
 		Vector dir = eigenVecs[0];
 		if ((eigenVecs[1] != null) && (eigenVecs[1].length()>dir.length())) dir = eigenVecs[1];

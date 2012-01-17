@@ -202,7 +202,7 @@ public class VoidTree {
 		//List<Point> points = new ProteinPointList("3SQF");
 	
 		// Eiffel:
-		List<Point> points = new EiffelPointList();
+//		List<Point> points = new EiffelPointList();
 		
 //		//cube: 
 		/*points.add(new Point(0,1,0));
@@ -239,8 +239,8 @@ public class VoidTree {
 //		}
 //		List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(30);
 		
-		System.out.println(points.size());
-		VoidTree vt = new VoidTree(points, 0);
-		new ProGAL.datastructures.viewer.BinaryTreePainter(vt.root);
+//		System.out.println(points.size());
+//		VoidTree vt = new VoidTree(points, 0);
+//		new ProGAL.datastructures.viewer.BinaryTreePainter(vt.root);
 	}
 }

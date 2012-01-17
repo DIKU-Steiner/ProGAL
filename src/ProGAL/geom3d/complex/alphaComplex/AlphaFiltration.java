@@ -14,7 +14,6 @@ import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Simplex;
 import ProGAL.geom3d.complex.*;
 import ProGAL.geom3d.complex.delaunayComplex.DelaunayComplex;
-import ProGAL.geom3d.complex.delaunayComplex.RegularComplex;
 import ProGAL.geom3d.predicates.*;
 import ProGAL.geom3d.predicates.Predicates.SphereConfig;
 
@@ -62,7 +61,7 @@ import ProGAL.geom3d.predicates.Predicates.SphereConfig;
  */
 public class AlphaFiltration {
 
-	private final RegularComplex del3d;
+	private final DelaunayComplex del3d;
 	private Predicates p = new ExactJavaPredicates();
 	private final AlphaComparator alphaOrdering = new AlphaComparator();
 	private final Map<Simplex, SimplexAlphaProperties> propertyMap = new HashMap<Simplex, SimplexAlphaProperties>();
@@ -83,7 +82,7 @@ public class AlphaFiltration {
 	}
 
 	/** Build the alpha-filtration of the specified Delaunay complex. */
-	public AlphaFiltration(RegularComplex d3d){
+	public AlphaFiltration(DelaunayComplex d3d){
 		this.del3d = d3d;
 		compute();
 	}
@@ -230,10 +229,10 @@ public class AlphaFiltration {
 			edges.add(e);
 			
 			boolean ch = false;
-			for(CTriangle t: e.getAdjacentTriangles()) ch|=getOnCH(t);
+			for(CTriangle t: e.getAdjacentTriangles()) ch |= getOnCH(t);
 			boolean att = false;
 			for(CTriangle t: e.getAdjacentTriangles()) 
-				att|=p.edgeinsphere(e, t.oppositeVertex(e))==SphereConfig.INSIDE;
+				att |= p.edgeinsphere(e, t.oppositeVertex(e))==SphereConfig.INSIDE;
 			double rho = p.edgecircumradius(e);
 			double minmu = edgeminmu(e);
 			double maxmu = edgemaxmu(e);

@@ -97,6 +97,10 @@ public class J2DScene {
 		repaint();
 	}
 
+	public void removeAllShapes() {
+		while (!shapes.isEmpty()) shapes.remove(0);
+		repaint();
+	}
 	
 	public void repaint(){
 		canvasPanel.repaint();

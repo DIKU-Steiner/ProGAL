@@ -1,5 +1,6 @@
 package ProGAL.geom3d.volumes;
 
+import ProGAL.geom3d.Plane;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Simplex;
 import ProGAL.geom3d.Vector;
@@ -131,13 +132,35 @@ public class Tetrahedron implements Simplex, Volume {
 	}
 
 	/** Returns true if the point p is inside this tetrahedron. */
-	public boolean isInside(Point p) {
+//	public boolean isInside(Point p) {
 //		return isBehind(p,p1,p3,p2) && isBehind(p,p0,p2,p3) && isBehind(p,p0,p3,p1) && isBehind(p,p0,p1,p2);
 		// TODO implement 
-		return false;
+//		return false;
+//	}
+	
+	public boolean isInside(Point p) {
+		Plane pl012 = new Plane(getCorner(0), getCorner(1), getCorner(2));
+		Plane pl013 = new Plane(getCorner(0), getCorner(1), getCorner(3));
+		Plane pl023 = new Plane(getCorner(0), getCorner(2), getCorner(3));
+		Plane pl123 = new Plane(getCorner(1), getCorner(2), getCorner(3));
+		return (((pl012.above(p) == 1) && (pl013.above(p) == 1) && (pl023.above(p) == 1) && (pl123.above(p) == 1)) ||
+				((pl012.below(p) == 1) && (pl013.below(p) == 1) && (pl023.below(p) == 1) && (pl123.below(p) == 1)));
 	}
 
-	
+	/*
+	 * returns TRUE if the tetrahedron is acute. Tetrahedron is acute if all its dihedral angles are acute (< 90¡)
+	 * added by pawel 12-11-2011
+	 */
+
+	public boolean isAcute() {
+		return ((Point.getCosDihedralAngle(corners[0], corners[1], corners[2], corners[3]) > 0.0) &&
+				(Point.getCosDihedralAngle(corners[0], corners[1], corners[3], corners[2]) > 0.0) &&
+				(Point.getCosDihedralAngle(corners[0], corners[2], corners[3], corners[1]) > 0.0) &&
+				(Point.getCosDihedralAngle(corners[2], corners[0], corners[1], corners[3]) > 0.0) &&
+				(Point.getCosDihedralAngle(corners[1], corners[0], corners[2], corners[3]) > 0.0) &&
+				(Point.getCosDihedralAngle(corners[1], corners[0], corners[3], corners[2]) > 0.0));
+	}
+
 	
 	public Volume clone(){
 		return new Tetrahedron(corners[0].clone(), corners[1].clone(), corners[2].clone(), corners[3].clone());
@@ -160,4 +183,15 @@ public class Tetrahedron implements Simplex, Volume {
 	/** Writes this tetrahedron to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 	
+	
+	public static void main(String[] args) {
+		Point p1 = new Point(1,0,0);
+		Point p2 = new Point(1,1,0);
+		Point p3 = new Point(2,2,3);
+		Point p4 = new Point(3,4,2);
+		Point p5 = new Point(0,0,3);
+		Tetrahedron tetr = new Tetrahedron(p2, p1, p3, p4);
+		if (tetr.isInside(p5)) System.out.println("inside"); else System.out.println("outside");
+
+	}
 }

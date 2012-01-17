@@ -20,6 +20,7 @@ public class DelaunayTriangulation {
 	final Point[] bigPoints;
 	
 	public DelaunayTriangulation(List<Point> points){
+		scene = J2DScene.createJ2DSceneInFrame();
 		this.points = new ArrayList<Point>(points.size());
 		this.triangles = new ArrayList<Triangle>(points.size());
 		bigPoints = new Point[3];
@@ -27,8 +28,7 @@ public class DelaunayTriangulation {
 		bigPoints[1] = new Point( 15,-15);
 		bigPoints[2] = new Point(    0, 15);
 		triangles.add(new Triangle(bigPoints[0], bigPoints[1], bigPoints[2]));
-		
-		for(Point p: points)
+		for(Point p: points) 
 			addPoint(p);
 	}
 	
@@ -37,7 +37,9 @@ public class DelaunayTriangulation {
 		points.add(p);
 		Triangle old = locate(p);
 		split(old, p);
+		draw();
 		fixDelaunay();
+		draw();
 		System.out.println();
 	}
 	
@@ -69,14 +71,13 @@ public class DelaunayTriangulation {
 	private void fixDelaunay(){
 		for(int i=triangles.size()-3;i<triangles.size();i++){
 			Triangle t = triangles.get(i);
-			for(int n=0;n<3;n++){
-				fixDelaunay(t,n);
-			}
+			for(int n=0;n<3;n++) fixDelaunay(t,n);
 		}
 	}
 	private void fixDelaunay(Triangle t, int n){
 		if(t.neighbors[n]!=null && t.circumsphere.contains(t.getOpposite(n))){
 			flip(t,n);
+			draw();
 			fixDelaunay(t,1);
 			fixDelaunay(t,2);
 			fixDelaunay(t.neighbors[0],1);
@@ -139,6 +140,18 @@ public class DelaunayTriangulation {
 		return true;
 	}
 	
+	public void draw() {			
+		scene.removeAllShapes();
+		for(Triangle t: triangles){
+			scene.addShape(new LineSegment(t.getCorner(0), t.getCorner(1)), Color.GRAY);
+			scene.addShape(new LineSegment(t.getCorner(1), t.getCorner(2)), Color.GRAY);
+			scene.addShape(new LineSegment(t.getCorner(2), t.getCorner(0)), Color.GRAY);
+		}
+
+	}
+	
+	J2DScene scene;
+
 	public static void main(String[] args){
 		Randomization.seed(1);
 		List<Point> points = new ArrayList<Point>();
@@ -147,19 +160,18 @@ public class DelaunayTriangulation {
 		points.add(new Point(Randomization.randBetween(-4.0, 4.0), Randomization.randBetween(-3.0, 3.0)));
 		points.add(new Point(Randomization.randBetween(-4.0, 4.0), Randomization.randBetween(-3.0, 3.0)));
 		DelaunayTriangulation dt = new DelaunayTriangulation(points);
-		J2DScene scene = J2DScene.createJ2DSceneInFrame();
-		scene.addShape(new LineSegment(new Point(0,0), new Point(0,1)), Color.black);
-		scene.addShape(new LineSegment(new Point(0,0), new Point(1,0)), Color.black);
-		for(Point p: points) scene.addShape(new Circle(p,0.03), Color.BLACK);
-		scene.addShape(new Circle(new Point(Randomization.randBetween(-4.0, 4.0), Randomization.randBetween(-3.0, 3.0)),0.03), Color.BLACK, 15, true);
+		dt.scene.addShape(new LineSegment(new Point(0,0), new Point(0,1)), Color.black);
+		dt.scene.addShape(new LineSegment(new Point(0,0), new Point(1,0)), Color.black);
+		for(Point p: points) dt.scene.addShape(new Circle(p,0.03), Color.BLACK);
+		dt.scene.addShape(new Circle(new Point(Randomization.randBetween(-4.0, 4.0), Randomization.randBetween(-3.0, 3.0)),0.03), Color.BLACK, 15, true);
 		for(Triangle t: dt.triangles){
 //			if(t.inCH()){
-				scene.addShape(new LineSegment(t.getCorner(0), t.getCorner(1)), Color.GRAY);
-				scene.addShape(new LineSegment(t.getCorner(1), t.getCorner(2)), Color.GRAY);
-				scene.addShape(new LineSegment(t.getCorner(2), t.getCorner(0)), Color.GRAY);
+				dt.scene.addShape(new LineSegment(t.getCorner(0), t.getCorner(1)), Color.GRAY);
+				dt.scene.addShape(new LineSegment(t.getCorner(1), t.getCorner(2)), Color.GRAY);
+				dt.scene.addShape(new LineSegment(t.getCorner(2), t.getCorner(0)), Color.GRAY);
 //			}
 		}
 //		scene.centerCamera();
-		scene.autoZoom();
+		dt.scene.autoZoom();
 	}
 }

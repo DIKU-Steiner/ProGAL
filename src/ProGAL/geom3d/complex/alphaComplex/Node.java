@@ -8,7 +8,7 @@ import java.util.Stack;
 
 import javax.swing.JFrame;
 
-import ProGAL.datastructures.viewer.InteractiveBinaryTree;
+import ProGAL.dataStructures.viewer.InteractiveBinaryTree;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.complex.CTetrahedron;
 import ProGAL.geom3d.viewer.J3DScene;

@@ -23,7 +23,7 @@ public class InexactJavaPredicates extends Predicates{
 		double diff = tCenter.distance(q)-tCenter.distance(t.getCorner(0));
 		if(Double.isNaN(diff)) return SphereConfig.COPLANAR;
 		if(Math.abs(diff)<Constants.EPSILON) return SphereConfig.ON;
-		if(diff<0) return SphereConfig.INSIDE;
+		if(diff <= 0) return SphereConfig.INSIDE;
 		return SphereConfig.OUTSIDE;
 	}
 	public SphereConfig insphere(Point p0, Point p1, Point p2, Point q){			return insphere(new Triangle(p0,p1,p2),q);			}

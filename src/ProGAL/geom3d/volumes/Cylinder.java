@@ -28,6 +28,8 @@ public class Cylinder implements Volume{
 	public double getVolume() { return Math.PI * rad * rad * getLength(); }
 	public double getSurfaceArea() { return 2*Math.PI * rad * (rad + getLength()); }
 	
+	public void setSegment(LineSegment sgm) { segment = sgm; }
+	
 	public boolean inCylinder(Point p) { return segment.getDistance(p) < rad; }
 	
 	public String toString(){ return toString(2); }

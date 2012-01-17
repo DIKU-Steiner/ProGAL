@@ -202,7 +202,7 @@ public class ProteinComplex extends AlphaComplex {
 
 	public static void main(String[] args){
 //		PDBFile f = new PDBFile("/Users/ras/Documents/Datasets/CASP8Training/T0490/T0490.pdb");
-		PDBFile f = new PDBFile("/Volumes/Home/pawel/Downloads/1CTF.pdb");
+		PDBFile f = new PDBFile("/Users/pawel/Downloads/1X0O.pdb");
 		ProteinComplex pc = new ProteinComplex(f);
 		System.out.println(pc.getTetrahedra().size());
 				J3DScene scene = J3DScene.createJ3DSceneInFrame();

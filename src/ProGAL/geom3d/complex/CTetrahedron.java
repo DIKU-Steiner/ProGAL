@@ -1,5 +1,11 @@
 package ProGAL.geom3d.complex;
 
+import java.awt.Color;
+
+import ProGAL.geom3d.LineSegment;
+import ProGAL.geom3d.Plane;
+import ProGAL.geom3d.Point;
+import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.complex.delaunayComplex.RegularComplex;
 import ProGAL.geom3d.volumes.Tetrahedron;
 
@@ -51,7 +57,72 @@ public class CTetrahedron extends Tetrahedron{
 		return false;
 	}
 
+	public int getNumberBigPoints() {
+		int count = 0;
+		for (int i = 0; i < 4; i++) { if (getPoint(i).isBigpoint()) count++; }
+		return count;
+	}
 	
+	/** returns neighbour tetrahedron containing specified vertex */
+	public CTetrahedron getNeighbour(CVertex v) {
+		for (int i = 0; i < 4; i++) {
+			CTetrahedron tetr = getNeighbour(i);
+			if (tetr.containsPoint(v)) return tetr;
+		}
+		return null;
+	}
+	
+	public int getID(CVertex v) {
+		if (v == getPoint(0)) return 0;
+		else {
+			if (v == getPoint(1)) return 1;
+			else {
+				if (v == getPoint(2)) return 2;
+				else {
+					if (v == getPoint(3)) return 3; else return -1;
+				}
+			}
+		}
+	}
+	
+	
+	/** returns the vertices shared by two tetrahedra. */
+	public CVertex[] getCommonVertices(CTetrahedron tetr) {
+		CVertex[] points = new CVertex[4];
+		int n = 0;
+		for (int i = 0; i < 4; i++) {
+			if (tetr.containsPoint(getPoint(i))) {
+				points[n] = new CVertex(getPoint(i));
+				for (int k = 0; k < 3; k++) if (Math.abs(points[n].get(k)) > 100.0) points[n].set(k, points[n].get(k)/1);	
+				n++;
+			}
+		}
+		return points;
+	}
+	
+	/** returns plane through common triangle of this and another tetrahedron. The apex of this tetrahedron
+	 * is below the plane. */
+	public Plane getPlane(CTetrahedron tetr) {
+		CVertex[] points = new CVertex[3];
+		CVertex v = null;
+		int i = 0; int j = 0;
+		while ( i < 3) {
+			if (tetr.containsPoint(getPoint(j))) {
+				points[i] = getPoint(j);
+				i++; 
+			}
+			else v = getPoint(j);
+			j++;
+		}
+		Plane plane;
+		if (!points[0].isBigpoint()) plane = new Plane(points[0], points[1], points[2]);
+		else {
+			if (!points[1].isBigpoint()) plane = new Plane(points[1], points[2], points[0]);
+			else plane = new Plane(points[2], points[0], points[1]);
+		}
+		if (plane.above(v) == 1) plane.setNormal(plane.getNormal().multiplyThis(-1));
+		return plane;
+	}
 	
 	public void updateNeighbour(CTetrahedron lookfor, CTetrahedron replacement){
 		for(int i=0; i<4;i++){
@@ -70,10 +141,35 @@ public class CTetrahedron extends Tetrahedron{
 			}
 		}
 		System.out.println("Problemer med findpoint\n");
-		//never happends:
+		//never happens:
 		return -1;
 	}
 
+	/** returns neighbouring tetrahedron containing v as the oppposite vertex */
+	public CTetrahedron findNeighbour(CVertex v) {
+		for (int i = 0; i < 4; i++) {
+			if (getNeighbour(i).containsPoint(v)) return getNeighbour(i);
+		}
+		return null;
+	}
+	
+	/* this tetrahedron and tetr must be neighbours. Return the vertex of this tetrahedron not in tetr */
+	public CVertex findVertex(CTetrahedron tetr) {
+		CVertex p;
+		for (int i = 0; i < 4; i++) {
+			p = getPoint(i);
+			if (!tetr.containsPoint(p)) return p; 
+		}
+		return null;
+	}
+	
+	public boolean containsPoint(CVertex p) {
+		for (int i = 0; i < 4; i++) {
+			if (getPoint(i) == p) return true;
+		}
+		return false;
+	}
+	
 	public boolean containsTriangle(CTriangle t){
 		for(int tp=0;tp<3;tp++){
 			boolean found = false;
@@ -98,7 +194,8 @@ public class CTetrahedron extends Tetrahedron{
 		throw new RuntimeException("The vertex is not part of this tetrahedron");
 	}
 	
-	//given a point index this method finds the index of the apex - meaning the opposite point id that is in the tetrahedron opposite the given point id 
+	//given a point index this method finds the index of the apex - meaning the opposite point id that is in 
+	//the tetrahedron opposite the given point id 
 	//input: point index 
 	//output: point index of the point opposite
 	public int apexid(int index){
@@ -116,5 +213,21 @@ public class CTetrahedron extends Tetrahedron{
 
 	}
 	
+	public void toScene(J3DScene scene, double rad, Color clr) {
+		double newRad = rad;
+		Color newClr = clr;
+//		if (containsBigPoint()) { newRad = 0.005; newClr = Color.red; }
+ 		for (int i = 0; i < 3; i++) { 
+			Point u = getPoint(i).clone();
+			for (int k = 0; k < 3; k++) if (Math.abs(u.get(k)) > 100.0) u.set(k, u.get(k)/1);
+			for (int j = i+1; j < 4; j++) {
+				Point v = getPoint(j).clone();
+				for (int k = 0; k < 3; k++) if (Math.abs(v.get(k)) > 100.0) v.set(k, v.get(k)/1);
+				LineSegment seg = new LineSegment(u, v);
+				seg.toScene(scene, newRad, newClr);
+			}
+		}
+	}
+
 
 }

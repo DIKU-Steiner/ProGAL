@@ -1,5 +1,10 @@
 package ProGAL.geom3d;
 
+
+import java.awt.Color;
+import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.geom3d.volumes.Sphere;
+
 import ProGAL.math.Constants;
 
 /** 
@@ -106,6 +111,8 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	
 	/** Returns p added to this (changing this object). */
 	public Point addThis(Vector p) { translateThis(p.x(),p.y(),p.z()); return this; }
+
+	public Point addThis(Point p) { translateThis(p.x(), p.y(), p.z()); return this; }
 	
 	/** Returns p added to this (without changing this object). */
 	public Point add(Vector p) { return new Point(coords[0]+p.x(), coords[1]+p.y(), coords[2]+p.z()); }
@@ -135,6 +142,8 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 		return Math.sqrt(dx*dx+dy*dy+dz*dz); 
 	}
 
+	public double dot(Point p) { return x()*p.x() + y()*p.y() + z()*p.z(); }
+	
 	/** Creates a bisector between points p and q */
 	public static Plane getBisector(Point p, Point q) {
 		if (!p.equals(q)) 
@@ -158,9 +167,17 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	/** Get the dihedral angle defined by the 4 non-collinear points p1, p2, p3, p4. */
 	public static double getDihedralAngle(Point p1, Point p2, Point p3, Point p4) {
 		return Vector.getDihedralAngle(p1.vectorTo(p2), p2.vectorTo(p3), p3.vectorTo(p4));
-
 	}
 
+  	/*
+  	 * returns cosinus of the dihedral angle between 4 non-collinear points p1, p2, p3, p4
+  	 * added by pawel 12-11-2011
+  	 */
+  	public static double getCosDihedralAngle(Point p1, Point p2, Point p3, Point p4) {
+ 		return Vector.getCosDihedralAngle(new Vector(p1, p2), new Vector(p2, p3), new Vector(p3, p4));
+  	}
+
+	
 	// COMPARISON METHODS
 
 	/**
@@ -231,6 +248,11 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	public String toString(int dec) {
 		return String.format("Point[%."+dec+"f,%."+dec+"f,%."+dec+"f]", coords[0], coords[1], coords[2]); 
 	}	
+	
+	public void toScene(J3DScene scene, double r, Color clr) { scene.addShape(new Sphere(this, r), clr);}
+//	public void draw(J3DScene scene, double r) { draw(scene, r, Color.BLUE); }
+//	public void draw(J3DScene scene) { draw(scene,0.1f, Color.BLUE); }
+
 
 	/** Writes this point to <code>System.out</code>. */
 	public void toConsole() { System.out.println(toString()); }

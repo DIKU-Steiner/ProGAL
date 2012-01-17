@@ -4,9 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ProGAL.geom3d.Point;
-import ProGAL.geom3d.PointWeighted;
 
-public class CVertex extends PointWeighted {
+public class CVertex extends Point {
 	private static final long serialVersionUID = 1L;
 	
 	private boolean degenerate=false;	
@@ -81,6 +80,68 @@ public class CVertex extends PointWeighted {
 		return adjacentEdges;
 	}
 
+	public List<CTriangle> getAdjacentTriangles() {
+		List<CTriangle>  adjacentTriangles = new ArrayList<CTriangle>();
+		for (CEdge edge : adjacentEdges) {
+			List<CTriangle> triangles = edge.getAdjacentTriangles();
+			for (CTriangle triangle : triangles) {
+				if (!adjacentTriangles.contains(triangle)) adjacentTriangles.add(triangle);
+			}
+		}
+		return adjacentTriangles;
+	}
+
+	public List<CTriangle> getOppositeTriangles() {
+		List<CTriangle> oppositeTriangles = new ArrayList<CTriangle>();
+		for (CTetrahedron tetr : getAllAdjacentTetrahedra()) {
+			int index = tetr.findpoint(this);
+			if (!tetr.containsBigPoint()) oppositeTriangles.add(tetr.getTriangle(index));
+		}
+		return oppositeTriangles;
+	}
+	
+	public List<CTetrahedron> getAdjacentTetrahedra() {
+		List<CTetrahedron> adjacentTetrahedra = new ArrayList<CTetrahedron>();
+		for (CTriangle triangle : getAdjacentTriangles()) {
+			for (int i = 0; i < 2; i++) {
+				CTetrahedron tetr = triangle.getAdjacentTetrahedron(i);
+				if (!tetr.containsBigPoint()) {
+					if (!adjacentTetrahedra.contains(tetr)) adjacentTetrahedra.add(tetr);
+				}
+			}
+		}
+		return adjacentTetrahedra;
+	}
+	
+//	public List<CTetrahedron> getOppositeTetrahedra() {
+//		List<CTetrahedron> oppositeTetrahedra = new ArrayList<CTetrahedron>();
+//		for (CTetrahedron tetr : getAllAdjacentTetrahedra()) {
+//			tetr.
+//			
+//		}
+//	}
+	
+	/** returns all tetrahedra adjacent to the vertex (including big tetrahedra) */
+	public List<CTetrahedron> getAllAdjacentTetrahedra() {
+		List<CTetrahedron> adjacentTetrahedra = new ArrayList<CTetrahedron>();
+		for (CTriangle triangle : getAdjacentTriangles()) {
+			for (int i = 0; i < 2; i++) {
+				CTetrahedron tetr = triangle.getAdjacentTetrahedron(i);
+				if (!adjacentTetrahedra.contains(tetr)) adjacentTetrahedra.add(tetr);
+			}
+		}
+		return adjacentTetrahedra;
+	}
+
+	/** returns all big tetrahedra adjacent to the vertex */
+	public List<CTetrahedron> getBigAdjacentTetrahedra() {
+		List<CTetrahedron> adjacentBigTetrahedra = new ArrayList<CTetrahedron>();
+		for (CTetrahedron tetr : getAllAdjacentTetrahedra()) {
+				if (tetr.containsBigPoint() && !adjacentBigTetrahedra.contains(tetr)) adjacentBigTetrahedra.add(tetr);
+		}
+		return adjacentBigTetrahedra;
+	}
+	
 	public String toString(){ return toString(2); }
 	
 	public String toString(int dec) {

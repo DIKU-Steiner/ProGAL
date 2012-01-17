@@ -5,11 +5,13 @@ import java.util.List;
 
 import ProGAL.geom3d.Circle;
 import ProGAL.geom3d.Line;
+import ProGAL.geom3d.Plane;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.LineSegment;
 import ProGAL.geom3d.PointWeighted;
 import ProGAL.geom3d.Vector;
+import ProGAL.geom3d.complex.CTetrahedron;
 
 /** 
  * A sphere represented by a center-point and a radius. 
@@ -23,12 +25,90 @@ public class Sphere implements Volume{
 		this.center = center;
 		this.radius = radius;
 	}
+	
+	public Sphere(Point[] points) {
+		computeSphere(points);
+	}
+	
+	public Sphere(Point p0, Point p1, Point p2, Point p3) {
+		Point[] points = new Point[4];
+		points[0] = p0; points[1] = p1; points[2] = p2; points[3] = p3;
+		computeSphere(points);
+	}
+	
+	public Sphere(CTetrahedron tetr) {
+		computeSphere(tetr.getCorners());
+	}
 	/** Constructs a sphere with the weighted point as center and a radius with 
 	 * the square root of the points weight. */
 	public Sphere(PointWeighted p) {
 		this.center = p;
 		this.radius = Math.sqrt(p.getWeight());
 	}
+
+	private void computeSphere(Point[] points) {
+		Point p0 = points[0];
+		Point p1 = points[1];
+		Point p2 = points[2];
+		Point p3 = points[3];
+		computeSphere(p0, p1, p2, p3);
+	}
+		
+	private void computeSphere(Point p0, Point p1,  Point p2, Point p3 ) {
+		double x0 = p0.x(); double y0 = p0.y(); double z0 = p0.z();
+		double x1 = p1.x(); double y1 = p1.y(); double z1 = p1.z();
+		double x2 = p2.x(); double y2 = p2.y(); double z2 = p2.z();
+		double x3 = p3.x(); double y3 = p3.y(); double z3 = p3.z();
+		
+		double xx0 = x0*x0 + y0*y0 + z0*z0, xx1 = x1*x1 + y1*y1 + z1*z1;
+		double xx2 = x2*x2 + y2*y2 + z2*z2, xx3 = x3*x3 + y3*y3 + z3*z3;
+		
+		double x1y2 = x1*y2, x1y3 = x1*y3, x1z2 = x1*z2, x1z3 = x1*z3;
+		double x2y1 = x2*y1, x2y3 = x2*y3, x2z1 = x2*z1, x2z3 = x2*z3; 
+		double x3y2 = x3*y2, x3y1 = x3*y1, x3z2 = x3*z2, x3z1 = x3*z1;
+
+		double y1z2 = y1*z2, y1z3 = y1*z3;
+		double y2z1 = y2*z1, y2z3 = y2*z3;
+		double y3z1 = y3*z1, y3z2 = y3*z2;
+		
+		
+		double m11 =  x0*(y1z2 + y3z1 + y2z3 - y1z3 - y2z1 - y3z2)
+		             -y0*(x1z2 + x3z1 + x2z3 - x1z3 - x2z1 - x3z2)
+		             +z0*(x1y2 + x3y1 + x2y3 - x1y3 - x2y1 - x3y2)
+		             -((x1y2-x2y1)*z3 + (x3y1-x1y3)*z2 + (x2y3-x3y2)*z1);
+			
+		if (m11 != 0.0) {
+			
+			double m12 =  xx0*(y1z2 + y3z1 + y2z3 - y1z3 - y2z1 - y3z2)
+            -y0*(xx1*(z2-z3)     + xx3*(z1-z2)     + xx2*(z3-z1))
+            +z0*(xx1*(y2-y3)     + xx3*(y1-y2)     + xx2*(y3-y1))
+               -(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3));
+		
+			double m13 =  xx0*(x1z2 + x3z1 + x2z3 - x1z3 - x2z1 - x3z2)
+			-x0*(xx1*(z2-z3)     + xx3*(z1-z2)     + xx2*(z3-z1))
+            +z0*(xx1*(x2-x3)     + xx3*(x1-x2)     + xx2*(x3-x1))
+               -(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3));
+
+			double m14 =  xx0*(x1y2 + x3y1 + x2y3 - x1y3 - x2y1 - x3y2)
+            -x0*(xx1*(y2-y3)     + xx3*(y1-y2)     + xx2*(y3-y1))
+            +y0*(xx1*(x2-x3)     + xx3*(x1-x2)     + xx2*(x3-x1))
+               -(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3));
+
+			double m15 =  xx0*(z3*(x1y2-x2y1) + z2*(x3y1-x1y3) + z1*(x2y3-x3y2))
+            -x0*(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3))
+            +y0*(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3))
+            -z0*(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3));
+
+	
+		    double x =  0.5*m12/m11;
+		    double y = -0.5*m13/m11;
+		    double z =  0.5*m14/m11;
+		    center = new Point(x, y, z);
+		    radius = Math.sqrt(x*x + y*y + z*z - m15/m11);
+		}
+		else System.out.println("Points are coplanar");
+	}
+
 
 	/** Get the center */
 	public Point getCenter() { return center; }
@@ -44,7 +124,19 @@ public class Sphere implements Volume{
 	public boolean isInside(Point p) { 
 		return center.distanceSquared(p) < getRadiusSquared(); 
 	}
+	
+	public boolean isInside(Point p, double eps) { return center.distanceSquared(p) < radius*radius - eps; }
+	
+	public boolean isEmpty(Point[] points, double eps) {
+		for (int i = 0; i < points.length; i++) if (isInside(points[i], eps)) return false;
+		return true;
+	}
+	
+	public void setCenter(Point center) { this.center = center; }
+	
+	public void setCenter(Point p0, Point p1, Point p2, Point p3) { computeSphere(p0, p1, p2, p3); }
 
+	public void setRadius(double radius) { this.radius = radius; }
 	/** Returns true if this sphere is intersected or touched by another sphere. */
 	public boolean isIntersected (Sphere sphere) {	return overlaps(sphere);	}
 
@@ -98,8 +190,18 @@ public class Sphere implements Volume{
 		}
 	}
 
+	public Point[] getIntersections(Circle c) {
+		Plane plane = new Plane(c.getCenter(), c.getNormalVector());
+		Circle c2 = plane.getIntersection(this);
+		if (c2 != null) return c.getIntersection(c2); else return null;
+	}
 
-
+	public Double getIntersectionAngle(Circle c, Point p, Vector dir) {
+		Plane plane = new Plane(c.getCenter(), c.getNormalVector());                           
+		Circle c2 = plane.getIntersection(this);
+		if (c2 != null) return c.getFirstIntersection(c2, p, dir); else return null;
+	}
+	
 	/** Returns true if none of the given points is in the sphere. */
 	public boolean containsNone(List<Point> points) {
 		double rr = radius*radius-0.000000001;
@@ -160,7 +262,7 @@ public class Sphere implements Volume{
 		return new Sphere(center, radius);
 	}
 
-	/** Constructs the smallest sphere through four points. An error is thrown 
+	/** Constructs the sphere through four points. An error is thrown 
 	 * if the points are coplanar. */ 
 	public static Sphere getMinSphere(Point p0, Point p1, Point p2, Point p3) {
 		double x0 = p0.x(); double y0 = p0.y(); double z0 = p0.z();

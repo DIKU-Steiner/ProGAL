@@ -2,6 +2,8 @@ package ProGAL.geom3d;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
+import ProGAL.geom3d.Point;
+import ProGAL.math.Constants;
 
 /** 
  *  A vector in (x,y,z)-space represented with double precision.
@@ -18,6 +20,10 @@ public class Vector extends ProGAL.geomNd.Vector{
 	}	
 	/** Construct a vector pointing from origo to p. */
 	public Vector(Point p) { 	super(p);	}
+	
+	/** Constructs a vector between two points p1 and p2 - added by pawel 12-11-2011 */
+	public Vector(Point p1, Point p2) { super(p1, p2); }
+
 	
 	/** Construct a vector that is a clone of v. */
 	public Vector(ProGAL.geomNd.Vector v) {	this(v.get(0), v.get(1), v.get(2)); }	
@@ -164,6 +170,36 @@ public class Vector extends ProGAL.geomNd.Vector{
 		double x = b1.cross(b2).dot(b2xb3);
 		return Math.atan2(y,x);
 	}
+	
+	/** Get a vector (one of many possible) orthonormal to vector v. */
+	public Vector getOrthonormal() {
+		if (Math.abs(z()) > Constants.EPSILON) { 
+			Vector a = new Vector(1, 0, -x()/z());
+			return a.normalizeThis();
+		}
+		else {
+			return new Vector(0, 0, 1);
+		}
+
+	}
+	
+	/*
+	 * added by pawel 12-11-2011
+	 */
+	public boolean isParallel(Vector v) { return cross(v).isZeroVector(); }
+	
+  	/*
+  	 * returns cosinus of the dihedral angle between three vectors 
+  	 * added by pawel on 12-11-2011
+  	 */
+  	public static double getCosDihedralAngle(Vector u, Vector v, Vector w) {
+  		if (u.isParallel(v)) throw new Error("Vectors u and v are colinear");
+  		if (v.isParallel(w)) throw new Error("Vectors v and w are colinear");
+  		Vector uv = u.cross(u.add(v));
+  		Vector vw = v.cross(v.add(w));
+  		return (uv.dot(vw)/(uv.length()*vw.length()));
+  	}
+
 	
 
 	/** An immutable vector pointing in the (1,0,0)-direction. */

@@ -1,5 +1,10 @@
 package ProGAL.geom3d;
 
+import java.awt.Color;
+
+import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.geom3d.volumes.Tetrahedron;
+
 /**
  * A triangle in (x,y,z)-space represented by the three corner-points.
  */
@@ -115,6 +120,9 @@ public class Triangle implements Simplex{
 		System.out.println(toString(dec)); 
 	}
 	
+	public void toScene(J3DScene scene, Color clr) {
+		scene.addShape(new Tetrahedron(getCorner(0), getCorner(1), getCorner(2), getCenter()), clr);
+	}
 	public Triangle clone(){
 		return new Triangle(p1.clone(), p2.clone(), p3.clone());
 	}
