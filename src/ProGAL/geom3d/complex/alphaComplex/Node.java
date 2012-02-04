@@ -8,13 +8,13 @@ import java.util.Stack;
 
 import javax.swing.JFrame;
 
-import ProGAL.dataStructures.viewer.InteractiveBinaryTree;
+//import ProGAL.dataStructures.viewer.InteractiveBinaryTree;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.complex.CTetrahedron;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.Sphere;
 
-public class Node implements InteractiveBinaryTree {
+public class Node /*implements InteractiveBinaryTree*/ {
 	public Node left = null;
 	public Node right = null;
 	private double alpha;
@@ -54,12 +54,9 @@ public class Node implements InteractiveBinaryTree {
 			right = n;
 		}
 	}
-// TEST AREA:	
+
 	private LinkedList<Node> getLeaves(Node n){
 		LinkedList<Node> nodes = new LinkedList<Node>();
-		//nodes.add(n);
-		//for (int i = 0; i<nodes.size())
-		
 		if (n == null){
 			return null;
 		}
@@ -74,6 +71,8 @@ public class Node implements InteractiveBinaryTree {
 		}
 	}
 	
+	// Calculates persistence of a void (node) from birth time of that void and the latest death time of the leaves below the void.
+	//Does not work on "rest" nodes!
 	private double maxPersist(){
 		LinkedList<Node> leaves = getLeaves(this);
 		double b = this.alpha;
@@ -128,7 +127,7 @@ public class Node implements InteractiveBinaryTree {
 		}
 		
 		//Now paint vertices and void-tetrahedra
-		for(Point p: vertices)		scene.addShape(new Sphere(p,1.5), Color.BLUE, 8);
+		for(Point p: vertices)		scene.addShape(new Sphere(p,0.3), Color.BLUE, 8);
 		for(CTetrahedron t: tetra)	scene.addShape(t, Color.GREEN);
 	}
 }

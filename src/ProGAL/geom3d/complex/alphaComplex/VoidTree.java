@@ -6,6 +6,7 @@ import java.util.List;
 
 import ProGAL.geom3d.complex.CTetrahedron;
 import ProGAL.geom3d.complex.CTriangle;
+import ProGAL.geom3d.complex.alphaComplex.tests.SphereVoidsPointList;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.Sphere;
 import ProGAL.geom3d.Point;
@@ -22,47 +23,43 @@ public class VoidTree {
 		createTree(interval);
 	}
 	
+	// Collects tetrahedra on each side of marked triangle
 	private ArrayList<LinkedList<CTetrahedron>> getVoid(CTriangle m, LinkedList<CTriangle> tris){
 		ArrayList<LinkedList<CTetrahedron>> v = new ArrayList<LinkedList<CTetrahedron>>();
 		LinkedList<CTetrahedron> vOne = new LinkedList<CTetrahedron>();
 		LinkedList<CTetrahedron> vTwo = new LinkedList<CTetrahedron>();
 		v.add(vOne);
 		v.add(vTwo);
-		//List<CTriangle> tris = alphaFil.getTriangles(alpha);
-		/*for (CTriangle tri: tris){
-			scene.addShape(tri, java.awt.Color.YELLOW);
-		}*/
-		//List<CTetrahedron> tetra = alphaFil.getTetrahedra(); Might not be needed after all
 		beginning:
 			for (int i=0; i<2; i++){
-				LinkedList<CTetrahedron> tempVoid = v.get(i);
-
-				LinkedList<CTriangle> tempTris = new LinkedList<CTriangle>();
-				CTetrahedron inTet = m.getAdjacentTetrahedron(i);
+				LinkedList<CTetrahedron> tempVoid = v.get(i);// Contains the tetrahedra set
+				LinkedList<CTriangle> tempTris = new LinkedList<CTriangle>();// Contains triangle of tetrahedra
+				CTetrahedron inTet = m.getAdjacentTetrahedron(i);// inTet = first tetrahedron
 				if (inTet.containsBigPoint()){
 					continue beginning;
 				}
 				tempVoid.addFirst(inTet);
+				// Store all but the marked triangle in tempTris
 				for (int j=0; j<4; j++){
 					tempTris.addFirst(inTet.getTriangle(j));
 				}
 				tempTris.remove(m);
 				while (tempTris.size()>0){
 					CTriangle tri = tempTris.removeFirst();
-					if (tris.contains(tri)){
+					if (tris.contains(tri)){// If triangle is part of the complex look at next triangle in tempTris
 						continue;
 					}
 					for (int k=0; k<2; k++){
 						CTetrahedron adTetra = tri.getAdjacentTetrahedron(k);
-						//scene.addShape(adTetra, new java.awt.Color(200,0,0,100));
-						if (tempVoid.contains(adTetra)){
+						if (tempVoid.contains(adTetra)){// This tetrahedron has been added to tempVoid
 							continue;
 						}
-						if (adTetra.containsBigPoint()){
+						if (adTetra.containsBigPoint()){// There is no bounded void on this side of marked triangle
 							tempVoid.clear();
 							continue beginning;
 						}
 						tempVoid.addFirst(adTetra);
+						// Store all triangles bounding the tetrahedron in tempTris, except the current triangle
 						for (int l=0; l<4; l++){
 							tempTris.addFirst(adTetra.getTriangle(l));
 						}
@@ -73,15 +70,17 @@ public class VoidTree {
 		return v;
 	}
 	
+	// Create the root
 	public Node setRoot(){
 		if (root == null){
 			LinkedList<CTetrahedron> orgTetra = new LinkedList<CTetrahedron>(alphaFil.getTetrahedra());
-		//LinkedList<CTetrahedron> emptyList = new LinkedList<CTetrahedron>();
 			root = new Node(0, orgTetra);
 		}
 		return root;
 	}
 	
+	
+	// Returns the list of all leaf nodes
 	public LinkedList<Node> getLeaves(Node n){
 		LinkedList<Node> nodes = new LinkedList<Node>();
 		if (n == null){
@@ -98,6 +97,7 @@ public class VoidTree {
 		}
 	}
 	
+	// Returns the "rest" leaf
 	public Node getRest(){
 		Node node = root;
 		while (node.left != null){
@@ -106,8 +106,8 @@ public class VoidTree {
 		return node;
 	}
 	
+	// Identifies and returns the leaf in the tree with a tetrahedra set containing the argument
 	public Node find(LinkedList<CTetrahedron> list){
-		
 		LinkedList<Node> nodes = getLeaves(root);
 		while (!nodes.isEmpty()){
 			Node node = nodes.removeFirst();
@@ -120,29 +120,19 @@ public class VoidTree {
 	
 	public void createTree(double interval){
 		root = setRoot();
-		LinkedList<CTriangle> tris = new LinkedList<CTriangle>();
-		int[][] table = alphaFil.getBettiNumbers();
+		LinkedList<CTriangle> tris = new LinkedList<CTriangle>();// Set of triangles in complex
+		int[][] table = alphaFil.getBettiNumbers();// Table holding information about the dimension of a simplex and if it is marked
 		List<Simplex> simplices = alphaFil.getSimplices();
 		for (int i=0; i<table[0].length;i++){
-			if(table[5][i]==2){
-				//scene.addShape(simplices.get(i), new java.awt.Color(100,200,100,255));
+			if(table[5][i]==2){// All triangles (dim=2) met in table is added to tris
 				tris.add((CTriangle)simplices.get(i));
 			}
-			/*if (table[5][i]==3){
-				LinkedList<CTetrahedron> tetraL = new LinkedList<CTetrahedron>();
-				double alphaTetra = alphaFil.getInAlpha(simplices.get(i));
-				CTetrahedron tetra = (CTetrahedron)simplices.get(i);
-				tetraL.add(tetra);
-				Node node = find(tetraL);
-				if (!(alphaTetra-node.getAlpha()>=interval)){
-					
-				}
-			}*/
+			// Vertices are added to the scene
 			if(table[5][i]==0) 
 				scene.addShape(
-						new Sphere( (Point)simplices.get(i),0.5 ), 
+						new Sphere( (Point)simplices.get(i),0.3 ), 
 						java.awt.Color.BLUE );
-			
+			// When a tetrahedron is met a void is destroyed and a leaf obtains a death time different than default
 			if (table[5][i]==3){
 				LinkedList<CTetrahedron> tets = new LinkedList<CTetrahedron>();
 				CTetrahedron tetra = (CTetrahedron) simplices.get(i);
@@ -151,15 +141,15 @@ public class VoidTree {
 				Node m = find(tets);
 				m.changeDeath(d);
 			}
-			
+			// A marked triangle is met:
 			if (table[4][i]==1 && table[5][i]==2){
-				//scene.addShape(simplices.get(i), new java.awt.Color(0,200,0,255));
-				double alpha = alphaFil.getInAlpha(simplices.get(i));
-				CTriangle marked = (CTriangle) simplices.get(i);
-				ArrayList<LinkedList<CTetrahedron>> newVoids = getVoid(marked, tris);
+				double alpha = alphaFil.getInAlpha(simplices.get(i));// Alpha-value of triangle
+				CTriangle marked = (CTriangle) simplices.get(i);// The marked triangle
+				ArrayList<LinkedList<CTetrahedron>> newVoids = getVoid(marked, tris);// Collect the voids on each side of marked triangle
 				if (newVoids.get(0).isEmpty() && newVoids.get(1).isEmpty()){
 					return; //Error!
 				}
+				// If only one bounded void is created the rest leaf gains children
 				if (newVoids.get(0).isEmpty()){
 					Node rest = getRest();
 					Node newNode = new Node(alpha, newVoids.get(1));
@@ -175,6 +165,7 @@ public class VoidTree {
 						Node newRest = new Node(0, rest.getTetra());
 						rest.setChild(newRest, 0);
 						rest.setChild(newNode, 1);
+					// If two bounded voids are created the "parent" void gains children 
 					} else {					
 						LinkedList<CTetrahedron> v1 = newVoids.get(0);
 						LinkedList<CTetrahedron> v2 = newVoids.get(1);
@@ -190,8 +181,8 @@ public class VoidTree {
 	}
 	
 	public static void main(String[] args){
-		Randomization.seed(1);
-//		ArrayList<Point> points = new ArrayList<Point>();
+		Randomization.seed(3);
+		//ArrayList<Point> points = new ArrayList<Point>();
 		// disjoint spheres:
 		//List<Point> points = new DisjointSpheresPointList(2, 40);
 		
@@ -202,7 +193,7 @@ public class VoidTree {
 		//List<Point> points = new ProteinPointList("3SQF");
 	
 		// Eiffel:
-//		List<Point> points = new EiffelPointList();
+		//List<Point> points = new EiffelPointList();
 		
 //		//cube: 
 		/*points.add(new Point(0,1,0));
@@ -237,10 +228,13 @@ public class VoidTree {
 //			else if(p.y()>0.9 || p.y()<-0.9) points2.add(p);
 //			else if(p.z()>0.9 || p.z()<-0.9) points2.add(p);
 //		}
-//		List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(30);
+		List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(9);
 		
-//		System.out.println(points.size());
-//		VoidTree vt = new VoidTree(points, 0);
-//		new ProGAL.datastructures.viewer.BinaryTreePainter(vt.root);
+//		Special point set:
+		//List<Point> points = new SphereVoidsPointList(300);
+
+		System.out.println(points.size());
+		VoidTree vt = new VoidTree(points, 0);
+		//new ProGAL.datastructures.viewer.BinaryTreePainter(vt.root);
 	}
 }
