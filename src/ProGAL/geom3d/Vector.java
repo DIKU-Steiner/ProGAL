@@ -62,12 +62,18 @@ public class Vector extends ProGAL.geomNd.Vector{
 	public double angle(Vector v) {
 		return Math.acos(Math.min(  1, this.dot(v)/Math.sqrt(this.getLengthSquared()*v.getLengthSquared())  ));
 	}
-	
+
 	/** Add v to this vector and return the result (without changing this object). */
 	public Vector add(Vector v){ return new Vector(coords[0]+v.coords[0],coords[1]+v.coords[1],coords[2]+v.coords[2]); }
 	
 	/** Add v to this vector and return the result (changing this object). */ 
 	public Vector addThis(Vector v){ coords[0]+=v.coords[0]; coords[1]+=v.coords[1]; coords[2]+=v.coords[2]; return this; }
+
+	/** Subtract v from this vector and return the result (without changing this object). */
+	public Vector subtract(Vector v){ return new Vector(coords[0]-v.coords[0],coords[1]-v.coords[1],coords[2]-v.coords[2]); }
+	
+	/** Subract v from this vector and return the result (changing this object). */ 
+	public Vector subtractThis(Vector v){ coords[0]-=v.coords[0]; coords[1]-=v.coords[1]; coords[2]-=v.coords[2]; return this; }
 	
 	/** Multiply this vector by s and return the result (without changing this object). */
 	public Vector multiply(double s){ return new Vector(coords[0]*s, coords[1]*s, coords[2]*s); }

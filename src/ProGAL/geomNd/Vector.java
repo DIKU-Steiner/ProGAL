@@ -53,9 +53,15 @@ public class Vector {
 
 	/** Get the dimensionality of this vector */
 	public int getDimensions() {	return coords.length;	}
-	
+
 	/** Set the i'th coordinate to v */
 	public void setCoord(int i, double v){ coords[i] = v; }
+
+	/** Set the coordinates */
+	public void setCoords(double[] coords){
+		if(this.coords.length!=coords.length) throw new Error("Wrong dimension of coordinates");
+		for(int i=0;i<coords.length;i++) this.coords[i] = coords[i]; 
+	}
 	
 	/** Set the i'th coordinate to v */
 	public void set(int i, double v){ setCoord(i,v); }
@@ -88,7 +94,7 @@ public class Vector {
 	public double angle(Vector v) {
 		return Math.acos(Math.min(  1, this.dot(v)/Math.sqrt(this.getLengthSquared()*v.getLengthSquared())  ));
 	}
-	
+
 	/** Add v to this vector and return the result (without changing this object). */
 	public Vector add(Vector v){ 
 		double[] sum = new double[dim];
@@ -99,6 +105,19 @@ public class Vector {
 	/** Add v to this vector and return the result (changing this object). */ 
 	public Vector addThis(Vector v){ 
 		for(int d=0;d<dim;d++) coords[d] += v.coords[d];
+		return this; 
+	}
+
+	/** Subtract v from this vector and return the result (without changing this object). */
+	public Vector subtract(Vector v){ 
+		double[] sum = new double[dim];
+		for(int d=0;d<dim;d++) sum[d] = coords[d]-v.coords[d];
+		return new Vector(sum); 
+	}
+	
+	/** Subtract v from this vector and return the result (changing this object). */ 
+	public Vector subtractThis(Vector v){ 
+		for(int d=0;d<dim;d++) coords[d] -= v.coords[d];
 		return this; 
 	}
 	
@@ -166,6 +185,10 @@ public class Vector {
 		for(int d=0;d<dim;d++) 
 			if(Math.abs(coords[d]-v.coords[d])>Constants.EPSILON) return false;
 		return true;
+	}
+	public boolean equals(Object v){
+		if(v instanceof Vector) return equals((Vector)v);
+		return false;
 	}
 
 	/** Create a clone of this vector. */

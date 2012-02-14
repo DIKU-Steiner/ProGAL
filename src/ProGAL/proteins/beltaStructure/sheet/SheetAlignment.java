@@ -19,7 +19,7 @@ public class SheetAlignment {
 	 * Each entry is a residue-index indicating which residue in the latter strand is paired to the first residue
 	 * in the first strand. Notice that this residue might be outside the actual strand. TODO: Explain better.
 	 */
-	int[] alignmentPairs;
+	public int[] alignmentPairs;
 	
 	/** Construct an alignment of strands in the given topology. Strands are 
 	 * aligned such that their centers align.*/

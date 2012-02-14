@@ -93,7 +93,7 @@ public class Point implements Serializable{
 		return Math.acos(v1.dot(v2)/Math.sqrt(v1.getLengthSquared()*v2.getLengthSquared()));
 	}
 	
-	private Vector vectorTo(Point p1) {
+	public Vector vectorTo(Point p1) {
 		double[] coords = new double[dim];
 		for(int d=0;d<dim;d++) coords[d] = p1.coords[d]-coords[d];
 		return new Vector(coords);

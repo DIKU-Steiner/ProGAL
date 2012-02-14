@@ -1,5 +1,7 @@
 package ProGAL.math;
 
+import java.util.Arrays;
+
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Vector;
 
@@ -37,7 +39,7 @@ public class Matrix {
 	public int getM(){ return M; }
 	public int getN(){ return N; }
 
-	
+
 
 	public ProGAL.geomNd.Vector getRow(int r) {
 		ProGAL.geomNd.Vector ret = new ProGAL.geomNd.Vector(N);
@@ -50,11 +52,11 @@ public class Matrix {
 		for(int r=0;r<M;r++) ret.set(r, coords[r][c]);
 		return ret;
 	}
-	
 
 
 
-	
+
+
 	/** Get the transpose of this matrix */
 	public Matrix getTranspose() {
 		double[][] newCoords = new double[N][M];
@@ -62,49 +64,56 @@ public class Matrix {
 			for(int j=0;j<N;j++) newCoords[j][i] = coords[i][j];
 		return new Matrix(newCoords);
 	}
-	
+
 	/** Get the transpose of this matrix */
 	public Matrix transpose(){	return getTranspose();	}
-	
 
-	/** Apply this matrix to the vector v and return the result (this will change v). 
-	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
-	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
-	public Vector multiplyIn(Vector v){
-		if(M==3 && N==3){
-			double[] ret = new double[3];
-			for(int i=0;i<3;i++) {
-				for(int j=0;j<3;j++)
-					ret[i] += v.get(j)*coords[i][j];
+
+	/** Apply this matrix to the vector v and return the result (this will change v).  */
+	public ProGAL.geomNd.Vector multiplyIn(ProGAL.geomNd.Vector v){
+		if(N!=v.getDimensions()) throw new Error("Dimensions dont match");
+		double[] newCoords = new double[N];
+		for(int r=0;r<M;r++){
+			for(int c=0;c<N;c++){
+				newCoords[r]+=coords[r][c]*v.get(c);
 			}
-			for(int i=0;i<3;i++) v.set(i, ret[i]);
-			return v;
 		}
-		if( (M==4 || M==3) && N==4){
-			double[] ret = new double[4];
-			for(int i=0;i<4;i++) {
-				for(int j=0;j<4;j++){
-					ret[i] += coords[i][j]*(j==3?1:v.get(j));
-				}
-//				ret[i] += coords[i][3];
-			}
-			if(Math.abs(ret[3]-1)>Constants.EPSILON)
-				throw new RuntimeException("Multiplication with non-homogeneous coordinates failed");
-			for(int i=0;i<3;i++) v.set(i,ret[i]);
-			
-			return v;
-		}
-		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to vectors");
+		v.setCoords(newCoords);
+		return v;
+		//		if(M==3 && N==3){
+		//			double[] ret = new double[3];
+		//			for(int i=0;i<3;i++) {
+		//				for(int j=0;j<3;j++)
+		//					ret[i] += v.get(j)*coords[i][j];
+		//			}
+		//			for(int i=0;i<3;i++) v.set(i, ret[i]);
+		//			return v;
+		//		}
+		//		if( (M==4 || M==3) && N==4){
+		//			double[] ret = new double[4];
+		//			for(int i=0;i<4;i++) {
+		//				for(int j=0;j<4;j++){
+		//					ret[i] += coords[i][j]*(j==3?1:v.get(j));
+		//				}
+		////				ret[i] += coords[i][3];
+		//			}
+		//			if(Math.abs(ret[3]-1)>Constants.EPSILON)
+		//				throw new RuntimeException("Multiplication with non-homogeneous coordinates failed");
+		//			for(int i=0;i<3;i++) v.set(i,ret[i]);
+		//			
+		//			return v;
+		//		}
+		//		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to vectors");
 	}
-	
+
 	/** Apply this matrix to the point p and return the result (this will NOT change p). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
 	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
 	public Point multiply(Point p){
 		return multiplyIn(p.clone());
 	}
-	
-	
+
+
 	/** Apply this matrix to the point p and return the result (this will change p). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
 	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
@@ -210,29 +219,29 @@ public class Matrix {
 		for(int i=0;i<M;i++) for(int j=0;j<N;j++) coords[i][j]*=scalar;
 		return this;
 	}
-	
+
 	/** Get the determinant of this matrix. Throws an error if the matrix is not square*/
 	public double determinant(){
 		if(M!=N)
 			throw new Error("Determinant undefined for non-square matrix");
 		if(M==1)
 			return coords[0][0];
-		
+
 		double ret = 0;
 		for(int c=0;c<N;c++){
 			double minorDet = minor(0,c).determinant();
 			if(c%2==0) 	ret+=coords[0][c]*minorDet;
 			else		ret-=coords[0][c]*minorDet;
 		}
-		
+
 		return ret;
 	}
-	
+
 	/** Return the minor, i.e. the matrix that results from removing row r and column c from this matrix. */
 	public Matrix minor(int r, int c){
 		if(M<2 || N<2) 
 			throw new Error("The minor matrix is undefined for "+M+"x"+N+" matrices");
-		
+
 		Matrix ret = (M==4&&N==4)?new Matrix3x3():new Matrix(M-1, N-1);
 		for(int i=0;i<M-1;i++){
 			for(int j=0;j<N-1;j++){
@@ -243,7 +252,7 @@ public class Matrix {
 	}
 
 	public boolean isSquare(){ return M==N; }
-	
+
 	/** Return the inverse of this matrix. */
 	public Matrix invert(){
 		Matrix ret = clone();
@@ -262,7 +271,7 @@ public class Matrix {
 			tmp.set(r,N+r, 1);
 		}
 		tmp.reduceThis();
-		
+
 		for(int r=0;r<M;r++){
 			for(int c=0;c<N;c++){
 				set(r, c, tmp.get(r,c+N));
@@ -322,6 +331,44 @@ public class Matrix {
 			lead++;
 		}
 		return this;
+	}
+
+	/**
+	 * Run Gram-Schmidt orthonormalization procedure. Assumes that the columns of this
+	 * are linearly independent.
+	 * @return this
+	 */
+	public Matrix orthonormalize(){
+		ProGAL.geomNd.Vector[] bs = new ProGAL.geomNd.Vector[N]; 
+		bs[0] = this.getColumn(0);
+		double[] bSq = new double[N];
+		for(int i=1;i<N;i++){
+			ProGAL.geomNd.Vector ai = this.getColumn(i);
+			bs[i] = ai.clone();
+			bSq[i-1] = bs[i-1].dot(bs[i-1]); 
+			for(int j=0;j<i;j++) bs[i].addThis(bs[j].multiply(-ai.dot(bs[j])/bSq[j])); 
+		}
+		for(int i=0;i<N;i++){
+			if(bSq[i]!=1){
+				bs[i].divideThis(Math.sqrt(bSq[i]));
+			}
+
+			for(int r=0;r<M;r++){
+				coords[i][r] = bs[i].get(r);
+			}
+		}
+		return this;
+	}
+
+	public boolean equals(Matrix m){
+		if(M!=m.M) return false;
+		for(int r=0;r<M;r++)
+			if(!Arrays.equals(coords[r], m.coords[r])) return false;
+		return true;
+	}
+	public boolean equals(Object o){
+		if(o instanceof Matrix) return equals((Matrix)o);
+		return false;
 	}
 
 	public EigenvalueDecomposition getEigenvalueDecomposition(){

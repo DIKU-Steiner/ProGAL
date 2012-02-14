@@ -1,6 +1,6 @@
 package ProGAL.geom3d.complex.alphaComplex;
 
-import java.awt.Color;
+import java.awt.Color; 
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;

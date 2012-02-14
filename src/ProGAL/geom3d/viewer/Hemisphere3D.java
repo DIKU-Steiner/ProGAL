@@ -30,21 +30,29 @@ class Hemisphere3D extends Shape3D {
 		double d = PI/divisions;
 
 		for(double theta=0;theta<PI;theta+=d){
+			double sinTh = sin(theta);
+			double sinThD = sin(theta+d);
+			double cosTh = cos(theta);
+			double cosThD = cos(theta+d);
 			for(double phi=0;phi<PI;phi+=d){
-				verts.add(new Point(  r*sin(theta  )*cos(phi  )  ,  r*sin(theta  )*sin(phi  )  ,  r*cos(theta  )  ));
-				verts.add(new Point(  r*sin(theta+d)*cos(phi  )  ,  r*sin(theta+d)*sin(phi  )  ,  r*cos(theta+d)  ));
-				verts.add(new Point(  r*sin(theta  )*cos(phi+d)  ,  r*sin(theta  )*sin(phi+d)  ,  r*cos(theta  )  ));
-				verts.add(new Point(  r*sin(theta+d)*cos(phi+d)  ,  r*sin(theta+d)*sin(phi+d)  ,  r*cos(theta+d)  ));
-				verts.add(new Point(  r*sin(theta  )*cos(phi+d)  ,  r*sin(theta  )*sin(phi+d)  ,  r*cos(theta  )  ));
-				verts.add(new Point(  r*sin(theta+d)*cos(phi  )  ,  r*sin(theta+d)*sin(phi  )  ,  r*cos(theta+d)  ));
+				double cosPh = cos(phi);
+				double cosPhD = cos(phi+d);
+				double sinPh = sin(phi);
+				double sinPhD = sin(phi+d);
 				
-				normals.add(new Vector(  sin(theta  )*cos(phi  )  ,  sin(theta  )*sin(phi  )  ,  cos(theta  )  ));
-				normals.add(new Vector(  sin(theta+d)*cos(phi  )  ,  sin(theta+d)*sin(phi  )  ,  cos(theta+d)  ));
-				normals.add(new Vector(  sin(theta  )*cos(phi+d)  ,  sin(theta  )*sin(phi+d)  ,  cos(theta  )  ));
-				normals.add(new Vector(  sin(theta+d)*cos(phi+d)  ,  sin(theta+d)*sin(phi+d)  ,  cos(theta+d)  ));
-				normals.add(new Vector(  sin(theta  )*cos(phi+d)  ,  sin(theta  )*sin(phi+d)  ,  cos(theta  )  ));
-				normals.add(new Vector(  sin(theta+d)*cos(phi  )  ,  sin(theta+d)*sin(phi  )  ,  cos(theta+d)  ));
-				//normals.add(c.vectorTo(new Vector(sin(theta+d/2)*cos(phi+d/2)  ,  c.y() + r*sin(theta+d/2)*sin(phi+d/2)  ,  c.z() + r*cos(theta+d/2))));
+				verts.add(new Point(  r*sinTh*cosPh  ,  r*sinTh*sinPh  ,  r*cosTh  ));
+				verts.add(new Point(  r*sinThD*cosPh  ,  r*sinThD*sinPh  ,  r*cosThD  ));
+				verts.add(new Point(  r*sinTh*cosPhD  ,  r*sinTh*sinPhD  ,  r*cosTh  ));
+				verts.add(new Point(  r*sinThD*cosPhD  ,  r*sinThD*sinPhD  ,  r*cosThD  ));
+				verts.add(new Point(  r*sinTh*cosPhD  ,  r*sinTh*sinPhD  ,  r*cosTh  ));
+				verts.add(new Point(  r*sinThD*cosPh  ,  r*sinThD*sinPh  ,  r*cosThD  ));
+				
+				normals.add(new Vector(  sinTh*cosPh  ,  sinTh*sinPh  ,  cosTh  ));
+				normals.add(new Vector(  sinThD*cosPh  ,  sinThD*sinPh  ,  cosThD  ));
+				normals.add(new Vector(  sinTh*cosPhD  ,  sinTh*sinPhD  ,  cosTh  ));
+				normals.add(new Vector(  sinThD*cosPhD  ,  sinThD*sinPhD  ,  cosThD  ));
+				normals.add(new Vector(  sinTh*cosPhD  ,  sinTh*sinPhD  ,  cosTh  ));
+				normals.add(new Vector(  sinThD*cosPh  ,  sinThD*sinPh  ,  cosThD  ));
 			}
 		}
 

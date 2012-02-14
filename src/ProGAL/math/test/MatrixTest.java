@@ -4,42 +4,86 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import ProGAL.geomNd.Vector;
 import ProGAL.math.Matrix;
 
 public class MatrixTest {
 
 	@Test
 	public void testMatrixIntInt() {
-		fail("Not yet implemented");
+		Matrix m = new Matrix(3, 4);
+		assertEquals(3, m.getM());
+		assertEquals(4, m.getN());
 	}
 
 	@Test
 	public void testMatrixDoubleArrayArray() {
-		fail("Not yet implemented");
+		Matrix m = new Matrix(new double[][]{
+				new double[]{1, 2, 3, 4},
+				new double[]{5, 6, 7, 8},
+				new double[]{9,10,11,12},
+		});
+		assertEquals(3, m.getM());
+		assertEquals(4, m.getN());
 	}
 
 	@Test
 	public void testGetRow() {
-		fail("Not yet implemented");
+		Matrix m = new Matrix(new double[][]{
+				new double[]{1, 2, 3, 4},
+				new double[]{5, 6, 7, 8},
+				new double[]{9,10,11,12},
+		});
+		assertEquals(new Vector(new double[]{1,2,3,4}), m.getRow(0));
+		assertEquals(new Vector(new double[]{5,6,7,8}), m.getRow(1));
+		assertEquals(new Vector(new double[]{9,10,11,12}), m.getRow(2));
 	}
 
 	@Test
 	public void testGetColumn() {
-		fail("Not yet implemented");
+		Matrix m = new Matrix(new double[][]{
+				new double[]{1, 2, 3, 4},
+				new double[]{5, 6, 7, 8},
+				new double[]{9,10,11,12},
+		});
+		assertEquals(new Vector(new double[]{1,5,9}), m.getColumn(0));
+		assertEquals(new Vector(new double[]{2,6,10}), m.getColumn(1));
+		assertEquals(new Vector(new double[]{3,7,11}), m.getColumn(2));
+		assertEquals(new Vector(new double[]{4,8,12}), m.getColumn(3));
 	}
 
 	@Test
 	public void testTranspose() {
-		fail("Not yet implemented");
+		Matrix m = new Matrix(new double[][]{
+				new double[]{1, 2, 3, 4},
+				new double[]{5, 6, 7, 8},
+				new double[]{9,10,11,12},
+		});
+		Matrix mt = m.transpose();
+		Matrix t = new Matrix(new double[][]{
+				new double[]{1,5,9},
+				new double[]{2,6,10},
+				new double[]{3,7,11},
+				new double[]{4,8,12}
+		});
+		assertEquals(t,mt);
+		assertEquals(m, mt.transpose());
 	}
 
 	@Test
-	public void testApplyToInVector() {
-		fail("Not yet implemented");
+	public void testMultiplyInVector() {
+		Matrix m = new Matrix(new double[][]{
+				new double[]{1, 2, 3, 4},
+				new double[]{5, 6, 7, 8},
+				new double[]{9,10,11,12},
+		});
+		Vector v = new Vector(new double[]{1,2,0,1});
+		v = m.multiplyIn(v);
+		
 	}
 
 	@Test
-	public void testApplyToPoint() {
+	public void testMultiplyPoint() {
 		fail("Not yet implemented");
 	}
 

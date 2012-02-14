@@ -149,7 +149,16 @@ public class AlphaFiltration {
 
 	public List<CTriangle> getAlphaShape(double alpha) {
 		List<CTriangle> ret = new ArrayList<CTriangle>();
-		for (CTriangle t: getTriangles(alpha)) System.out.println(getInAlpha(t));
+		for (CTriangle t: getTriangles(alpha)) {
+			try{
+				double a0 = getInAlpha(t.getAdjacentTetrahedron(0));
+				double a1 = getInAlpha(t.getAdjacentTetrahedron(1));
+				if( (a0>alpha)^(a1>alpha) )
+					ret.add(t);
+			}catch(NullPointerException exc){
+				ret.add(t);
+			}
+		}
 		return ret;
 	}
 
@@ -331,7 +340,6 @@ public class AlphaFiltration {
 			ds = new DisjointSet();
 			UnionFind<CTetrahedron> uf = new UnionFind<CTetrahedron>();
 			CTetrahedron bigTet = new CTetrahedron(null,null,null,null);
-//			ds.makeSet(bigTet);
 			for(int iT=triangles.size()-1;iT>=0;iT--){
 				CTriangle t = triangles.get(iT);
 				CTetrahedron n0 = t.getAdjacentTetrahedron(0);
@@ -340,14 +348,9 @@ public class AlphaFiltration {
 				if(n1.containsBigPoint()) n1 = bigTet;
 				CTetrahedron s0 = uf.find(n0);
 				CTetrahedron s1 = uf.find(n1);
-//				DisjointSet.Set s0 = ds.find(n0);
-//				DisjointSet.Set s1 = ds.find(n1);
-//				if(s0==null) s0 = ds.makeSet(n0);
-//				if(s1==null) s1 = ds.makeSet(n1);
 				
 				if(  s0!=s1  ){
 					marked[simplices.indexOf(t)] = true;
-//					ds.union(n0, n1);
 					uf.union(n0, n1);
 				}
 			}

@@ -4,6 +4,6 @@ import java.awt.Graphics2D;
 
 import ProGAL.geom2d.viewer.J2DScene.ShapeOptions;
 
-public interface ShapePainter {
+interface ShapePainter {
 	void paintShape(ShapeOptions shape, Graphics2D g2d);
 }

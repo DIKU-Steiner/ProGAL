@@ -13,7 +13,7 @@ import javax.vecmath.*;
  * along the y-axis. It is rendered using a TriangleArray and by default uses 210 triangles. 
  * @author R.Fonseca
  */
-public class QuarterSphere3D extends Shape3D {
+class QuarterSphere3D extends Shape3D {
 
 	/** Construct the hemisphere shape. 
 	 * @param radius The radius of the hemisphere. 

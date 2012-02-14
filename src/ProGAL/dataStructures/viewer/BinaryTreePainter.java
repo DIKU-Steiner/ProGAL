@@ -103,7 +103,7 @@ public class BinaryTreePainter extends JFrame{
 			g.setColor( bt.nodeColor() );
 			g.fillOval(p.x-3, p.y-3, 6,6);
 			
-			if(bt.label().length()>0){
+			if(bt.label()!=null && bt.label().length()>0){
 				g.setColor(new Color(255,255,255,200));
 				g.fillRect(p.x, p.y+3, 60, 15);
 				g.setColor(Color.BLACK);

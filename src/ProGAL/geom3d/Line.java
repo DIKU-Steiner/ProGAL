@@ -27,13 +27,13 @@ public class Line {
 	/** Constructs a line through origo with direction d. */
 	public Line(Vector d) {
 		p = new Point(0, 0, 0);
-		dir = d.normalize();
+		dir = d;
 	}
 	
 	/** Constructs a line through p with direction d.*/
 	public Line(Point p, Vector d) {
 		this.p = p;
-		dir = d.normalize();
+		dir = d;
 	}
 	
 	/** 
@@ -42,7 +42,7 @@ public class Line {
 	 */
 	public Line(LineSegment s) {
 		p = s.getA().clone();
-		dir = s.getAToB().normalize();
+		dir = s.getAToB();
 	}
 	
 	/** Constructs a line through the two specified points. */

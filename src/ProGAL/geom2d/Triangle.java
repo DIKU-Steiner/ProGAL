@@ -1,7 +1,7 @@
 package ProGAL.geom2d;
 
 
-public class Triangle {
+public class Triangle implements Shape{
 	protected final Point[] points;
 	
 	public Triangle(Point p1, Point p2, Point p3){
@@ -13,5 +13,9 @@ public class Triangle {
 	}
 	public void setCorner(Point p, int i){
 		points[i] = p;
+	}
+
+	public Point getCenter() {
+		return points[0].clone();
 	}
 }

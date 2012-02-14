@@ -3,7 +3,7 @@ package ProGAL.geom2d;
 /** 
  * A line-swept circle.
  */
-public class LSC {
+public class LSC implements Shape{
 	protected LineSegment segment;
 	protected double radius;
 	
@@ -33,6 +33,10 @@ public class LSC {
 	 */
 	public static LSC createLSCFromDirAndRad(double x2, double x3, Vector dir, double rad){
 		return null;
+	}
+
+	public Point getCenter() {
+		return segment.getCenter();
 	}
 	
 }

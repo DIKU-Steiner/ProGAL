@@ -210,6 +210,12 @@ public class Sphere implements Volume{
 		return true;
 	}
 
+	/** Returns true if the given point is in the sphere. */
+	public boolean contains(Point p) {
+		double rr = radius*radius-0.000000001;
+		return p.distanceSquared(center)<rr;
+	}
+
 
 	/** Gets the squared distance of a point from a sphere surface 
 	 * (negative if the point is inside the sphere). */

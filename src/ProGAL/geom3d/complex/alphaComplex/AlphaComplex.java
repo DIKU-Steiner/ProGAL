@@ -74,7 +74,7 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 	 */
 	public int getDepth(Simplex s){
 		if(depthMap==null)
-			calculateDepths();
+			calculateDepthsOld();
 		return depthMap.get(s);
 	}
 	
@@ -274,7 +274,8 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 	
 	public static void main(String[] args) {
 //		String[] pdbs = new String[]{"1X5RA","1X0OA","1XDXA","1AKPA","1Y6DA", "1CTFA"};
-		List<Point> points = new PDBFile("/Users/pawel/BioRepo/MotherOfAllProjects/pdb_files/1F94.pdb").getAtomCoords();
+//		List<Point> points = new PDBFile("/Users/pawel/BioRepo/MotherOfAllProjects/pdb_files/1F94.pdb").getAtomCoords();
+		List<Point> points = new PDBFile("/Users/rfonseca/Downloads/3SQF.pdb").getAtomCoords();
 //		ProteinComplex pc = new ProteinComplex(f);
 //		List<Point> points = new PDBFile(PDBWebReader.downloadPDBFile("1XDXA")).getAtomCoords();
 		AlphaComplex ac = new AlphaComplex(points, 2.8);
@@ -284,11 +285,11 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 			scene.addShape(tetr, new java.awt.Color(0,0,255,10));
 		}
 
-		ac.calculateDepths();
+//		ac.calculateDepths();
 //		ac.getVoids(scene);
 //		CTetrahedron t = ac.getDeepestCavityTetrahedron();
 //		ac.getCavityPath(t, scene);
-		ac.getAllCavityPaths(ac.getAllDeepestCavityTetrahedra(9), scene);
+//		ac.getAllCavityPaths(ac.getAllDeepestCavityTetrahedra(9), scene);
 //		ac.getAllCavities(ac.getAllDeepestCavityTetrahedra(9), 5, scene);
 //		for(CTetrahedron tetr : ac.getTetrahedra(2.8, 100)) { 
 //			if (ac.getDepth(tetr) > -1) 	scene.addShape(tetr, java.awt.Color.YELLOW);

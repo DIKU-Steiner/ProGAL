@@ -6,7 +6,6 @@ import java.util.List;
 
 import ProGAL.geom3d.complex.CTetrahedron;
 import ProGAL.geom3d.complex.CTriangle;
-import ProGAL.geom3d.complex.alphaComplex.tests.SphereVoidsPointList;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.Sphere;
 import ProGAL.geom3d.Point;

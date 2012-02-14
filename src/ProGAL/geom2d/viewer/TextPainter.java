@@ -6,13 +6,13 @@ import java.awt.Stroke;
 
 import ProGAL.geom2d.viewer.J2DScene.ShapeOptions;
 
-public class TextPainter implements ShapePainter {
+class TextPainter implements ShapePainter {
 
 	public void paintShape(ShapeOptions shape, Graphics2D g2d) {
 
 		TextShape text = (TextShape)shape.shape;
 		java.awt.Point gPoint = shape.transformPoint(text.getPos());
-		g2d.setFont(g2d.getFont().deriveFont(text.getHeight()));
+		g2d.setFont(g2d.getFont().deriveFont((float)(text.getHeight()*shape.getScale())));
 		g2d.setColor(shape.color);
 
 		Stroke oldStroke = g2d.getStroke();

@@ -7,7 +7,7 @@ import java.awt.Stroke;
 import ProGAL.geom2d.Circle;
 import ProGAL.geom2d.viewer.J2DScene.ShapeOptions;
 
-public class CirclePainter implements ShapePainter {
+class CirclePainter implements ShapePainter {
 
 	public void paintShape(ShapeOptions shape, Graphics2D g2d) {
 

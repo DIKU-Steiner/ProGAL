@@ -11,7 +11,7 @@ import javax.vecmath.*;
  * and by default uses 14 triangles. 
  * @author R.Fonseca
  */
-public class Rectangle3D extends Shape3D {
+class Rectangle3D extends Shape3D {
 
 	/** Construct the cylinder shape. 
 	 * @param height The distance between the defining points.

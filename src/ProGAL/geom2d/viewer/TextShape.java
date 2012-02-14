@@ -5,16 +5,16 @@ import ProGAL.geom2d.Shape;
 
 public class TextShape implements Shape {
 	private String text;
-	private float height;
+	private double height;
 	private Point pos;
 	
-	public TextShape(String text, Point pos, float height){
+	public TextShape(String text, Point pos, double height){
 		this.text = text;
 		this.height = height;
 		this.pos = pos;
 	}
 	
-	public float getHeight(){ return height; }
+	public double getHeight(){ return height; }
 	public String getText(){ return text; }
 	public Point getPos(){ return pos; }
 	

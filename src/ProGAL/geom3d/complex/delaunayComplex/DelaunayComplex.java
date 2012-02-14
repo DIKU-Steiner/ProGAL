@@ -90,6 +90,7 @@ public class DelaunayComplex implements SimplicialComplex{
 		this.f14 = new Flip14(flips);
 		
 		compute();
+		completeComplex();
 	}
 	
 	/** TODO: Finish */
@@ -165,7 +166,6 @@ public class DelaunayComplex implements SimplicialComplex{
 
 		//Iterér over punkterne
 		for(CVertex p: points){
-			p.toConsole(3);
 			next_t = walk.walk(next_t, p);
 			next_t = f14.flip14(next_t, p);
 			CTetrahedron tmp = flips.fixDelaunay();

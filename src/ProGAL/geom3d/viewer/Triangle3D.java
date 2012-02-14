@@ -5,7 +5,7 @@ import javax.media.j3d.*;
 /** 
  * @author R.Fonseca
  */
-public class Triangle3D extends Shape3D {
+class Triangle3D extends Shape3D {
 
 	public Triangle3D(float size, Appearance app) {
 		super();
