@@ -35,6 +35,16 @@ public class Matrix {
 	public double get(int i, int j) {
 		return coords[i][j];
 	}
+	
+	public double[][] getCoords(){
+		double[][] ret = new double[M][N];
+		for(int i=0;i<M;i++){
+			for(int j=0;j<M;j++){
+				ret[i][j] = coords[i][j];
+			}
+		}
+		return ret;
+	}
 
 	public int getM(){ return M; }
 	public int getN(){ return N; }
@@ -338,7 +348,7 @@ public class Matrix {
 	 * are linearly independent.
 	 * @return this
 	 */
-	public Matrix orthonormalize(){
+	public Matrix orthonormalizeThis(){
 		ProGAL.geomNd.Vector[] bs = new ProGAL.geomNd.Vector[N]; 
 		bs[0] = this.getColumn(0);
 		double[] bSq = new double[N];

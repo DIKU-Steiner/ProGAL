@@ -31,18 +31,18 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	}
 
 	
-	/** Get the i'th coordinate. */
-	public double getCoord(int i) {
-		switch(i){
-		case 0: return coords[0];
-		case 1: return coords[1];
-		case 2: return coords[2];
-		}
-		throw new Error("Trying to get invalid coordinate");
-	}
+//	/** Get the i'th coordinate. */
+//	public double getCoord(int i) {
+//		switch(i){
+//		case 0: return coords[0];
+//		case 1: return coords[1];
+//		case 2: return coords[2];
+//		}
+//		throw new Error("Trying to get invalid coordinate");
+//	}
 	
-	/** Get the i'th coordinate. */
-	public double get(int i) { return getCoord(i); }
+//	/** Get the i'th coordinate. */
+//	public double get(int i) { return getCoord(i); }
 
 	/** Get the first coordinate. */
 	public double x() { return coords[0]; }
@@ -256,6 +256,7 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 
 	/** Writes this point to <code>System.out</code>. */
 	public void toConsole() { System.out.println(toString()); }
+	
 	/** Writes this point to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 

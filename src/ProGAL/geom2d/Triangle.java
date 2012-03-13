@@ -18,4 +18,12 @@ public class Triangle implements Shape{
 	public Point getCenter() {
 		return points[0].clone();
 	}
+	
+	public Circle getCircumCircle(){
+		Line bisectorAB = Point.getBisector(points[0],points[1]);
+		Line bisectorAC = Point.getBisector(points[0],points[2]);
+		Point d = Line.getIntersection(bisectorAB, bisectorAC);
+		return new Circle(d, d.distance(points[0]));
+//		return new Circle(points[0], points[1], points[2]);
+	}
 }

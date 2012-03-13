@@ -1254,12 +1254,6 @@ public class ExactJavaPredicates extends Predicates{
 	}
 
 	double incircleslow(double[] pa,double[]  pb,double[]  pc,double[]  pd)
-
-
-
-
-
-
 	{
 		double adx, bdx, cdx, ady, bdy, cdy;
 		double adxtail, bdxtail, cdxtail;
@@ -1416,13 +1410,6 @@ public class ExactJavaPredicates extends Predicates{
 	}
 
 	double incircleadapt(double[] pa, double[] pb,double[]  pc,double[]  pd, double permanent)
-
-
-
-
-
-
-
 	{
 		double adx, bdx, cdx, ady, bdy, cdy;
 		double det, errbound;
@@ -1991,7 +1978,7 @@ public class ExactJavaPredicates extends Predicates{
 		return finnow[finlength - 1];
 	}
 
-	double incircle(double[] pa,double[]  pb,double[]  pc,double[]  pd)
+	public double incircle(double[] pa, double[]pb, double[] pc, double[] pd)
 	{
 		double adx, bdx, cdx, ady, bdy, cdy;
 		double bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;
@@ -2034,13 +2021,6 @@ public class ExactJavaPredicates extends Predicates{
 	}
 
 	double inspherefast(double[] pa,double[]  pb,double[]  pc,double[]  pd,double[]  pe)
-
-
-
-
-
-
-
 	{
 		double aex, bex, cex, dex;
 		double aey, bey, cey, dey;

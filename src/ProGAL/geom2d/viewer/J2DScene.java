@@ -154,7 +154,7 @@ public class J2DScene {
 	 * are supported. 
 	 */
 	public void addShape(Shape s){
-		addShape(s,Color.GRAY,0.1,false);
+		addShape(s,Color.GRAY,0.01,false);
 	}
 	
 	/** Add a shape to this scene with the specified color. Currently, 
@@ -176,12 +176,15 @@ public class J2DScene {
 	}
 	/** Remove the specified shape from the scene */
 	public void removeShape(Shape s) {
-		shapes.remove(s);
+		ShapeOptions opt = null;
+		for(ShapeOptions so: shapes) if(so.shape==s){ opt = so; break; }
+		shapes.remove(opt);
 		repaint();
 	}
 	/** Remove all shapes from the scene */
 	public void removeAllShapes() {
-		while (!shapes.isEmpty()) shapes.remove(0);
+//		while (!shapes.isEmpty()) shapes.remove(0);
+		shapes.clear();
 		repaint();
 	}
 	
@@ -219,11 +222,12 @@ public class J2DScene {
 			g2d.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			for(ShapeOptions so: new LinkedList<ShapeOptions>(shapes)){
+				if(so==null) continue;
 				Stroke oldStroke = g2d.getStroke();
 				g2d.setStroke(  new BasicStroke(
 						(float)(scale*so.borderWidth),
 						BasicStroke.CAP_ROUND, 
-						BasicStroke.JOIN_MITER)  );
+						BasicStroke.JOIN_ROUND)  );
 				g2d.setColor(so.color);
 				getShapePainter(so.shape).paintShape(so, g2d);
 				g2d.setStroke(oldStroke);
@@ -255,7 +259,8 @@ public class J2DScene {
 		public void mousePressed(MouseEvent e) { lastPoint = e.getLocationOnScreen(); }
 		public void mouseReleased(MouseEvent e) {	}
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			scale*=Math.pow(0.97, e.getWheelRotation());
+			double factor =Math.pow(0.97, e.getWheelRotation()); 
+			scale*=factor;
 			repaint();
 		}
 	}
@@ -296,24 +301,26 @@ public class J2DScene {
 		frame.getContentPane().add(scene.canvasPanel);
 		frame.setSize(1000,1000);
 		frame.setVisible(true);
+		scene.frame = frame;
 		return scene;
 	}
 	
 	
 	public static void main(String[] args){
-		//Generate points
-		List<Point> points = new ArrayList<Point>();
-		for(int i=0;i<10;i++) 
-			points.add(new Point(Math.random(), Math.random()));
-		
-		//Display them
 		J2DScene scene = J2DScene.createJ2DSceneInFrame();
 		scene.addShape(new LineSegment(new Point(0,0), new Point(1,0)), Color.BLACK);
 		scene.addShape(new LineSegment(new Point(0,0), new Point(0,1)), Color.BLACK);
-		for(Point p: points){
-			//A filled circle with radius 0.01 and border 0
-			scene.addShape(new Circle(p, 0.01), Color.BLACK, 0, true);
-		}
+		scene.addShape( new TextShape("(1,0)", new Point(1,0), 0.2) );
+		scene.addShape( new TextShape("(0,1)", new Point(0,1), 0.2) );
+
+		scene.addShape(new Circle(new Point(0.1,0.1), 0.01), Color.BLACK, 0, true);
+		scene.addShape(new Circle(new Point(0.2,0.2), 0.01), Color.BLACK, 0, true);
+
+		scene.addShape(new LSC(new Point(0,-0.5), new Point(1,-0.4), 0.2), Color.RED);
+		scene.addShape(new LSC(new Point(0,-0.9), new Point(1,-0.9), 0.1), Color.RED, 0, true);
+
+		scene.addShape(new Triangle(new Point(-1,0), new Point(-1,1), new Point(-2,0)));
+		
 		scene.centerCamera();
 		
 	}

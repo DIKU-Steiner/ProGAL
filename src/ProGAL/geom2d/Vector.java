@@ -42,6 +42,7 @@ public class Vector {
 	public Vector rotate90This() { double tmp = x; x = -y; y=tmp; return this; }
 	public Point toPoint() { return new Point(x,y); }
 	
+	
 	public static Vector createSum(Vector  u, Vector v) { return new Vector(u.x+v.x, u.y+v.y); }
 	public static Vector createDiff(Vector u, Vector v) { return new Vector(u.x-v.x, u.y-v.y); }
 	

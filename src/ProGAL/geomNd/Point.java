@@ -16,6 +16,7 @@ public class Point implements Serializable{
 	
 	/** The double-array that holds the value of this point */
 	protected final double[] coords;
+	
 	/** The dimension of this point. */
 	protected final int dim;
 
@@ -35,8 +36,13 @@ public class Point implements Serializable{
 		this.dim = dimensions;
 	}
 	
+	/** Get the d'th coordinate. */
 	public double get(int d){			return coords[d];		}
-	public double getCoord(int d) {		return coords[d];		}	
+	
+	/** Get the d'th coordinate. */
+	public double getCoord(int d) {		return coords[d];		}
+	
+	/** Get all coordinates in an array. */
 	public double[] getCoords() {		return coords;			}
 	
 	/** 
@@ -46,17 +52,29 @@ public class Point implements Serializable{
 	 */
 	public int getDimensions() {			return dim;				}
 
+	/** Set the d'th coordinate. */
 	public void set(int d, double v){		coords[d]=v;			}
+	
+	/** Set the d'th coordinate. */
 	public void setCoord(int d, double v){	coords[d]=v;			}
+	
+	/** Set the coordinates to be identical to those in the specified point. If the dimensions of 
+	 * <code>p</code> and <code>this</code> are not the same, then the largest possible number of 
+	 * coordinates are copied */
 	public Point set(Point p){		
 		for(int i=0;i<Math.min(dim, p.dim);i++) coords[i] = p.coords[i];
 		return this;
 	}
+	
+	/** Set the coordinates to be identical to those in the specified point. If the dimensions of 
+	 * <code>p</code> and <code>this</code> are not the same, then the largest possible number of 
+	 * coordinates are copied. */
 	public Point setCoord(Point p){	
 		for(int i=0;i<Math.min(dim, p.dim);i++) coords[i] = p.coords[i];
 		return this;
 	}
 	
+	/** Add the specified vector to this point. */
 	public Point addThis(Vector v){
 		for(int i=0;i<Math.min(dim, v.dim);i++) coords[i] += v.coords[i];
 		return this;

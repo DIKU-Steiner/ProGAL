@@ -35,10 +35,10 @@ public class LSS implements Volume{
 	}
 
 	public static LSS createBoundingLSS(PointList points){
-		return createBoundingLSS_CovarianceFit(points);
+		return createBoundingLSS_covariance(points);
 	}
 
-	public static LSS createBoundingLSS_CovarianceFit(PointList points){
+	public static LSS createBoundingLSS_covariance(PointList points){
 		if(points.size()<=0)	throw new Error("Cannot create capsule enclosing 0 points");
 		if(points.size()==1)	return new LSS(points.get(0).clone(), points.get(0).clone(), 0);
 		if(points.size()==2)	return new LSS(points.get(0).clone(), points.get(1).clone(), 0);

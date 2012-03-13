@@ -3,7 +3,11 @@ package ProGAL.geom3d.volumes;
 import java.util.List;
 
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.Vector;
+import ProGAL.math.Matrix;
+import ProGAL.math.Matrix.EigenvalueDecomposition;
+import ProGAL.math.Matrix3x3;
 
 public class OBB implements Volume{
 	protected Point anchor;  // midpoint of the box
@@ -39,23 +43,28 @@ public class OBB implements Volume{
 //	}
 
 	/* 458HOps */
-//	public static Box3d createBoundingBox_Covariance(List<Point> points){
-//		Matrix3x3 m = points.getCoVariance();//9HOps
+	public static OBB createBoundingBox_Covariance(PointList points){
+		Matrix3x3 m = points.getCovariance();
+		EigenvalueDecomposition ed = m.getEigenvalueDecomposition();
+		ProGAL.geomNd.Vector r = ed.getV().getColumn(2);
+		ProGAL.geomNd.Vector s = ed.getV().getColumn(1);
+		ProGAL.geomNd.Vector t = ed.getV().getColumn(0);
+		OBB ret = createBoxFromBases(new Vector[]{new Vector(r),new Vector(s),new Vector(t)}, points);
 //		double[][] coords = new double[3][3];
 //		for(int i=0;i<3;i++) for(int j=0;j<3;j++) coords[i][j] = m.get(i, j);
 //		Jama.Matrix A = new Jama.Matrix(coords);
 //		EigenvalueDecomposition ed = new EigenvalueDecomposition(A);//84HOps
 //		Jama.Matrix eV = ed.getV();
-//
+
 //		Vector r = new Vector(eV.get(0, 2), eV.get(1, 2), eV.get(2, 2));
 //		Vector s = new Vector(eV.get(0, 1), eV.get(1, 1), eV.get(2, 1));
 //		Vector t = r.cross(s);//6HOps
 ////		Vector t = new Vector(eV.get(0, 0), eV.get(1, 0), eV.get(2, 0));
 //		//		Vector[] eigens = m.getEigenvectors();
 //		Box3d ret = createBoxFromBases( new Vector[]{r,s,t}, points);//16*18+71
-//		
-//		return ret;
-//	}
+		
+		return ret;
+	}
 
 //	public static Box3d createBoundingBox_Covariance(Box3d b1, Box3d b2){
 //		List<Point> corners = new List<Point>();

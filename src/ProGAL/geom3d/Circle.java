@@ -178,7 +178,7 @@ public class Circle implements Shape{
 			Vector cr  = op.cross(oco);
 			cr.divideThis(r2);
 			double sinBeta = cr.length();
-			double beta = Math.atan2(sinBeta,cosBeta); System.out.println("beta = " + Functions.toDegrees(beta));
+			double beta = Math.atan2(sinBeta,cosBeta); System.out.println("beta = " + Functions.toDeg(beta));
 			if (normal.dot(dir) > 0) {
 				if (normal.dot(cr) > 0) return beta; else return 2*Math.PI - beta;
 			}
@@ -198,8 +198,8 @@ public class Circle implements Shape{
 		Vector cr = op.cross(oco);
 		cr.divideThis(op.length()*oco.length());
 		double sinBeta = cr.length();
-		double alpha = Math.acos(cosAlpha); System.out.println("alpha = " + Functions.toDegrees(cosAlpha));
-		double beta = Math.atan2(sinBeta,cosBeta); System.out.println("beta = " + Functions.toDegrees(beta));
+		double alpha = Math.acos(cosAlpha); System.out.println("alpha = " + Functions.toDeg(cosAlpha));
+		double beta = Math.atan2(sinBeta,cosBeta); System.out.println("beta = " + Functions.toDeg(beta));
 		if (normal.dot(dir) > 0) {
 			if (normal.dot(cr) > 0) return beta-alpha; else return 2*Math.PI - beta - alpha;
 		}
@@ -226,8 +226,8 @@ public class Circle implements Shape{
 		Vector cr = op.cross(oco);
 		cr.divideThis(op.length()*oco.length());
 		double sinBeta = cr.length();
-		double alpha = Math.acos(cosAlpha); System.out.println("alpha = " + Functions.toDegrees(cosAlpha));
-		double beta = Math.atan2(sinBeta,cosBeta); System.out.println("beta = " + Functions.toDegrees(beta));
+		double alpha = Math.acos(cosAlpha); System.out.println("alpha = " + Functions.toDeg(cosAlpha));
+		double beta = Math.atan2(sinBeta,cosBeta); System.out.println("beta = " + Functions.toDeg(beta));
 		if (normal.dot(dir) > 0) {
 			if (normal.dot(cr) > 0) return beta-alpha; else return 2*Math.PI - beta - alpha;
 		}

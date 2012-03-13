@@ -103,6 +103,17 @@ public class Tetrahedron implements Simplex, Volume {
 		return corners[3].add(O);
 	}
 	
+	/** Find the circumscribing sphere */
+	public Sphere circumsphere(){
+		Vector a = corners[3].vectorTo(corners[0]);
+		Vector b = corners[3].vectorTo(corners[1]);
+		Vector c = corners[3].vectorTo(corners[2]);
+		Vector O = b.cross(c).multiplyThis(a.dot(a));
+		O.addThis(c.cross(a).multiplyThis(b.dot(b)));
+		O.addThis(a.cross(b).multiplyThis(c.dot(c)));
+		O.multiplyThis(1.0/(2*a.dot(b.crossThis(c))));
+		return new Sphere(corners[3].add(O), O.length());
+	}
 
 	/** Find the center of the inscribed sphere. */
 	public Point incenter(){

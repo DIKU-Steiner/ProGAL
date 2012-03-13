@@ -85,7 +85,7 @@ public class SheetStructure implements Branchable{
 	
 	@Override
 	public void setStructure(int s) {
-		System.out.println("SheetStructure.setStructure("+s);
+//		System.out.println("SheetStructure.setStructure("+s);
 		double minC = 0.02, maxC = 0.1;
 		double dC = (maxC-minC)/structures;
 		double c = minC+s*dC;

@@ -1,6 +1,7 @@
-package ProGAL.proteins.beltaStructure.bnb;
+package ProGAL.proteins.beltaStructure.bnb.lowerBounds;
 
-import ProGAL.proteins.beltaStructure.bnb.lowerBounds.LowerBound;
+import ProGAL.proteins.beltaStructure.bnb.BnBNode;
+import ProGAL.proteins.beltaStructure.bnb.BnBSolver;
 import ProGAL.proteins.structure.AminoAcidChain;
 
 public class CN_ClashLowerBound implements LowerBound {
@@ -11,7 +12,7 @@ public class CN_ClashLowerBound implements LowerBound {
 	}
 	@Override
 	public double lowerBound(BnBNode n, BnBSolver solver) {
-		AminoAcidChain chain = solver.chain;
+		AminoAcidChain chain = solver.getChain();
 		
 		
 		

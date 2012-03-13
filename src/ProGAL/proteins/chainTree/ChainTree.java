@@ -273,12 +273,18 @@ public class ChainTree {
 	public static void main(String[] args){
 		PrimaryStructure ps = new PrimaryStructure("AAAAA");
 		ChainTree loop = new ChainTree(ps,0,4);
-		loop.setTorsionAngle(0, 0, -60*Math.PI/180);
-		loop.setTorsionAngle(0, 1, -30*Math.PI/180);
-		loop.setTorsionAngle(2, 0, -60*Math.PI/180);
-		loop.setTorsionAngle(2, 1, -30*Math.PI/180);
-		loop.setTorsionAngle(4, 0, -60*Math.PI/180);
-		loop.setTorsionAngle(4, 1, -30*Math.PI/180);
+		loop.setTorsionAngle(0, 0, 180*Math.PI/180);
+		loop.setTorsionAngle(0, 1, 180*Math.PI/180);
+		loop.setTorsionAngle(2, 0, 180*Math.PI/180);
+		loop.setTorsionAngle(2, 1, 180*Math.PI/180);
+		loop.setTorsionAngle(4, 0, 180*Math.PI/180);
+		loop.setTorsionAngle(4, 1, 180*Math.PI/180);
+//		loop.setTorsionAngle(0, 0, -60*Math.PI/180);
+//		loop.setTorsionAngle(0, 1, -30*Math.PI/180);
+//		loop.setTorsionAngle(2, 0, -60*Math.PI/180);
+//		loop.setTorsionAngle(2, 1, -30*Math.PI/180);
+//		loop.setTorsionAngle(4, 0, -60*Math.PI/180);
+//		loop.setTorsionAngle(4, 1, -30*Math.PI/180);
 		loop.getTransformation(0, 1).toConsole();
 		Vector x = new Vector(2,1,0).normalizeThis();
 		Vector y = new Vector(3,0,1).cross(x).normalizeThis();

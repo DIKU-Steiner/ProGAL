@@ -92,7 +92,7 @@ public class SegmentStructure implements Branchable{
 		}
 		end = last||backwards?seg.end-1:seg.end;
 		int c=0;
-		System.out.printf("setStructure(%d) .. start: %d, end: %d, c: %d, %s\n",s,start,end,c, prevAtom);
+//		System.out.printf("setStructure(%d) .. start: %d, end: %d, c: %d, %s\n",s,start,end,c, prevAtom);
 		for(int r=start;r<=end;r++){
 			chain.atom(r, 0).setCoord(points[c++]).addThis(v);
 			chain.atom(r, 1).setCoord(points[c++]).addThis(v);
@@ -157,7 +157,7 @@ public class SegmentStructure implements Branchable{
 	}
 	
 	protected Point[][] buildHelixStructures(){
-		System.out.println("buildHelixStructures() "+(seg.length*2+2));
+//		System.out.println("buildHelixStructures() "+(seg.length*2+2));
 		Point[][] ret = new Point[getStructures()][seg.length*2+2];
 		
 		//Create an initial base helix that all others are (rotated) duplicates of.

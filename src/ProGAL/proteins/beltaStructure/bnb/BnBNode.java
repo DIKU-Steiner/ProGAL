@@ -31,4 +31,8 @@ public class BnBNode implements Comparable<BnBNode>{
 	public int compareTo(BnBNode n) {
 		return Double.compare(lowerBound, n.lowerBound);
 	}
+	
+	public String toString(){
+		return String.format("BnBNode[part %d, structure %d, lower bound %.2f]",part,structure,lowerBound);
+	}
 }

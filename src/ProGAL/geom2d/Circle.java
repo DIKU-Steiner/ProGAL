@@ -206,7 +206,8 @@ public class Circle implements Shape{
 	}
 
 	public boolean contains(Point p) {
-		return center.distance(p)<=(radius+0.0001);
+//		return center.distance(p)<=(radius+0.0001);
+		return center.distance(p)<radius;
 	}
 	public boolean contains(Circle c){
 		return radius>=center.distance(c.center)+c.radius-0.000001;

@@ -1,8 +1,9 @@
 package ProGAL.proteins.beltaStructure.bnb;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -19,11 +20,12 @@ import ProGAL.proteins.structure.generators.CABAminoAcidGenerator;
 public class BnBSolver {
 	private final PrimaryStructure primaryStructure;
 	private final SecondaryStructure secondaryStructure;
+	@SuppressWarnings("unused")
 	private final BetaTopology betaTopology;
-	final AminoAcidChain chain;
+	private final AminoAcidChain chain;
 	private final SortedSet<BnBNode> best = new TreeSet<BnBNode>();
 	private final Branchable[] parts;
-	final List<Integer>[] partsDefined; 
+	private final List<Integer>[] partsDefined; 
 	private LowerBound lowerBound;
 	
 	@SuppressWarnings("unchecked")
@@ -43,15 +45,16 @@ public class BnBSolver {
 		partsDefined = new List[sheets.size()+loopSegments];
 		int i;
 		for(i=0;i<sheets.size();i++){
-			parts[i] = new SheetStructure(4, bt.getSheets().get(i), chain);
+			parts[i] = new SheetStructure(1, bt.getSheets().get(i), chain);
 			partsDefined[i] = parts[i].definedResidues();
 			if(i>0) partsDefined[i].addAll(partsDefined[i-1]);
 		}
 		for(SSSegment seg: secondaryStructure.segments){
 			if( seg.type!=SSType.STRAND ) {
-				parts[i] = new SegmentStructure(12, 4, secondaryStructure, seg, chain);
+				parts[i] = new SegmentStructure(8, 4, secondaryStructure, seg, chain);
 				partsDefined[i] = parts[i].definedResidues();
 				if(i>0) partsDefined[i].addAll(partsDefined[i-1]);
+				Collections.sort(partsDefined[i]);
 				i++;
 			}
 		}
@@ -66,30 +69,51 @@ public class BnBSolver {
 		
 		while(!nodePool.isEmpty()){
 			BnBNode n = nodePool.poll();
+//			System.out.println(n);
 			if(n.part == parts.length-1){
 				if(n.lowerBound<upperBound)
 					upperBound = n.lowerBound;
-				if(best.size()>1000 && n.lowerBound<best.last().lowerBound){
-					best.remove(best.last());
+				
+				if(best.size()<1000) {
+					System.out.println("Added: "+n);
 					best.add(n);
+				}
+				else{
+					if(n.lowerBound<best.last().lowerBound){
+						best.remove(best.last());
+						best.add(n);
+						System.out.println("Added: "+n);
+					}
 				}
 			}else{
 				if(n.lowerBound<upperBound){
-					branch(n, nodePool);
+//					branch(n, nodePool);
+					nodePool.addAll(branch(n));
 				}
 			}
 		}
 	}
-	
-	private void branch(BnBNode n, Queue<BnBNode> nodePool){
+
+	private List<BnBNode> branch(BnBNode n){
+		LinkedList<BnBNode> ret = new LinkedList<BnBNode>();
 		for(int s=0;s<parts[n.part+1].getStructures();s++){
 			BnBNode newNode = new BnBNode(n, s);
+			updateChain(newNode);
 			newNode.lowerBound = lowerBound.lowerBound(newNode, this);
-			nodePool.add(newNode);
+			ret.add(newNode);
 		}
+		return ret;
 	}
+//	private void branch(BnBNode n, Queue<BnBNode> nodePool){
+//		for(int s=0;s<parts[n.part+1].getStructures();s++){
+//			BnBNode newNode = new BnBNode(n, s);
+//			updateChain(newNode);
+//			newNode.lowerBound = lowerBound.lowerBound(newNode, this);
+//			nodePool.add(newNode);
+//		}
+//	}
 	
-	void updateChain(BnBNode n){
+	public void updateChain(BnBNode n){
 		while(n.parent!=null){
 			parts[n.part].setStructure(n.structure);
 			n=n.parent;
@@ -97,4 +121,11 @@ public class BnBSolver {
 	}
 	
 	public SortedSet<BnBNode> getBest(){ return best; }
+
+	public AminoAcidChain getChain() {
+		return chain;
+	}
+	public List<Integer> getDefinedResidues(BnBNode n){
+		return partsDefined[n.part];
+	}
 }

@@ -2,6 +2,7 @@ package ProGAL.geom3d;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 
 import ProGAL.geom3d.viewer.J3DScene;
@@ -24,6 +25,10 @@ public class PointList extends ArrayList<Point> {
 	public PointList(Point[] elements) { 
 		this();
 		for(Point p: elements) add(p);
+	}
+	
+	public PointList(Collection<Point> points){
+		super(points);
 	}
 	
 	/** Returns the i'th coordinate of k'th point. */
