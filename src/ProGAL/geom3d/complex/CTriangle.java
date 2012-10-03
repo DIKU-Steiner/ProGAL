@@ -82,6 +82,9 @@ public class CTriangle extends Triangle {
 	public boolean containsPoint(CVertex point) {
 		return (p1==point || p2==point || p3==point);
 	}
+	public boolean containsBigPoint(){
+		return ((CVertex)p1).isBigpoint() || ((CVertex)p2).isBigpoint() || ((CVertex)p3).isBigpoint(); 
+	}
 	
 	public void toScene(J3DScene scene, double rad, Color clr) {
 		for (int i = 0; i < 3; i++) { edges[i].toScene(scene, rad, clr); }		

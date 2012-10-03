@@ -9,12 +9,13 @@ import java.util.Stack;
 import javax.swing.JFrame;
 
 //import ProGAL.dataStructures.viewer.InteractiveBinaryTree;
+import ProGAL.dataStructures.viewer.InteractiveBinaryTree;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.complex.CTetrahedron;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.Sphere;
 
-public class Node /*implements InteractiveBinaryTree*/ {
+public class Node implements InteractiveBinaryTree {
 	public Node left = null;
 	public Node right = null;
 	private double alpha;

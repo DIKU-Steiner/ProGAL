@@ -7,10 +7,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import ProGAL.geom2d.Circle;
 import ProGAL.geom2d.Point;
 import ProGAL.geom2d.Vector;
 import ProGAL.geom2d.viewer.J2DScene;
 import ProGAL.geom3d.predicates.ExactJavaPredicates;
+import ProGAL.io.IOToolbox;
 import ProGAL.math.Randomization;
 
 public class DTNoBigPoints {
@@ -21,7 +23,14 @@ public class DTNoBigPoints {
 		//Boundary problem at internal point
 		List<Point> points = new ArrayList<Point>();
 		Randomization.seed(2);
-		for(int i=0;i<30000;i++) points.add(new Point(Randomization.randBetween(0.0, 1.0), Randomization.randBetween(0.0, 1.0)));
+//		for(int i=0;i<300;i++) points.add(new Point(Randomization.randBetween(0.0, 1.0), Randomization.randBetween(0.0, 1.0)));
+		for(String line: IOToolbox.readFromFile("/Users/rfonseca/Downloads/punkter.txt").split("\n")){
+			String[] coords = line.split(" ");
+			points.add(new Point(Double.parseDouble(coords[0]), Double.parseDouble(coords[1])));
+		}
+		Collections.shuffle(points, Randomization.getGenerator());
+		while(points.size()>1000) { points.remove(points.size()-1); }
+		
 		long start = System.nanoTime();
 		DTNoBigPoints dt = new DTNoBigPoints(points);
 		long end = System.nanoTime();
@@ -31,18 +40,31 @@ public class DTNoBigPoints {
 		float delta = 1.0f/(dt.triangles.size()+1);
 		float sum = 0;
 		for(Triangle t: dt.triangles){
-			Color c = new Color(0.5f-sum*0.2f, sum*0.9f, 0.7f-sum*0.4f);
+			Color c = new Color(0.6f+sum*0.1f, 0.8f+sum*0.19f, 0.7f);
+			Color c1 = new Color(100, 180, 180);
+			Color c2 = new Color(150, 250, 180);
+//			Color c = new Color(0.5f-sum*0.2f, sum*0.9f, 0.7f-sum*0.4f);
+//			Color c = new Color(150, 250, 180);
 			sum+=delta;
 //			boolean fill = t.neighbors[0]==null||t.neighbors[1]==null||t.neighbors[2]==null;
-//			boolean fill = t.getCircumCircle().getRadius()<1000;
-			boolean fill = false;
-			scene.addShape(t, c, 0.0001, fill);
+//			boolean fill = t.getCircumCircle().getRadius()<2000;
+//			boolean fill = false;
+			if(t.getCircumCircle().getRadius()<2000)
+			{
+				scene.addShape(t, c, 0, true);
+				scene.addShape(t, Color.GRAY.darker(), 40, false);
+			}
 		}
+		for(Point p: points){
+			scene.addShape(new Circle(p, 140.0), Color.RED, 0, true);
+			scene.addShape(new Circle(p, 140.0), Color.BLACK, 30, false);
+		}
+		
 		scene.centerCamera();
 		scene.autoZoom();
 	}
 
-	//	J2DScene scene = J2DScene.createJ2DSceneInFrame();
+//		J2DScene scene = J2DScene.createJ2DSceneInFrame();
 
 	public final List<Vertex> vertices;
 	public final List<Triangle> triangles = new ArrayList<Triangle>();

@@ -59,8 +59,8 @@ public class Vector {
 
 	/** Set the coordinates */
 	public void setCoords(double[] coords){
-		if(this.coords.length!=coords.length) throw new Error("Wrong dimension of coordinates");
-		for(int i=0;i<coords.length;i++) this.coords[i] = coords[i]; 
+//		if(this.coords.length!=coords.length) throw new Error("Wrong dimension of coordinates");
+		for(int i=0;i<Math.min(coords.length, this.coords.length);i++) this.coords[i] = coords[i]; 
 	}
 	
 	/** Set the i'th coordinate to v */

@@ -76,7 +76,7 @@ class Flips {
 						else if(flipcase==ApexConfig.COPLANAR){
 
 							if(config44(t,t2,p,d)){
-
+								//HMM?
 							}
 							else {
 

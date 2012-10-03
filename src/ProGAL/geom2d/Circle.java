@@ -85,6 +85,10 @@ public class Circle implements Shape{
 		this.center = mec.center;
 		this.radius = mec.radius;
 	}
+	
+	public Circle(Triangle tri){
+		this(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2));
+	}
 
 
 	public Point center() { return center; }

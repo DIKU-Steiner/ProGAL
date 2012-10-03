@@ -42,7 +42,7 @@ import ProGAL.math.Randomization;
  *  </pre>     
  *  </p>
  *  <p>The original point-set is left unaltered and non-referenced by this class. A new set of vertices is 
- *  allocated using the CVertex class. These are randomly permuted to avoid degeneracies. If one wishes to 
+ *  allocated using the CVertex class. These are randomly perturbed to avoid degeneracies. If one wishes to 
  *  associate the original points with a vertex in the complex it would be sufficient to test if the distance 
  *  between the point and the vertex is less than 0.0001.</p>
  *  
@@ -72,7 +72,6 @@ public class DelaunayComplex implements SimplicialComplex{
 	private final Walk walk;
 	private final Flip14 f14;
 	private final Flips flips;
-
 
 	/** Builds the Delaunay complex of the specified point-set */
 	public DelaunayComplex(List<Point> points) {
@@ -150,7 +149,7 @@ public class DelaunayComplex implements SimplicialComplex{
 	protected void compute() {
 		double max = 100;//TODO find a more meaningful max
 		
-		//TODO: Take care of degeneracies in a better way than permutation
+		//TODO: Take care of degeneracies in a better way than perturbation
 		for(CVertex v: points){
 			v.addThis(new Vector(
 					Randomization.randBetween(-0.00001, 0.00001),
@@ -164,7 +163,7 @@ public class DelaunayComplex implements SimplicialComplex{
 		CTetrahedron next_t = new FirstTetrahedron(max);
 		flips.addTetrahedron(next_t);
 
-		//Iterér over punkterne
+		//Iterer over punkterne
 		for(CVertex p: points){
 			next_t = walk.walk(next_t, p);
 			next_t = f14.flip14(next_t, p);

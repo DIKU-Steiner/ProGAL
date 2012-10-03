@@ -17,10 +17,12 @@ import ProGAL.geom3d.*;
 class Hemisphere3D extends Shape3D {
 
 	/** Construct the hemisphere shape. 
-	 * @param radius The radius of the hemisphere. 
+	 * @param radius The radius of the hemisphere.
+	 * @param topAngle Indicates the starting angle of the phi parameter. <code>topAngle==0</code> will 
+	 *  result in a complete sphere and <code>topAngle==Math.PI/2</code> is a half-sphere.  
 	 * @param app Appearance of the hemisphere. 
 	 */
-	public Hemisphere3D(float radius, Appearance app, int divisions) {
+	public Hemisphere3D(float radius, double topAngle, Appearance app, int divisions) {
 		super();
 		
 		List<Point> verts = new LinkedList<Point>();
@@ -28,31 +30,34 @@ class Hemisphere3D extends Shape3D {
 
 		float r = radius;
 		double d = PI/divisions;
+		double cosPh0 = cos(topAngle);
+		double sinPh0 = sin(topAngle);
 
-		for(double theta=0;theta<PI;theta+=d){
+		for(double theta=0;theta<2*PI;theta+=d){
 			double sinTh = sin(theta);
 			double sinThD = sin(theta+d);
 			double cosTh = cos(theta);
 			double cosThD = cos(theta+d);
-			for(double phi=0;phi<PI;phi+=d){
+			for(double phi=topAngle;phi<PI;phi+=d){
 				double cosPh = cos(phi);
 				double cosPhD = cos(phi+d);
 				double sinPh = sin(phi);
 				double sinPhD = sin(phi+d);
 				
-				verts.add(new Point(  r*sinTh*cosPh  ,  r*sinTh*sinPh  ,  r*cosTh  ));
-				verts.add(new Point(  r*sinThD*cosPh  ,  r*sinThD*sinPh  ,  r*cosThD  ));
-				verts.add(new Point(  r*sinTh*cosPhD  ,  r*sinTh*sinPhD  ,  r*cosTh  ));
-				verts.add(new Point(  r*sinThD*cosPhD  ,  r*sinThD*sinPhD  ,  r*cosThD  ));
-				verts.add(new Point(  r*sinTh*cosPhD  ,  r*sinTh*sinPhD  ,  r*cosTh  ));
-				verts.add(new Point(  r*sinThD*cosPh  ,  r*sinThD*sinPh  ,  r*cosThD  ));
+				verts.add(new Point(  r*cosTh *sinPh /sinPh0  ,  (-r*cosPh +cosPh0)/(1+cosPh0)  ,  r*sinTh *sinPh /sinPh0  ));
+				verts.add(new Point(  r*cosTh *sinPhD/sinPh0  ,  (-r*cosPhD+cosPh0)/(1+cosPh0)  ,  r*sinTh *sinPhD/sinPh0  ));
+				verts.add(new Point(  r*cosThD*sinPh /sinPh0  ,  (-r*cosPh +cosPh0)/(1+cosPh0)  ,  r*sinThD*sinPh /sinPh0  ));
+				verts.add(new Point(  r*cosThD*sinPh /sinPh0  ,  (-r*cosPh +cosPh0)/(1+cosPh0)  ,  r*sinThD*sinPh /sinPh0  ));
+				verts.add(new Point(  r*cosTh *sinPhD/sinPh0  ,  (-r*cosPhD+cosPh0)/(1+cosPh0)  ,  r*sinTh *sinPhD/sinPh0  ));
+				verts.add(new Point(  r*cosThD*sinPhD/sinPh0  ,  (-r*cosPhD+cosPh0)/(1+cosPh0)  ,  r*sinThD*sinPhD/sinPh0  ));
 				
-				normals.add(new Vector(  sinTh*cosPh  ,  sinTh*sinPh  ,  cosTh  ));
-				normals.add(new Vector(  sinThD*cosPh  ,  sinThD*sinPh  ,  cosThD  ));
-				normals.add(new Vector(  sinTh*cosPhD  ,  sinTh*sinPhD  ,  cosTh  ));
-				normals.add(new Vector(  sinThD*cosPhD  ,  sinThD*sinPhD  ,  cosThD  ));
-				normals.add(new Vector(  sinTh*cosPhD  ,  sinTh*sinPhD  ,  cosTh  ));
-				normals.add(new Vector(  sinThD*cosPh  ,  sinThD*sinPh  ,  cosThD  ));
+
+				normals.add(new Vector(  cosTh *sinPh /sinPh0  ,  (-cosPh +cosPh0)/(1+cosPh0)  ,  sinTh *sinPh /sinPh0  ));
+				normals.add(new Vector(  cosTh *sinPhD/sinPh0  ,  (-cosPhD+cosPh0)/(1+cosPh0)  ,  sinTh *sinPhD/sinPh0  ));
+				normals.add(new Vector(  cosThD*sinPh /sinPh0  ,  (-cosPh +cosPh0)/(1+cosPh0)  ,  sinThD*sinPh /sinPh0  ));
+				normals.add(new Vector(  cosThD*sinPh /sinPh0  ,  (-cosPh +cosPh0)/(1+cosPh0)  ,  sinThD*sinPh /sinPh0  ));
+				normals.add(new Vector(  cosTh *sinPhD/sinPh0  ,  (-cosPhD+cosPh0)/(1+cosPh0)  ,  sinTh *sinPhD/sinPh0  ));
+				normals.add(new Vector(  cosThD*sinPhD/sinPh0  ,  (-cosPhD+cosPh0)/(1+cosPh0)  ,  sinThD*sinPhD/sinPh0  ));
 			}
 		}
 

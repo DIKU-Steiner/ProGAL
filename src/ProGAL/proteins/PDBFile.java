@@ -268,11 +268,13 @@ public class PDBFile extends File{
 	/** Returns the HETATM-records of the specified model and chain. */
 	public List<HetatmRecord> getHetatmRecords(int modelNum, int chainNum){
 		List<HetatmRecord> ret = new ArrayList<HetatmRecord>();
-		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
-			if(!includeHydrogens && ar.isHydrogen()) continue;
-			if(!(ar instanceof HetatmRecord)) continue;
-			
-			ret.add((HetatmRecord)ar);
+//		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
+		for(PDBRecord ar: records){
+//			if(!includeHydrogens && ar.isHydrogen()) continue;
+			if((ar instanceof HetatmRecord)){
+				if(!includeHydrogens && ((HetatmRecord)ar).isHydrogen()) continue;
+				ret.add((HetatmRecord)ar);
+			}
 		}
 		
 		return ret;
@@ -328,14 +330,14 @@ public class PDBFile extends File{
 				chain.atom(c, ar.atomType).set(ar.coords);
 			}catch(RuntimeException exc){}
 		}
-		Point O = new Point(0,0,0);
-		AminoAcid[] aas = chain.aminoAcids();
-		for(int aa=0;aa<aas.length;aa++){
-			for(Atom a: aas[aa].atoms()){
-				if(a.equals(O)) 
-					System.err.printf("Warning: %s%d_%s not set\n",aas[aa].typeThreeLetter(),aa,a.name());
-			}
-		}
+//		Point O = new Point(0,0,0);
+//		AminoAcid[] aas = chain.aminoAcids();
+//		for(int aa=0;aa<aas.length;aa++){
+//			for(Atom a: aas[aa].atoms()){
+//				if(a.equals(O)) 
+//					System.err.printf("Warning: %s%d_%s not set\n",aas[aa].typeThreeLetter(),aa,a.name());
+//			}
+//		}
 		
 		return chain;
 	}

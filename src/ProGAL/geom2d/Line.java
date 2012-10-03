@@ -33,12 +33,12 @@ public class Line {
 		if (b != 0.0) p = new Point(0.0,-c/b); else p = new Point(-c/a,0.0);
 	}
 
-	public Vector getDirection() { return new Vector(n.y,-n.x); }
+	public Vector getDirection() { return new Vector(n.y(),-n.x()); }
 	
-	public double getSlope() { if (!isVertical()) return n.x/n.y; else return Double.MAX_VALUE;
+	public double getSlope() { if (!isVertical()) return n.x()/n.y(); else return Double.MAX_VALUE;
 	}
 	
-	public boolean isVertical() { return n.y == 0.0; }
+	public boolean isVertical() { return n.y() == 0.0; }
 	
 	public boolean isParallelWith(Line l) { return Math.abs(Vector.crossProduct(n, l.n)) < Constants.EPSILON; }
 	
@@ -50,8 +50,12 @@ public class Line {
 	 * project point p onto this line
 	 */
 	public Point projectPoint(Point q) {
-		double t = n.y*(q.x()-p.x()) - n.x*(q.y()-p.y());
-		return new Point(n.y*t+p.x(), p.y()-n.x*t);
+		double t = n.y()*(q.x()-p.x()) - n.x()*(q.y()-p.y());
+		return new Point(n.y()*t+p.x(), p.y()-n.x()*t);
+	}
+	
+	public double projectionParameter(Point q){
+		return n.y()*(q.x()-p.x()) - n.x()*(q.y()-p.y());
 	}
 	
 	/*
@@ -60,12 +64,12 @@ public class Line {
 	 * Modified by Pawel on June 23, 2010
 	 */
 	public static Point getIntersection(Line l1, Line l2) {
-		double denom = l1.n.x*l2.n.y - l1.n.y*l2.n.x;
+		double denom = l1.n.x()*l2.n.y() - l1.n.y()*l2.n.x();
 		if (Math.abs(denom) < Constants.EPSILON) throw new RuntimeException("Lines are parallel");
 		else {
-			double e = l1.n.x*l1.p.x() + l1.n.y*l1.p.y();
-			double f = l2.n.x*l2.p.x() + l2.n.y*l2.p.y();
-			return new Point((e*l2.n.y - f*l1.n.y)/denom, (f*l1.n.x - e*l2.n.x)/denom);
+			double e = l1.n.x()*l1.p.x() + l1.n.y()*l1.p.y();
+			double f = l2.n.x()*l2.p.x() + l2.n.y()*l2.p.y();
+			return new Point((e*l2.n.y() - f*l1.n.y())/denom, (f*l1.n.x() - e*l2.n.x())/denom);
 		}
 	}
 	
@@ -80,7 +84,7 @@ public class Line {
 
 	public Point getPoint(double d) {
 		Vector dir = this.getDirection();
-		return new Point(p.x()+d*dir.x, p.y()+d*dir.y);
+		return new Point(p.x()+d*dir.x(), p.y()+d*dir.y());
 	}
 
 	public double intersectionParameter(Line l) {

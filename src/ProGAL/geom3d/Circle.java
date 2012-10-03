@@ -84,7 +84,7 @@ public class Circle implements Shape{
 	public double getRadius() { return radius; }
 	/** Get the normal of the circle. */
 	public Vector getNormalVector() { return normal; }
-	public Vector getNormal() { return getNormalVector(); }
+	public Vector getNormal() { return normal; }
 
 	/** Create the equilateral circle of two points. */
 	public static Circle getEquilateralCircle(Point a, Point b) {
@@ -276,5 +276,6 @@ public class Circle implements Shape{
 			q.toScene(scene, 0.03, Color.red);
 		}
 	}
+
 }
 

@@ -1,6 +1,9 @@
 package ProGAL.geom2d;
 
-import ProGAL.math.Polynomial;
+import java.awt.Color;
+
+import ProGAL.geom2d.viewer.J2DScene;
+import ProGAL.math.Matrix;
 
 public class ApolloniusSolver {
 
@@ -9,63 +12,69 @@ public class ApolloniusSolver {
 	 * @param c1 One of the circles in the problem 
 	 * @param c2 One of the circles in the problem
 	 * @param c3 One of the circles in the problem
-	 * @param s1 An indication if the solution should be externally or internally tangent (+1/-1) to c1
-	 * @param s2 An indication if the solution should be externally or internally tangent (+1/-1) to c2
-	 * @param s3 An indication if the solution should be externally or internally tangent (+1/-1) to c3
+	 * @param s1 An indication if the solution should be externally or internally tangent (-1/+1) to c1
+	 * @param s2 An indication if the solution should be externally or internally tangent (-1/+1) to c2
+	 * @param s3 An indication if the solution should be externally or internally tangent (-1/+1) to c3
 	 * @return The solution to the problem of Apollonius. 
-	 * @hops 68
 	 */
 	public static Circle solveApollonius(Circle c1, Circle c2, Circle c3, int s1, int s2, int s3){
-		double x1 = c1.center.get(0);
-		double y1 = c1.center.get(1);
-		double r1 = c1.radius;
-		double x2 = c2.center.get(0);
-		double y2 = c2.center.get(1);
-		double r2 = c2.radius;
-		double x3 = c3.center.get(0);
-		double y3 = c3.center.get(1);
-		double r3 = c3.radius;
-
-		double v11 = 2*x2 - 2*x1;
-		double v12 = 2*y2 - 2*y1;
-		double v13 = x1*x1 - x2*x2 + y1*y1 - y2*y2 - r1*r1 + r2*r2;
-		double v14 = 2*s2*r2 - 2*s1*r1;
-		//14HOps
-
-		double v21 = 2*x3 - 2*x2;
-		double v22 = 2*y3 - 2*y2;
-		double v23 = x2*x2 - x3*x3 + y2*y2 - y3*y3 - r2*r2 + r3*r3;
-		double v24 = 2*s3*r3 - 2*s2*r2;
-		//28HOps
-		
-		double w12 = v12/v11;
-		double w13 = v13/v11;
-		double w14 = v14/v11;
-		//31HOps
-		
-		double w22 = v22/v21-w12;
-		double w23 = v23/v21-w13;
-		double w24 = v24/v21-w14;
-		//34HOps
-		
-		double P = -w23/w22;
-		double Q = w24/w22;
-		double M = -w12*P-w13;
-		double N = w14 - w12*Q;
-		//38HOps
-		
-		double a = N*N + Q*Q - 1;
-		double b = 2*M*N - 2*N*x1 + 2*P*Q - 2*Q*y1 + 2*s1*r1;
-		double c = x1*x1 + M*M - 2*M*x1 + P*P + y1*y1 - 2*P*y1 - r1*r1;
-		//59HOps
-		
-		double[] quadSols = Polynomial.calcRoots(a,b,c); //7 Hops
-		double rs = quadSols[0];
-		double xs = M+N*rs;
-		double ys = P+Q*rs;
-		//68HOps
-		
-		return new Circle(new Point(xs,ys), rs);
+		Point[] centers = {c1.center, c2.center, c3.center};
+		double[] radii = {c1.radius, c2.radius, c3.radius};
+		int[] s = {s1,s2,s3};
+		return solveApollonius(centers, radii, s);
 	}
-	
+
+	/**
+	 * @hops 66
+	 */
+	private static Circle solveApollonius(Point[] centers, double[] radii, int[] s){
+		
+		//Step 1. Rewrite to linear system
+		Matrix A = new Matrix(2,4);
+		for(int i=0;i<2;i++){//i: row
+			for(int j=0;j<2;j++){ //j: col
+				A.set(  i, j, 2*(centers[i+1].get(j)-centers[0].get(j))  );//1HOp * 2 * 2 = 4
+			}
+			A.set(  i, 2, 2*(s[0]*radii[0]-s[i+1]*radii[i+1])  );//3HOp * 2 = 6
+
+			double sum = 0;
+			for(int j=0;j<2;j++) 
+				sum+=centers[i+1].get(j)*centers[i+1].get(j) - centers[0].get(j)*centers[0].get(j);//2HOp * 2 * 2
+			sum+=radii[0]*radii[0]-radii[i+1]*radii[i+1];//2HOp * 2
+			A.set(i, 3, sum);
+		}
+
+		//Step 2. Simplify linear system
+		A.reduceThis();// m*n+(n-1)^2*m = 2*4+3*3*2 = 26HOp
+		double M = A.get(0, 3);
+		double N = -A.get(0, 2);
+		double P = A.get(1, 3);
+		double Q = -A.get(1, 2);
+
+		//Step3. Find tangent sphere
+		//First find r_s
+		double a = N*N+Q*Q-1;//2HOp
+		double b = 2*(  (M-centers[0].get(0))*N + (P-centers[0].get(1))*Q + s[0]*radii[0]  );//4HOp
+		double c = 
+				(M-centers[0].get(0))*(M-centers[0].get(0)) + 
+				(P-centers[0].get(1))*(P-centers[0].get(1)) - 
+				radii[0]*radii[0]; //3HOp
+		double r_s = (-b+Math.signum(a)*Math.sqrt(b*b-4*a*c))/(2*a);//7HOp
+		double x_s = M+N*r_s;//1HOp
+		double y_s = P+Q*r_s;//1HOp
+		return new Circle(new Point(x_s, y_s), r_s);
+	}
+
+	public static void main(String[] args){
+		Circle c1 = new Circle(new Point(1,0), 0.3);
+		Circle c3 = new Circle(new Point(0,1), 0.5);
+		Circle c2 = new Circle(new Point(1,1), 0.4);
+		Circle tangent = solveApollonius(c1, c2, c3, -1, -1, -1);
+		J2DScene scene = J2DScene.createJ2DSceneInFrame();
+		scene.addShape(c1);
+		scene.addShape(c2);
+		scene.addShape(c3);
+		scene.addShape(tangent, Color.green.darker(), 0,true);
+	}
+
 }

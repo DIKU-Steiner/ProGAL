@@ -85,19 +85,23 @@ public class Polynomial {
 	
 	/** 
 	 * Solves quadratic equation. 
-	 * @hops 3 to 7.  
+	 * @hops 4 to 5.  
 	 */
 	private static double[] solveSecondDegree(double[] parameters){
 		double a = parameters[0];
 		double b = parameters[1];
 		double c = parameters[2];
-		double D = b*b-4*a*c;
+		double p = -0.5*b/a;	//2HOps
+		double D = p*p-c/a;		//2HOps
+//		double D = b*b-4*a*c;
 		if(D<0) return new double[]{};
-		if(D==0) return new double[]{-b/(2*a)};
+//		if(D==0) return new double[]{-b/(2*a)};
+		if(D==0) return new double[]{p};
 		else {
-			double aa = 2*a;
-			double sqD = Math.sqrt(D);
-			return new double[]{(-b-sqD)/aa, (-b+sqD)/aa};
+//			double aa = 2*a;
+			double sqD = Math.sqrt(D);		//1HOp
+//			return new double[]{(-b-sqD)/aa, (-b+sqD)/aa};
+			return new double[]{p-sqD, p+sqD};
 		}
 	}
 	

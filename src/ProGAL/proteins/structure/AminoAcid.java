@@ -43,11 +43,18 @@ public class AminoAcid {
 	public AminoAcidChain aminoAcidChain(){ return chain; }
 	
 	public int index(){ return index; }
+
+	static long stop = 10000000;
+	static long count = 0;
 	
 	public Atom atom(String name){
-		int id = name.toUpperCase().hashCode();
+//		if((count++%stop)==0){
+//			Thread.dumpStack();
+//		}
+		String ucName = name.toUpperCase();
+		int id = ucName.hashCode();
 		for(Atom a: atoms)
-			if(a.id==id && a.name().equalsIgnoreCase(name.toUpperCase())) return a;
+			if(a.id==id) return a;// && a.name().equalsIgnoreCase(ucName)) return a;
 		throw new RuntimeException(name+" not found in "+typeThreeLetter());
 	}
 	

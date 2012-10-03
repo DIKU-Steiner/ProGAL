@@ -46,7 +46,7 @@ public class ParametricParaboloid extends ParametricSurface{
 	
 
 	public Point getPoint(double u, double v){
-		return rotation.multiplyIn(new Point(a*(u+v),b*(v-u),c*v*u)).addThis(displacement);
+		return (Point)rotation.multiplyIn(new Point(a*(u+v),b*(v-u),c*v*u)).addThis(displacement);
 //		return rotation.applyToIn(new Point(cos(c)*u-sin(c)*v,sin(c)*u+cos(c)*v,(v*v/(b*b)-u*u/(a*a)))).addThis(displacement);
 	}
 	public Point getPoint(ProGAL.geom2d.Point par){

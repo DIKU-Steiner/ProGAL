@@ -18,6 +18,18 @@ public class ParametricPlane {
 		this.v2 = v2;
 		this.projInv = Matrix3x3.createRowMatrix(v1, v2, n);
 	}
+
+	/** Construct a parametric plane with the specified point and normal. It is not specified 
+	 * how the orthogonal basis is constructed except that the third basis-vector will be the 
+	 * normal vector.
+	 */
+	public ParametricPlane(Point p, Vector normal){
+		this.p = p;
+		this.n = normal.normalize();
+		this.v1 = new Vector(1.001,0.002,0).crossThis(normal).normalizeThis();
+		this.v2 = this.n.cross(v1);
+		this.projInv = Matrix3x3.createRowMatrix(v1, v2, n);
+	}
 	
 	/** Projects the point v onto this plane and returns the parameters of 
 	 * the projected point (scaling of v1, of v2 and finally the distance or 

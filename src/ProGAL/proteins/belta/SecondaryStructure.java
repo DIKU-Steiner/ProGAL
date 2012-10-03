@@ -139,13 +139,13 @@ public class SecondaryStructure {
 	
 	private final SSSegment[] strands, helices, coils;
 	
-	/** Return array containing all segments, s, where <code>s.type==SSType.STRAND</code> */
+	/** Return array containing all segments, s, where <code>s.type==SSType.STRAND</code>. These are in sequential order.*/
 	public SSSegment[] getStrands(){ return strands; }
 	
-	/** Return array containing all segments, s, where <code>s.type==SSType.HELIX</code> */
+	/** Return array containing all segments, s, where <code>s.type==SSType.HELIX</code>. These are in sequential order. */
 	public SSSegment[] getHelices(){ return helices; }
 	
-	/** Return array containing all segments, s, where <code>s.type==SSType.COIL</code> */
+	/** Return array containing all segments, s, where <code>s.type==SSType.COIL</code>. These are in sequential order. */
 	public SSSegment[] getCoils(){   return coils;	}
 
 	/** 

@@ -80,6 +80,13 @@ public class Point implements Serializable{
 		return this;
 	}
 	
+	/** Scale this point by the specified value */
+	public Point multiplyThis(double s) {
+		for(int d=0;d<dim;d++) 
+			coords[d]*=s;
+		return this;
+	}
+	
 	public double distanceSquared(Point p){
 		double sum = 0;
 		for(int d=0;d<dim;d++) {
@@ -90,6 +97,14 @@ public class Point implements Serializable{
 	}
 	public double distance(Point p){
 		return Math.sqrt(distanceSquared(p));
+	}
+
+	public double dot(Point p){
+		double sum = 0;
+		for(int d=0;d<dim;d++) {
+			sum+=coords[d]*p.coords[d];
+		}
+		return sum;
 	}
 	
 	/** Creates the midpoint of two points. */
@@ -112,9 +127,9 @@ public class Point implements Serializable{
 	}
 	
 	public Vector vectorTo(Point p1) {
-		double[] coords = new double[dim];
-		for(int d=0;d<dim;d++) coords[d] = p1.coords[d]-coords[d];
-		return new Vector(coords);
+		double[] newCoords = new double[dim];
+		for(int d=0;d<dim;d++) newCoords[d] = p1.coords[d]-this.coords[d];
+		return new Vector(newCoords);
 	}
 
 	public Vector toVector(){
@@ -146,5 +161,6 @@ public class Point implements Serializable{
 	public void toConsole(int dec) {
 		System.out.println(toString(dec));
 	}
+
 
 }

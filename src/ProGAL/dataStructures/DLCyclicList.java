@@ -16,7 +16,7 @@ public class DLCyclicList<T> implements Iterable<T>{
 	
 	public DLNode<T> getFirst() { return entry; }
 	
-	/** Finds the element containing given object */
+	/** Finds the element containing given object. Worst-case O(n)-time. */
 	public DLNode<T> findNode(Object obj) {
 		DLNode<T> elem = entry;
 		while ((elem !=null) && (elem.obj != obj)) elem = elem.next;
@@ -26,7 +26,13 @@ public class DLCyclicList<T> implements Iterable<T>{
 	public DLNode<T> getEntry(){ return entry; }
 	public void setEntry(DLNode<T> n){	entry = n;	}
 	
-	/** Adds an object before the entry of the list */
+	/** Adds the object before the entry of the list. Worst-case O(1)-time. */
+	public void pushBefore(T obj) {
+		pushBefore(obj, entry);
+	}
+		
+	
+	/** Adds an object before the specified node in the list. Worst-case O(1)-time. */
 	public void pushBefore(T obj, DLNode<T> n) {
 		DLNode<T> nd;
 		if(n==null) nd = new DLNode<T>(obj);
@@ -35,7 +41,7 @@ public class DLCyclicList<T> implements Iterable<T>{
 		size++;
 	}
 	
-	/** Adds an object after the entry of the list */
+	/** Adds an object after the specified node in the list. Worst-case O(1)-time. */
 	public void pushAfter(T obj, DLNode<T> n) {
 		DLNode<T> nd;
 		if(n==null) nd = new DLNode<T>(obj);
@@ -44,7 +50,7 @@ public class DLCyclicList<T> implements Iterable<T>{
 		size++;
 	}
 	
-	/** Deletes a node from the list and returns its object */
+	/** Deletes a node from the list and returns its object. Worst-case O(1)-time. */
 	public T delete(DLNode<T> nd) {
 		if(entry==null) throw new RuntimeException("Cannot delete from empty list");
 		if(entry == nd) entry = nd.next;
@@ -54,6 +60,7 @@ public class DLCyclicList<T> implements Iterable<T>{
 		return nd.obj;
 	}
 	
+	/** Returns the number of elements in this cyclic list. */
 	public int getSize() {
 		return size;
 	}
@@ -64,12 +71,12 @@ public class DLCyclicList<T> implements Iterable<T>{
 
 	public static void main(String[] args) {
 		DLCyclicList<Integer> L = new DLCyclicList<Integer>();
-		L.pushBefore(1, L.entry);
-		L.pushBefore(2, L.entry);
-		L.pushBefore(3, L.entry);
-		L.pushBefore(100, L.entry);
-		L.pushBefore(4, L.entry);
-		L.pushBefore(5, L.entry);
+		L.pushBefore(0, L.getEntry());
+		L.pushBefore(1, L.getEntry());
+		L.pushBefore(2, L.getEntry());
+		L.pushBefore(3, L.getEntry());
+		L.pushBefore(4, L.getEntry());
+		L.pushBefore(5, L.getEntry());
 		for(Integer i: L){
 			System.out.println(i);
 		}
@@ -112,7 +119,7 @@ public class DLCyclicList<T> implements Iterable<T>{
 		}
 	}
 	
-	static class DLListIterator<T> implements java.util.Iterator<T> {
+	private static class DLListIterator<T> implements java.util.Iterator<T> {
 
 		private DLCyclicList<T> lst;
 		private DLNode<T> current;

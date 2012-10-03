@@ -3,11 +3,13 @@ package ProGAL.geom3d.complex.tessellation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.PointWeighted;
 import ProGAL.geom3d.Vector;
 import ProGAL.geom3d.complex.CEdge;
@@ -74,6 +76,15 @@ public class DelaunayTessellation{
 	private final Flip14 f14;
 	private final Flips flips;
 
+	public static void main(String[] args){
+		List<Point> points = new LinkedList<Point>();//PointList.generatePointsInCube(100);
+		for(int i=0;i<100;i++){
+			points.add(new PointWeighted(Randomization.randBetween(0.0, 1.0),Randomization.randBetween(0.0, 1.0),Randomization.randBetween(0.0, 1.0),0));
+		}
+		DelaunayTessellation dt = new DelaunayTessellation(points);
+		
+	}
+	
 	/** Builds the Delaunay complex of the specified point-set */
 	public DelaunayTessellation(List<Point> points) {
 		this(points, new InexactRegularJavaPredicates());

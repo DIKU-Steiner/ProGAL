@@ -1,5 +1,6 @@
 package ProGAL.geom3d.volumes;
 
+import java.awt.Color;
 import java.util.Collection;
 import java.util.List;
 
@@ -12,6 +13,8 @@ import ProGAL.geom3d.LineSegment;
 import ProGAL.geom3d.PointWeighted;
 import ProGAL.geom3d.Vector;
 import ProGAL.geom3d.complex.CTetrahedron;
+import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.math.Constants;
 
 /** 
  * A sphere represented by a center-point and a radius. 
@@ -137,6 +140,7 @@ public class Sphere implements Volume{
 	public void setCenter(Point p0, Point p1, Point p2, Point p3) { computeSphere(p0, p1, p2, p3); }
 
 	public void setRadius(double radius) { this.radius = radius; }
+	
 	/** Returns true if this sphere is intersected or touched by another sphere. */
 	public boolean isIntersected (Sphere sphere) {	return overlaps(sphere);	}
 
@@ -201,6 +205,9 @@ public class Sphere implements Volume{
 		Circle c2 = plane.getIntersection(this);
 		if (c2 != null) return c.getFirstIntersection(c2, p, dir); else return null;
 	}
+	
+	
+	
 	
 	/** Returns true if none of the given points is in the sphere. */
 	public boolean containsNone(List<Point> points) {
@@ -358,6 +365,71 @@ public class Sphere implements Volume{
 			}
 		}
 		return sphere;
+	}
+	
+	
+	/**
+	 * Find the two, one or zero points that is at the intersection of the three sphere shells.
+	 * If the three spheres intersect in more than two points or one sphere contains another, 
+	 * the result of this method not specified.  
+	 * @hops 57-70
+	 */
+	public static Point[] getIntersections(Sphere s1, Sphere s2, Sphere s3){
+		//See ProGAL/Doc/ThreeSphereIntersection.jpg for derivation of these expressions
+		//Inspired by http://mathforum.org/library/drmath/view/63138.html
+		double x1 = s1.center.x();
+		double y1 = s1.center.y();
+		double z1 = s1.center.z();
+		double c1Sq = s1.center.dot(s1.center);								//3HOp
+		double c2Sq = s2.center.dot(s2.center);								//3HOp
+		double r1 = s1.radius,							r1Sq = r1*r1;		//2HOp
+		Vector v12 = s2.center.vectorTo(s1.center);
+		Vector v23 = s3.center.vectorTo(s2.center);
+		double c12 = c1Sq-c2Sq;	
+		double c23 = c2Sq-s3.center.dot(s3.center);							//3HOp
+		double r2Sq = s2.radius*s2.radius;									//1HOp (12)
+		double r12 = r2Sq-r1Sq + c12;
+		double r23 = s3.radius*s3.radius - r2Sq + c23;						//3HOp
+		double Dyz = v12.y()*v23.z()-v23.y()*v12.z(),	DyzSq = Dyz*Dyz;	//3HOp
+		double Dry = r12*v23.y()-r23*v12.y(), 			DrySq = Dry*Dry;	//3HOp
+		double Dzx = v12.z()*v23.x()-v23.z()*v12.x(), 	DzxSq = Dzx*Dzx;	//3HOp
+		double Dxr = v12.x()*r23-v23.x()*r12,			DxrSq = Dxr*Dxr;	//3HOp
+		double Dxy = v12.x()*v23.y()-v23.x()*v12.y(), 	DxySq = Dxy*Dxy;	//3HOp (30)
+				
+		double k2 = (DyzSq+DzxSq)/DxySq + 1;								//1HOp
+		double k1 = (Dyz*Dry+Dzx*Dxr)/DxySq - 4*(x1*Dyz+y1*Dzx)/Dxy - z1;	//7HOp
+		double k0 = (DrySq+DxrSq)/(4*DxySq) + c1Sq-r1Sq - 2*(x1*Dry+y1*Dxr)/Dxy;	//6HOp
+				
+		double d = k1*k1-4*k2*k0;											//3HOp
+		if(d<-Constants.EPSILON) return new Point[]{};
+		if(d<Constants.EPSILON) { //One intersection-point
+			double zi = -k1/(2*k2);											//2HOp (49)
+			return new Point[]{
+					new Point( (2*zi*Dyz+Dry)/(2*Dxy) , (2*zi*Dzx+Dxr)/(2*Dxy) , zi ) 	//8HOp (57)
+			};
+		}
+		double dRt = Math.sqrt(d);											//1HOp (50)
+		double zi0 = (-k1-dRt)/(2*k2);										//2HOp
+		double zi1 = (-k1+dRt)/(2*k2);										//2HOp 
+				
+		return new Point[]{
+				new Point( (2*zi0*Dyz+Dry)/(2*Dxy) , (2*zi0*Dzx+Dxr)/(2*Dxy) , zi0 ),	//8HOp
+				new Point( (2*zi1*Dyz+Dry)/(2*Dxy) , (2*zi1*Dzx+Dxr)/(2*Dxy) , zi1 )	//8HOp (70)
+		};
+	}
+	public static void main(String[] args){
+		J3DScene scene = J3DScene.createJ3DSceneInFrame();
+		Sphere s1 = new Sphere( new Point(0,0,0), 1);
+		Sphere s2 = new Sphere( new Point(0,0,0), 1.2);
+		Sphere s3 = new Sphere( new Point(1,1,0), 1);
+		scene.addShape(s1, new Color(200,0,0));
+		scene.addShape(s2, new Color(0,200,0));
+		scene.addShape(s3, new Color(0,0,200));
+		Point[] intersections = Sphere.getIntersections(s1, s2, s3);
+		for(Point p: intersections){
+			p.toConsole();
+			scene.addShape(new Sphere(p,0.1), Color.GRAY.darker());
+		}
 	}
 
 	/**

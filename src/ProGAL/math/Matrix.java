@@ -63,6 +63,17 @@ public class Matrix {
 		return ret;
 	}
 
+	public void setRow(int r, ProGAL.geomNd.Vector v){
+		for(int c=0;c<Math.min(v.getDimensions(), N);c++){
+			coords[r][c] = v.get(c);
+		}
+	}
+
+	public void setColumn(int c, ProGAL.geomNd.Vector v){
+		for(int r=0;r<Math.min(v.getDimensions(), M);r++){
+			coords[r][c] = v.get(r);
+		}
+	}
 
 
 
@@ -119,35 +130,27 @@ public class Matrix {
 	/** Apply this matrix to the point p and return the result (this will NOT change p). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
 	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
-	public Point multiply(Point p){
+	public ProGAL.geomNd.Point multiply(ProGAL.geomNd.Point p){
 		return multiplyIn(p.clone());
 	}
 
+	public Point multiply(Point p){
+		return (Point)multiplyIn(p.clone());
+	}
 
 	/** Apply this matrix to the point p and return the result (this will change p). 
 	 * This method requires the matrix to be a 3x3, 3x4 or 4x4 matrix. If it is a 
 	 * 4x4 matrix the bottom row is assumed to be (0,0,0,1).*/
-	public Point multiplyIn(Point p){
-		if(M==3 && N==3){
-			double[] ret = new double[3];
-			for(int i=0;i<3;i++) {
-				for(int j=0;j<3;j++)
-					ret[i] += p.get(j)*coords[i][j];
-			}
-			for(int i=0;i<3;i++) p.set(i, ret[i]);
-			return p;
+	public ProGAL.geomNd.Point multiplyIn(ProGAL.geomNd.Point p){
+		double[] ret = new double[M];
+		for(int r=0;r<M;r++) {
+			for(int c=0;c<N;c++)
+				ret[r] += p.get(c)*coords[r][c];
 		}
-		if( (M==4 || M==3) && N==4){
-			double[] ret = new double[3];
-			for(int i=0;i<3;i++) {
-				for(int j=0;j<3;j++)
-					ret[i] += p.get(j)*coords[i][j];
-				ret[i] += coords[i][3];
-			}
-			for(int i=0;i<3;i++) p.set(i,ret[i]);
-			return p;
+		for(int r=0;r<M;r++){
+			p.set(r, ret[r]);
 		}
-		throw new Error("Can only apply 3x3, 3x4 or 4x4 matrices to points");
+		return p;
 	}
 
 	/** Apply this matrix to the vector v and return the result (without changing v). 
@@ -230,22 +233,22 @@ public class Matrix {
 		return this;
 	}
 
-	/** Get the determinant of this matrix. Throws an error if the matrix is not square*/
-	public double determinant(){
-		if(M!=N)
-			throw new Error("Determinant undefined for non-square matrix");
-		if(M==1)
-			return coords[0][0];
-
-		double ret = 0;
-		for(int c=0;c<N;c++){
-			double minorDet = minor(0,c).determinant();
-			if(c%2==0) 	ret+=coords[0][c]*minorDet;
-			else		ret-=coords[0][c]*minorDet;
-		}
-
-		return ret;
-	}
+//	/** Get the determinant of this matrix. Throws an error if the matrix is not square*/
+//	public double determinant(){
+//		if(M!=N)
+//			throw new Error("Determinant undefined for non-square matrix");
+//		if(M==1)
+//			return coords[0][0];
+//
+//		double ret = 0;
+//		for(int c=0;c<N;c++){
+//			double minorDet = minor(0,c).determinant();
+//			if(c%2==0) 	ret+=coords[0][c]*minorDet;
+//			else		ret-=coords[0][c]*minorDet;
+//		}
+//
+//		return ret;
+//	}
 
 	/** Return the minor, i.e. the matrix that results from removing row r and column c from this matrix. */
 	public Matrix minor(int r, int c){
@@ -260,7 +263,15 @@ public class Matrix {
 		}
 		return ret;
 	}
+	
+	/** Get the determinant of this matrix. Throws an error if the matrix is not square */
+	public double determinant(){
+		if(M!=N) throw new Error("Determinant undefined for non-square matrix");
+		if(M==1) return coords[0][0];
+		return new LUDecomposition(this).det();
+	}
 
+	
 	public boolean isSquare(){ return M==N; }
 
 	/** Return the inverse of this matrix. */
@@ -358,6 +369,7 @@ public class Matrix {
 			bSq[i-1] = bs[i-1].dot(bs[i-1]); 
 			for(int j=0;j<i;j++) bs[i].addThis(bs[j].multiply(-ai.dot(bs[j])/bSq[j])); 
 		}
+		bSq[N-1] = bs[N-1].dot(bs[N-1]);
 		for(int i=0;i<N;i++){
 			if(bSq[i]!=1){
 				bs[i].divideThis(Math.sqrt(bSq[i]));
@@ -416,6 +428,15 @@ public class Matrix {
 	}
 
 
+	public static Matrix createRandomMatrix(int n) {
+		Matrix ret = new Matrix(n,n);
+		for(int i=0;i<n;i++){ 
+			for(int j=0;j<n;j++){ 
+					ret.coords[i][j] = Randomization.randBetween(0.0, 1.0);
+			}
+		}
+		return ret;
+	}
 	public static Matrix createIdentityMatrix(int n) {
 		Matrix ret = new Matrix(n,n);
 		for(int i=0;i<n;i++) ret.coords[i][i] = 1;
@@ -1271,6 +1292,30 @@ public class Matrix {
 		public Matrix multiplyThis(double s){ return multiply(s); }
 		public Matrix invertThis(){ return invert(); }
 	}
+
+	/** Get a submatrix.
+	   @param r    Array of row indices.
+	   @param i0   Initial column index
+	   @param i1   Final column index
+	   @return     A(r(:),j0:j1)
+	   @exception  ArrayIndexOutOfBoundsException Submatrix indices
+	 */
+
+	Matrix getMatrix (int[] r, int j0, int j1) {
+		Matrix X = new Matrix(r.length,j1-j0+1);
+		double[][] B = X.coords;
+		try {
+			for (int i = 0; i < r.length; i++) {
+				for (int j = j0; j <= j1; j++) {
+					B[i][j-j0] = coords[r[i]][j];
+				}
+			}
+		} catch(ArrayIndexOutOfBoundsException e) {
+			throw new ArrayIndexOutOfBoundsException("Submatrix indices");
+		}
+		return X;
+	}
+
 
 
 

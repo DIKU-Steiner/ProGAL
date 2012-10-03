@@ -2,6 +2,8 @@ package ProGAL.geomNd;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import ProGAL.math.Matrix;
 import ProGAL.math.Randomization;
@@ -112,11 +114,21 @@ public class PointList extends ArrayList<Point> {
 	
 	/** Writes this point-list to <code>System.out</code>. */
 	public void toConsole(int dec) {
-		System.out.println("PointList3d:");
+		System.out.println("PointList:");
 		for (int i = 0; i < size(); i++){
 			System.out.print(String.format("%3d> ",i));
 			get(i).toConsole(dec);
 		}
+	}
+
+	public static List<Point> generatePointsInCube(int n, int d) {
+		List<Point> ret = new LinkedList<Point>();
+		for(int i=0;i<n;i++){
+			double[] coords = new double[d];
+			for(int j=0;j<d;j++) coords[j] = Randomization.randBetween(0.0, 1.0);
+			ret.add(new Point(coords));
+		}
+		return ret;
 	}
 
 }

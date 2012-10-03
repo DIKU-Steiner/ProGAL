@@ -16,27 +16,31 @@ public class LSC implements Shape{
 		this(new LineSegment(p1,p2),radius);
 	}
 	
-	public LineSegment getSegment(){ return segment; }
+	public void setRadius(double rad){	this.radius = rad;	}
 	
+	public LineSegment getSegment(){ return segment; }
 	public double getRadius(){ return radius; }
 	
 	public double getArea(){
 		return (Math.PI*radius+2*segment.getLength())*radius;
 	}
-	
-	
-	/**
-	 * Create an LSC given a canonical representation of three points and the direction and radius of the LSC. 
-	 * The canonical representation of three points (x1,y1), (x2,y2), (x3,y3) means that they are translated 
-	 * and scaled such that y1=y2=0, y3=1 and -x1=x2. It is assumed that the direction is 'near (1,0,0)' in the 
-	 * sense that P1 and P2 should be the points that span the hemicircles of the LSC
-	 */
-	public static LSC createLSCFromDirAndRad(double x2, double x3, Vector dir, double rad){
-		return null;
-	}
 
 	public Point getCenter() {
 		return segment.getCenter();
+	}
+	
+//	/**
+//	 * Create an LSC given a canonical representation of three points and the direction and radius of the LSC. 
+//	 * The canonical representation of three points (x1,y1), (x2,y2), (x3,y3) means that they are translated 
+//	 * and scaled such that y1=y2=0, y3=1 and -x1=x2. It is assumed that the direction is 'near (1,0,0)' in the 
+//	 * sense that P1 and P2 should be the points that span the hemicircles of the LSC
+//	 */
+//	public static LSC createLSCFromDirAndRad(double x2, double x3, Vector dir, double rad){
+//		return null;
+//	}
+
+	public LSC clone(){
+		return new LSC(segment.clone(), radius);
 	}
 	
 }

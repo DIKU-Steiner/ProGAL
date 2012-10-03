@@ -95,8 +95,8 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 		this.scene.canvas.addKeyListener(this);
 
 		setBackClip(10000);
-		setBackFog(100);
-		setFrontFog(60);
+		setBackFog(1000);
+		setFrontFog(50);
 	}
 
 	public Point getLocation(){ return location; }

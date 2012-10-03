@@ -11,11 +11,13 @@ import ProGAL.geom3d.volumes.Sphere;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Simplex;
 import ProGAL.math.Randomization;
+import ProGAL.proteins.PDBFile;
+import ProGAL.proteins.PDBWebReader;
 
 public class VoidTree {
 	private AlphaFiltration alphaFil;
 	public Node root = null;
-	J3DScene scene = J3DScene.createJ3DSceneInFrame();
+//	J3DScene scene = J3DScene.createJ3DSceneInFrame();
 	
 	public VoidTree(List<Point> points, double interval) {
 		this.alphaFil = new AlphaFiltration(points);
@@ -127,10 +129,10 @@ public class VoidTree {
 				tris.add((CTriangle)simplices.get(i));
 			}
 			// Vertices are added to the scene
-			if(table[5][i]==0) 
-				scene.addShape(
-						new Sphere( (Point)simplices.get(i),0.3 ), 
-						java.awt.Color.BLUE );
+//			if(table[5][i]==0) 
+//				scene.addShape(
+//						new Sphere( (Point)simplices.get(i),0.3 ), 
+//						java.awt.Color.BLUE );
 			// When a tetrahedron is met a void is destroyed and a leaf obtains a death time different than default
 			if (table[5][i]==3){
 				LinkedList<CTetrahedron> tets = new LinkedList<CTetrahedron>();
@@ -189,10 +191,10 @@ public class VoidTree {
 		//List<Point> points = new OverlappingSpheresPointList(2, 40);
 		
 		// protein:
-		//List<Point> points = new ProteinPointList("3SQF");
+//		List<Point> points = new ProteinPointList("3SQF");
 	
 		// Eiffel:
-		//List<Point> points = new EiffelPointList();
+//		List<Point> points = new EiffelPointList();
 		
 //		//cube: 
 		/*points.add(new Point(0,1,0));
@@ -227,13 +229,22 @@ public class VoidTree {
 //			else if(p.y()>0.9 || p.y()<-0.9) points2.add(p);
 //			else if(p.z()>0.9 || p.z()<-0.9) points2.add(p);
 //		}
-		List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(9);
+//		List<Point> points = ProGAL.geom3d.PointList.generatePointsOnSphere(9);
 		
 //		Special point set:
 		//List<Point> points = new SphereVoidsPointList(300);
 
-		System.out.println(points.size());
-		VoidTree vt = new VoidTree(points, 0);
-		//new ProGAL.datastructures.viewer.BinaryTreePainter(vt.root);
+//		System.out.println(points.size());
+//		VoidTree vt = new VoidTree(points, 0);
+//		new ProGAL.dataStructures.viewer.BinaryTreePainter(vt.root);
+		
+		PDBFile pdb = new PDBFile(PDBWebReader.downloadPDBFile("2CRO"));
+		List<Point> points = pdb.getAtomCoords();
+		AlphaFiltration af = new AlphaFiltration(points);
+		List<CTriangle> triangles = af.getAlphaShape(2.8);
+		J3DScene scene = J3DScene.createJ3DSceneInFrame();
+		for(CTriangle tri: triangles)
+			scene.addShape(tri, java.awt.Color.BLUE);
+		scene.centerCamera();
 	}
 }

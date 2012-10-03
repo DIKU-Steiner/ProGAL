@@ -11,9 +11,12 @@ public class Point extends ProGAL.geomNd.Point {
 	
 	/** Construct a point at (0,0) */
 	public Point() { this(0,0); }
-	
+
 	/** Construct a point with the specified coordinates. */
 	public Point(double x, double y) { super(new double[]{x,y}); }
+
+	/** Construct a point with the specified coordinates. */
+	public Point(double[] coords) { super(coords); }
 
 	/** Return the x-coordinate */
 	public double x(){ return coords[0]; }
@@ -42,6 +45,14 @@ public class Point extends ProGAL.geomNd.Point {
 	/** Returns the signed area of the triangle defined by the three points a, b and c (positive if counterclockwise) */
 	public static double area(Point a, Point b, Point c) { 
 		return a.x()*(b.y()-c.y()) + a.y()*(c.x()-b.x()) + b.x()*c.y() - c.x()*b.y(); 
+	}
+	
+
+	/** Returns the angle between the points, but if they make a left turn the angle will be negative. */
+	public static double getSignedAngle(Point p1, Point p2, Point p3){
+		Vector v1 = p2.vectorTo(p1);
+		Vector v2 = p2.vectorTo(p3);
+		return Math.atan2(v1.x()*v2.y()-v1.y()*v2.x(), v1.dot(v2));
 	}
 	
 	/** Returns a positive double if the point is inside the circle through the 3 specified points (must be in clockwise order). */
@@ -93,6 +104,7 @@ public class Point extends ProGAL.geomNd.Point {
 	public boolean equals(Point p){
 		return Math.abs(coords[0]-p.coords[0])<Constants.EPSILON && Math.abs(coords[1]-p.coords[1])<Constants.EPSILON;
 	}
+
 	
 	
 }

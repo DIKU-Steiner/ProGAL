@@ -143,6 +143,7 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	}
 
 	public double dot(Point p) { return x()*p.x() + y()*p.y() + z()*p.z(); }
+	public double dot(Vector v) { return x()*v.x() + y()*v.y() + z()*v.z(); }
 	
 	/** Creates a bisector between points p and q */
 	public static Plane getBisector(Point p, Point q) {

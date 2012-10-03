@@ -199,6 +199,7 @@ public class J2DScene {
 		new TextPainter(),
 		new LSCPainter(),
 		new TrianglePainter(),
+		new PolygonPainter(),
 	};
 	private static ShapePainter getShapePainter(Shape s){
 		if(s instanceof Circle) return shapePainters[0];
@@ -206,6 +207,7 @@ public class J2DScene {
 		if(s instanceof TextShape) return shapePainters[2];
 		if(s instanceof LSC) return shapePainters[3];
 		if(s instanceof Triangle) return shapePainters[4];
+		if(s instanceof Polygon) return shapePainters[5];
 		return null;
 	}
 
@@ -320,6 +322,15 @@ public class J2DScene {
 		scene.addShape(new LSC(new Point(0,-0.9), new Point(1,-0.9), 0.1), Color.RED, 0, true);
 
 		scene.addShape(new Triangle(new Point(-1,0), new Point(-1,1), new Point(-2,0)));
+		
+		scene.addShape(new Polygon(
+				new Point[]{
+						new Point(-1,2), 
+						new Point(-1,2.4), 
+						new Point(-1.4,2.1),
+						new Point(-1.6,2.8),
+						}
+				), Color.BLUE,0,true);
 		
 		scene.centerCamera();
 		

@@ -15,25 +15,20 @@ import ProGAL.math.Randomization;
  * @author ras
  */
 public class DTWithBigPoints {
+	private final ExactJavaPredicates pred = new ExactJavaPredicates();
 	final List<Vertex> vertices;
 	final List<Triangle> triangles;
 	final Vertex[] bigPoints;
-	//	J2DScene scene = J2DScene.createJ2DSceneInFrame();
 
 	public DTWithBigPoints(List<Point> points){
-		//		scene.frame.setSize(400,800);
 		this.vertices = new ArrayList<Vertex>(points.size());
 		this.triangles = new ArrayList<Triangle>(points.size());
 		bigPoints = new Vertex[3];
-		bigPoints[0] = new Vertex(new Point(-4,-4)); 
-		bigPoints[1] = new Vertex(new Point( 4, 0));
-		bigPoints[2] = new Vertex(new Point( 0, 4));
-		//		scene.addShape(new TextShape(bigPoints[0].id+"",bigPoints[0], 0.1));
-		//		scene.addShape(new TextShape(bigPoints[1].id+"",bigPoints[1], 0.1));
-		//		scene.addShape(new TextShape(bigPoints[2].id+"",bigPoints[2], 0.1));
+		bigPoints[0] = new Vertex(new Point(-3,-3)); 
+		bigPoints[1] = new Vertex(new Point( 3, 0));
+		bigPoints[2] = new Vertex(new Point( 0, 3));
 		Triangle bigTri = new Triangle(bigPoints[0], bigPoints[1], bigPoints[2]);
 		triangles.add(bigTri);
-		//		scene.addShape(bigTri);
 		for(Point p: points) 
 			addPoint(p);
 	}
@@ -53,57 +48,47 @@ public class DTWithBigPoints {
 					else				t = t.neighbors[2];
 				}else break;
 			}
-			//This would be the straightforward and working way. The above is faster. 
-			//			if(Point.rightTurn(t.corners[0], t.corners[1], p)) t = t.neighbors[2];
-			//			else if(Point.rightTurn(t.corners[1], t.corners[2], p)) t = t.neighbors[0];
-			//			else if(Point.rightTurn(t.corners[2], t.corners[0], p)) t = t.neighbors[1];
-			//			else break;
+			
+			//This is the straightforward way. The above is faster. 
+			//if(Point.rightTurn(t.corners[0], t.corners[1], p)) t = t.neighbors[2];
+			//else if(Point.rightTurn(t.corners[1], t.corners[2], p)) t = t.neighbors[0];
+			//else if(Point.rightTurn(t.corners[2], t.corners[0], p)) t = t.neighbors[1];
+			//else break;
 		}
 		return t;
 	}
 	public void addPoint(Point point){
 		Vertex p = new Vertex(point);
 		vertices.add((Vertex)p);
-		//		scene.addShape(new TextShape(((Vertex)p).id+"", p, 0.1));
 		Triangle t = walk(p);
 
-		triangles.remove(t);
-		//		scene.removeShape(t);
-
-		Vertex p0 = t.corners[0];
-		Vertex p1 = t.corners[1];
-		Vertex p2 = t.corners[2];
-		Triangle n0 = t.neighbors[0];
-		Triangle n1 = t.neighbors[1];
-		Triangle n2 = t.neighbors[2];
-		Triangle t0 = new Triangle(p, p1, p2);
-		Triangle t1 = new Triangle(p, p2, p0);
-		Triangle t2 = new Triangle(p, p0, p1);
-		//		scene.addShape(t0);
-		//		scene.addShape(t1);
-		//		scene.addShape(t2);
-		t0.neighbors[0] = n0; if(n0!=null) n0.neighbors[ (n0.indexOf(p1)+1)%3 ] = t0;
-		t0.neighbors[1] = t1; 
-		t0.neighbors[2] = t2;
-		t1.neighbors[0] = n1; if(n1!=null) n1.neighbors[ (n1.indexOf(p2)+1)%3 ] = t1;
-		t1.neighbors[1] = t2;
-		t1.neighbors[2] = t0;
-		t2.neighbors[0] = n2; if(n2!=null) n2.neighbors[ (n2.indexOf(p0)+1)%3 ] = t2;
-		t2.neighbors[1] = t0;
-		t2.neighbors[2] = t1;
-		p.first = t0;
-		//		t0.setNeighbors(t.neighbors[0], t1, t2);
-		//		t1.setNeighbors(t.neighbors[1], t2, t0);
-		//		t2.setNeighbors(t.neighbors[2], t0, t1);
-		triangles.add(t0);
-		triangles.add(t1);
-		triangles.add(t2);
-		legalizeEdge(t0, 0);
-		legalizeEdge(t1, 0);
-		legalizeEdge(t2, 0);
+		Triangle[] ts = splitTriangle(p, t);
+		
+		legalizeEdge(ts[0], 0);
+		legalizeEdge(ts[1], 0);
+		legalizeEdge(ts[2], 0);
 	}
 
-	private final ExactJavaPredicates pred = new ExactJavaPredicates();
+	private Triangle[] splitTriangle(Vertex p, Triangle t) {
+		triangles.remove(t);
+
+		Vertex[] ps = {t.corners[0], t.corners[1], t.corners[2]};
+		Triangle[] ns = {t.neighbors[0], t.neighbors[1], t.neighbors[2]};
+		Triangle[] ts = {new Triangle(p, ps[1], ps[2]), new Triangle(p, ps[2], ps[0]), new Triangle(p, ps[0], ps[1])};
+		for(int i=0;i<3;i++){
+			ts[i].neighbors[0] = ns[i]; 
+			if(ns[i]!=null) ns[i].neighbors[ (ns[i].indexOf(ps[(i+1)%3])+1)%3 ] = ts[i];
+			ts[i].neighbors[1] = ts[(i+1)%3]; 
+			ts[i].neighbors[2] = ts[(i+2)%3];
+			ps[i].first = ts[(i+1)%3];
+			triangles.add(ts[i]);
+		}
+		p.first = ts[0];
+		
+		return ts;
+	}
+
+	
 
 	void legalizeEdge(Triangle t, int e){
 		if(t.neighbors[e]==null) return;
@@ -122,7 +107,7 @@ public class DTWithBigPoints {
 
 	}
 
-	void flip(Triangle t, int e, Triangle u, int f){
+	static void flip(Triangle t, int e, Triangle u, int f){
 		flipCounter++;
 		Vertex p0 = t.corners[e];
 		Vertex p1 = t.corners[(e+1)%3];
@@ -133,6 +118,8 @@ public class DTWithBigPoints {
 		Triangle n23 = u.neighbors[(f+2)%3];
 		Triangle n34 = t.neighbors[(e+1)%3];
 
+		t.corners[(e+2)%3] = p2;
+		u.corners[(f+2)%3] = p0;
 		t.setCorner(p2, (e+2)%3);
 		u.setCorner(p0, (f+2)%3);
 
@@ -145,6 +132,8 @@ public class DTWithBigPoints {
 
 		if(n12!=null) n12.neighbors[(n12.indexOf(p1)+1)%3] = t;
 		if(n34!=null) n34.neighbors[(n34.indexOf(p3)+1)%3] = u;
+		if(p1.first==u) p1.first = t;
+		if(p3.first==t) p3.first = u;
 	}
 
 
@@ -164,7 +153,7 @@ public class DTWithBigPoints {
 	public static void main(String[] args){
 		Randomization.seed(2);
 		List<Point> points = new ArrayList<Point>();
-		for(int i=0;i<10;i++)
+		for(int i=0;i<1000;i++)
 			points.add(new Point(Randomization.randBetween(-1.0, 1.0), Randomization.randBetween(-1.0, 1.0)));
 		long start = System.nanoTime();
 		DTWithBigPoints dt = new DTWithBigPoints(points);
