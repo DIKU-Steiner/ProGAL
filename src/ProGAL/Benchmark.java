@@ -16,13 +16,13 @@ public abstract class Benchmark {
 	}
 	
 	/** Returns the threads current user-time in ms. */
-	public final long getUserTime(){
-		return bean!=null?bean.getCurrentThreadUserTime():System.nanoTime();
+	public final double getUserTime(){
+		return (bean!=null?bean.getCurrentThreadUserTime():System.nanoTime())/1000000.0;
 	}
 
 	/** Returns the threads current CPU-time in ms. */
-	public final long getCPUTime(){
-		return bean!=null?bean.getCurrentThreadCpuTime():System.nanoTime();
+	public final double getCPUTime(){
+		return (bean!=null?bean.getCurrentThreadCpuTime():System.nanoTime())/1000000.0;
 	}
 	
 	public abstract void runBenchmark();

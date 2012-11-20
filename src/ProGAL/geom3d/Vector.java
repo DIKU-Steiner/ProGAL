@@ -88,11 +88,25 @@ public class Vector extends ProGAL.geomNd.Vector{
 	public Vector divideThis(double s){ coords[0]/=s;coords[1]/=s;coords[2]/=s;return this; }
 
 	/** Normalize this vector and return the result (without changing this object). */
-	public Vector normalize(){ return this.multiply(1/length()); }
+	public Vector normalize(){ return this.divide(length()); }
 	
 	/** Normalize this vector and return the result (changing this object). */
-	public Vector normalizeThis(){ return this.multiplyThis(1/length()); }
+	public Vector normalizeThis(){ return this.divideThis(length()); }
 
+	public Vector normalizeFast(){ return this.multiply(invSqrt(getLengthSquared())); }
+	public Vector normalizeThisFast(){ return this.multiplyThis(invSqrt(getLengthSquared())); }
+	
+	/** The fast inverse square root hack from quake 3 */
+	private static double invSqrt(double x) {
+	    double xhalf = 0.5d*x;
+	    long i = Double.doubleToLongBits(x);
+	    i = 0x5fe6ec85e7de30daL - (i>>1);
+	    x = Double.longBitsToDouble(i);
+	    x = x*(1.5d - xhalf*x*x);
+	    return x;
+	}
+	
+	
 	/** Scale this vector to a certain length (returns new object and does not change this object). */
 	public Vector scaleToLength(double length) { return multiply(length/length()); }
 	

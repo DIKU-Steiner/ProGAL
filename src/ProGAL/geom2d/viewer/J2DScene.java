@@ -323,14 +323,14 @@ public class J2DScene {
 
 		scene.addShape(new Triangle(new Point(-1,0), new Point(-1,1), new Point(-2,0)));
 		
-//		scene.addShape(new Polygon(
-//				new Point[]{
-//						new Point(-1,2), 
-//						new Point(-1,2.4), 
-//						new Point(-1.4,2.1),
-//						new Point(-1.6,2.8),
-//						}
-//				), Color.BLUE,0,true);
+		scene.addShape(new Polygon(
+				new Point[]{
+						new Point(-1,2), 
+						new Point(-1,2.4), 
+						new Point(-1.4,2.1),
+						new Point(-1.6,2.8),
+						}
+				), Color.BLUE,0,true);
 		
 		scene.centerCamera();
 		

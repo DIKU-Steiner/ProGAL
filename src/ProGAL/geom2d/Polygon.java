@@ -2,21 +2,32 @@ package ProGAL.geom2d;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.List;
 
 import ProGAL.geom2d.viewer.J2DScene;
 
-public class Polygon extends ArrayList<Point> {
+public class Polygon extends ArrayList<Point> implements Shape {
 	private static final long serialVersionUID = 1L;
+	
 
-	public Polygon() { super(); }
+	public Polygon(){	super();	}
+	
+	public Polygon(List<Point> corners){
+		super(corners);
+	}
 
-	public Polygon(Point p0, Point p1, Point p2) { 
+	public Polygon(Point p0, Point p1, Point p2) {
 		add(p0);
-		if (Point.leftTurn(p0,  p1, p2)) { add(p1); add(p2); } else { add(p2); add(p1); }
+		if (Point.leftTurn(p0,  p1, p2)) { add(p1); add(p2); } 
+		else { add(p2); add(p1); }
 	}
 		
 	public Polygon(PointSet points) { for (Point p : points) add(p); }
 	
+	public Polygon(Point[] points) {
+		for(Point p: points) add(p);
+	}
+
 	public Point getCorner(int i) { return get(i); }
 	
 	public void setCorner(Point p, int i) { set(i, p); }
@@ -49,6 +60,30 @@ public class Polygon extends ArrayList<Point> {
 		for (int i = 0; i < shiftStep; i++) front[i] = get(i);
 		for (int i = shiftStep; i < size(); i++) set(i-shiftStep, get(i));
 		for (int i = 0; i < shiftStep; i++) set(size()-shiftStep+i, front[i]);
+	}
+	
+		public boolean isConvex(){
+		if(size()<4) return true;
+		
+		Point p0=get(0);
+		Point p1=get(1);
+		Point p2=get(2);
+		boolean ccw = Point.leftTurn(p0,p1,p2);
+		
+		for(int i=1;i<size();i++){
+			p0=p1;
+			p1=p2;
+			p2=get((i+2)%size());
+			if(ccw!=Point.leftTurn(p0, p1, p2)) return false;
+		}
+		return true;
+	}
+	
+	@Override
+	public Point getCenter() {
+		Vector v = new Vector(0,0);
+		for(Point p: this) v.addThis(p);
+		return new Point(v.x()/size(), v.y()/size());
 	}
 	
 	/** draws the polygon */

@@ -10,10 +10,10 @@ class PolygonPainter implements ShapePainter {
 	public void paintShape(ShapeOptions shape, Graphics2D g2d) {
 
 		Polygon pol = (Polygon)shape.shape;
-		int[] xs = new int[pol.getCorners().size()];
-		int[] ys = new int[pol.getCorners().size()];
+		int[] xs = new int[pol.size()];
+		int[] ys = new int[pol.size()];
 		for(int i=0;i<xs.length;i++){
-			java.awt.Point p = shape.transformPoint(pol.getCorners().get(i));
+			java.awt.Point p = shape.transformPoint(pol.get(i));
 			xs[i] = p.x;
 			ys[i] = p.y;
 		}
