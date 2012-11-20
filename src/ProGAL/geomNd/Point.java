@@ -87,6 +87,7 @@ public class Point implements Serializable{
 		return this;
 	}
 	
+/** Returns squared distance to the point p */
 	public double distanceSquared(Point p){
 		double sum = 0;
 		for(int d=0;d<dim;d++) {
@@ -95,9 +96,16 @@ public class Point implements Serializable{
 		}
 		return sum;
 	}
-	public double distance(Point p){
-		return Math.sqrt(distanceSquared(p));
+	
+	/** Returns squared distance to the origo */
+	public double distanceSquared(){
+		double sum = 0;
+		for(int d=0;d<dim;d++) { sum+=coords[d]*coords[d]; }
+		return sum;
 	}
+
+	/** Returns distance to the point p */
+	public double distance(Point p){ return Math.sqrt(distanceSquared(p)); }
 
 	public double dot(Point p){
 		double sum = 0;
@@ -106,6 +114,10 @@ public class Point implements Serializable{
 		}
 		return sum;
 	}
+	
+	/** Returns distance to the origo */
+	public double distance() { return Math.sqrt(distanceSquared()); }
+
 	
 	/** Creates the midpoint of two points. */
 	public static Point getMidpoint(Point p, Point q) {

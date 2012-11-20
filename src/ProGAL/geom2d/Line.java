@@ -7,26 +7,27 @@ public class Line {
 	protected Point p;     // point on the line
 	protected Vector n;    // normal vector of the line, unit length
 	
-	/*
-	 * creates a line through a given point and with a given normal vector
-	 */
+	/** creates a line through a given point and with a given normal vector */
 	public Line(Point p, Vector n) { 
 		this.p = p; 
 		this.n = n.normalize(); 
 	}
 	
-	/*
-	 * creates a line through 2 given points 
-	 */
+	/** creates a line through 2 given points  */
 	public Line(Point p, Point q) {
 		this.p = p;
 		n = new Vector(p.y()-q.y(), q.x()-p.x());
 		n.normalizeThis();
 	}
 	
-	/*
-	 * creates a line ax + by + c = 0
-	 */
+	/** creates a line through a given segment */
+	public Line(LineSegment seg) {
+		p = seg.a;
+		n = new Vector(seg.a.y()-seg.b.y(), seg.b.x() - seg.a.x());
+		n = n.normalize();
+	}
+	
+	/** creates a line ax + by + c = 0 */
 	public Line(double a, double b, double c) {
 		n = new Vector(a,b);
 		n.normalizeThis();
@@ -82,11 +83,18 @@ public class Line {
 	public void toConsole(String name) { System.out.println(toString(name)); }
 	public void toConsole() { System.out.println(toString("")); }
 
+	/** returns the point on the line at distance d from the line-defining point p */
 	public Point getPoint(double d) {
 		Vector dir = this.getDirection();
 		return new Point(p.x()+d*dir.x(), p.y()+d*dir.y());
 	}
 
+	/** returns the distance of the point q to the line */
+	public double getDistance(Point q) {
+		return Math.abs(n.x()*q.x() + n.y()*q.y() - n.x()*p.x() - n.y()*p.y())/Math.sqrt(n.x()*n.x() + n.y()*n.y());
+	}
+
+	
 	public double intersectionParameter(Line l) {
 		Vector dir = getDirection();
 		Vector lDir = l.getDirection();

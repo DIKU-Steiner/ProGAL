@@ -269,9 +269,10 @@ public class PDBFile extends File{
 	public List<HetatmRecord> getHetatmRecords(int modelNum, int chainNum){
 		List<HetatmRecord> ret = new ArrayList<HetatmRecord>();
 //		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
-		for(PDBRecord ar: records){
 //			if(!includeHydrogens && ar.isHydrogen()) continue;
-			if((ar instanceof HetatmRecord)){
+//			if(!(ar instanceof HetatmRecord)) continue;
+		for(PDBRecord ar: records){
+			if (ar instanceof HetatmRecord){
 				if(!includeHydrogens && ((HetatmRecord)ar).isHydrogen()) continue;
 				ret.add((HetatmRecord)ar);
 			}
@@ -527,6 +528,68 @@ public class PDBFile extends File{
 				return element.equalsIgnoreCase("H");
 			}
 		}
+		
+		/** Returns true if the atom can act as a hydrogen donor in a hydrogen bond */
+		public boolean isHydrogenDonor() {
+			if (element.equalsIgnoreCase("N")) {
+				if (atomType.equalsIgnoreCase("N")) return true;
+				if (aaType.equalsIgnoreCase("HIS")) {
+					if (atomType.equalsIgnoreCase("NE2")) return true;
+					if (atomType.equalsIgnoreCase("ND1")) return true;
+					return false;
+				}
+				if (aaType.equalsIgnoreCase("LYS") && atomType.equalsIgnoreCase("NZ")) return true;
+				if (aaType.equalsIgnoreCase("ASN") && atomType.equalsIgnoreCase("ND2")) return true;
+				if (aaType.equalsIgnoreCase("GLN") && atomType.equalsIgnoreCase("NE2")) return true;
+				if (aaType.equalsIgnoreCase("ARG")) {
+					if (atomType.equalsIgnoreCase("NE")) return true;
+					if (atomType.equalsIgnoreCase("NH1")) return true;
+					if (atomType.equalsIgnoreCase("NH2")) return true;
+					return false;
+				}
+				if (aaType.equalsIgnoreCase("TRP") && atomType.equalsIgnoreCase("NE1")) return true;
+				return false;
+			}
+			if (element.equalsIgnoreCase("O")) {
+				if (aaType.equalsIgnoreCase("SER") && atomType.equalsIgnoreCase("OG")) return true;
+				if (aaType.equalsIgnoreCase("THR") && atomType.equalsIgnoreCase("OG1")) return true;
+				if (aaType.equalsIgnoreCase("TYR") && atomType.equalsIgnoreCase("OH")) return true;
+				if (aaType.equalsIgnoreCase("ASN") && atomType.equalsIgnoreCase("OD1")) return true;
+				return false;
+			}
+			return false;
+		}
+		
+		/** Returns true if the atom can act as a hydrogen acceptor in a hydrogen bond */
+		public boolean isHydrogenAcceptor() {
+			if (element.equalsIgnoreCase("O")) {
+				if (atomType.equalsIgnoreCase("O")) return true;
+				if (aaType.equalsIgnoreCase("ASP")) {
+					if (atomType.equalsIgnoreCase("OD1")) return true;
+					if (atomType.equalsIgnoreCase("OD2")) return true;
+					return false;
+				}
+				if (aaType.equalsIgnoreCase("GLU")) {
+					if (atomType.equalsIgnoreCase("OE1")) return true;
+					if (atomType.equalsIgnoreCase("OE2")) return true;
+					return false;
+				}
+				if (aaType.equalsIgnoreCase("ASN") && atomType.equalsIgnoreCase("OD1")) return true;
+				if (aaType.equalsIgnoreCase("GLN") && atomType.equalsIgnoreCase("OE1")) return true;
+				if (aaType.equalsIgnoreCase("SER") && atomType.equalsIgnoreCase("OG")) return true;
+				if (aaType.equalsIgnoreCase("THR") && atomType.equalsIgnoreCase("OG1")) return true;
+				if (aaType.equalsIgnoreCase("TYR") && atomType.equalsIgnoreCase("OH")) return true;
+				return false;
+			}
+			if (element.equalsIgnoreCase("N")) {
+				if (aaType.equalsIgnoreCase("HIS") && atomType.equalsIgnoreCase("ND1")) return true;
+				if (aaType.equalsIgnoreCase("GLN") && atomType.equalsIgnoreCase("NE2")) return true;
+				if (aaType.equalsIgnoreCase("ASN") && atomType.equalsIgnoreCase("ND2")) return true;
+				return false;
+			}
+			return false;
+		}
+		
 		/**
 		 * Returns a string representation of this ATOM-record that follows the PDB-file format. 
 		 * Following is from http://www.wwpdb.org/documentation/format32/sect9.html

@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
+import ProGAL.geom2d.Point;
+
 public class Set<T> implements Iterable<T>{
 	protected Object[] elements;
 	protected int n;
@@ -227,6 +229,9 @@ public class Set<T> implements Iterable<T>{
 				if (obj instanceof Double) sorter.Sort(this, new SortToolDouble());
 				else {
 					if (obj instanceof String) sorter.Sort(this, new SortToolString());
+					else {
+						if (obj instanceof Point) sorter.Sort(this,  new SortToolPoint2dDistance());
+					}
 				}
 			}
 		}

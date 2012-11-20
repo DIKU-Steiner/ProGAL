@@ -90,7 +90,7 @@ public class DTNoBigPoints {
 //		scene.centerCamera();
 //		scene.autoZoom();
 
-		//Initialize
+		//Initializes
 		Vertex p0 = vertices.get(0);
 		Vertex p1 = vertices.get(1);
 		Vertex p2 = vertices.get(2);

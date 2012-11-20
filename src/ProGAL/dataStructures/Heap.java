@@ -1,9 +1,5 @@
 package ProGAL.dataStructures;
 
-import java.util.Random;
-
-
-
 	/**
 	 * A heap-based priority queue, without any concurrency control
 	 * (i.e., no blocking on empty/full states).

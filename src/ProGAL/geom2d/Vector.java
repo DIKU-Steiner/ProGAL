@@ -6,6 +6,8 @@ public class Vector extends ProGAL.geomNd.Vector{
 	public Vector(double x, double y) { super(new double[]{x,y}); }
 	public Vector(double[] coords) { super(coords); }
 		
+	public Vector(Point p, Point q) { this(q.x()-p.x(), q.y() - p.y()); }
+	
 	public double x() { return coords[0]; }
 	public double y() { return coords[1]; }
 	public double[] getCoords(){ return coords; }

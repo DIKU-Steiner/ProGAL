@@ -1,6 +1,11 @@
 package ProGAL.geom2d;
 
+
+import java.awt.Color;
+
+import ProGAL.geom2d.viewer.J2DScene;
 import ProGAL.math.Constants;
+import ProGAL.math.Functions;
 
 /** 
  *  A point in (x,y)-space represented using double precision. 
@@ -8,12 +13,15 @@ import ProGAL.math.Constants;
  */
 public class Point extends ProGAL.geomNd.Point {
 	private static final long serialVersionUID = 8095991200265432551L;
+	public static Point origo = new Point(0.0, 0.0);
+
 	
 	/** Construct a point at (0,0) */
 	public Point() { this(0,0); }
 
 	/** Construct a point with the specified coordinates. */
 	public Point(double x, double y) { super(new double[]{x,y}); }
+	
 
 	/** Construct a point with the specified coordinates. */
 	public Point(double[] coords) { super(coords); }
@@ -34,18 +42,46 @@ public class Point extends ProGAL.geomNd.Point {
 	}
 
 	/** Add the vector <code>v</code> to this point and return the result */
-	public Point add(Vector v){ return new Point(x()+v.x(), y()+v.y()); }
+	public Point add(Vector v){ return new Point(x()+v.x(), y()+v.y()); }; 
+	public Point add(double a, double b) { return new Point(x() + a, y() + b); }
 	/** Add the vector <code>v</code> to this point and return the result (changes this object) */
 	public Point addThis(Vector v){ coords[0] += v.x(); coords[1] += v.y(); return this; }
+	public Point addThis(Point p){ coords[0] += p.x(); coords[1] += p.y(); return this; }
+	public Point addThis(double a, double b) { coords[0] += a; coords[1] += b; return this; } 
 	/** Subtract the vector <code>v</code> from this point and return the result */
 	public Point subtract(Vector v){ return new Point(x()-v.x(), y()-v.y()); }
 	/** Subtract the vector <code>v</code> from this point and return the result (changes this object) */
 	public Point subtractThis(Vector v){ coords[0] -= v.x(); coords[1] -= v.y(); return this; }
-
+	public Point subtractThis(Point p) { coords[0] -= p.x(); coords[1] -= p.y(); return this; }
+	
 	/** Returns the signed area of the triangle defined by the three points a, b and c (positive if counterclockwise) */
 	public static double area(Point a, Point b, Point c) { 
 		return a.x()*(b.y()-c.y()) + a.y()*(c.x()-b.x()) + b.x()*c.y() - c.x()*b.y(); 
 	}
+	
+	/* Returns true if the three points a, b, and c are collinear */
+	public static boolean collinear(Point a, Point b, Point c) { return area(a, b, c) < Constants.EPSILON; }
+	
+	/** returns squared distance of this point to the origo. */
+	public double getSquaredDistance() { return x()*x() + y()*y(); }
+	
+	/** returns squared distance of this point to point q. */
+	public double getSquaredDistance(Point q) { return Math.pow(x()-q.x(), 2) + Math.pow(y()-q.y(), 2); }
+
+	/** returns squared distance of this point to segment s */
+	public double getSquaredDistance(LineSegment s) {
+		double squaredSegmentLength = s.getSquaredLength();
+		if (squaredSegmentLength == 0.0) return getSquaredDistance(s.a);
+		double sx = s.b.x() - s.a.x(); 
+		double sy = s.b.y() - s.a.y();
+		double t = ((x() - s.a.x()) * sx + (y() - s.a.y()) * sy)/squaredSegmentLength;
+		if (t < 0) return getSquaredDistance(s.a);
+		if (t > 1) return getSquaredDistance(s.b);
+		return getSquaredDistance(new Point(s.a.x() + t*sx, s.a.y() + t*sy));	
+	}
+
+	/** returns distance of this point to segment s */
+	public double getDistance(LineSegment s) { return Math.sqrt(getSquaredDistance(s)); }
 	
 
 	/** Returns the angle between the points, but if they make a left turn the angle will be negative. */
@@ -77,6 +113,20 @@ public class Point extends ProGAL.geomNd.Point {
 		return pos1+pos2+pos3+pos4-neg1-neg2-neg3-neg4;
 	}
 	
+	/** Returns polar angle of this point */
+	public double polarAngle() {
+		double angle = Math.acos(polarAngleCos());
+//		if ((coords[1] < 0) || ((coords[1] == 0.0) && (coords[0] < 0.0))) angle = angle + Math.PI;
+		if (coords[1] < 0) angle = 2*Math.PI - angle;
+		return angle;
+	}
+	
+	/** Returns the sinus of the polar angle of this point */
+	public double polarAngleSin() { return coords[1]/distance(); }
+
+	/** Returns the cosinus of the polar angle of this point */
+	public double polarAngleCos() { return coords[0]/distance(); }
+
 	/** Returns true if points a, b and c make a left turn at b */
 	public static boolean leftTurn(Point a, Point b, Point c ) { return area(a,b,c) > 0.0; }
 
@@ -93,7 +143,7 @@ public class Point extends ProGAL.geomNd.Point {
 			return new Line(midPoint(p,q), p.vectorTo(q)); 
 		return null;
 	}
-	
+		
 	/** Return true iff <code>o</code> is a Point that has the same same coordinates as this. */ 
 	public boolean equals(Object o){
 		if(o instanceof Point) return equals((Point)o);
@@ -106,6 +156,43 @@ public class Point extends ProGAL.geomNd.Point {
 	}
 
 	
+	/** rotates the point around the origo (counterclockwise) */
+	public void rotation(double alpha) {
+		double cosA = Math.cos(alpha);
+		double sinA = Math.sin(alpha);
+		set(0, cosA*x() - sinA*y());
+		set(1, cosA*y() + sinA*x());
+	}
 	
+	public Point rotationClone(double alpha) {
+		double cosA = Math.cos(alpha);
+		double sinA = Math.sin(alpha);
+		return new Point(cosA*x() - sinA*y(), cosA*y() + sinA*x());
+	}
+	
+	public void rotation(double cos, double sin) {
+		double xNew =  cos*x() - sin*y();
+		set(1, cos*y() + sin*x());
+		set(0, xNew);
+		
+	}
+	/** rotates point p around this point by angle */
+	public void rotation(Point p, double angle) {
+		p.addThis(-x(), -y());
+		p.rotation(angle);
+		p.addThis(x(), y());
+	}
+	
+	public void toScene(J2DScene scene, double rad, Color col) { scene.addShape(new Circle(this, rad), col); }
+
+	public static void main(String[] args) {
+		Point p = new Point(3,-4);
+//		double dist2 = p.x()*p.x() + p.y()*p.y();
+//		double dist = Math.sqrt(dist2);
+//		double angle = Math.atan2(p.y()/dist, p.x()/dist);
+//		double angle = Math.atan2(-1,-1);
+		System.out.println(Functions.toDeg(p.polarAngle()));
+	}
+
 }
 

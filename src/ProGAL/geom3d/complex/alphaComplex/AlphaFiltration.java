@@ -12,10 +12,12 @@ import java.util.HashMap;
 
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Simplex;
+import ProGAL.geom3d.Triangle;
 import ProGAL.geom3d.complex.*;
 import ProGAL.geom3d.complex.delaunayComplex.DelaunayComplex;
 import ProGAL.geom3d.predicates.*;
 import ProGAL.geom3d.predicates.Predicates.SphereConfig;
+import ProGAL.geom3d.volumes.Tetrahedron;
 
 /**	<p>
  *  An alpha complex for a set of d-dimensional points and a real number alpha is a subset of the Delaunay complex 
@@ -126,6 +128,19 @@ public class AlphaFiltration {
 		List<CTriangle> ret = new ArrayList<CTriangle>();
 		for(CTriangle t: triangles)	if(getInAlpha(t)<alpha) ret.add(t);
 		return ret;
+	}
+	
+	/** Returns triangles in one tetrahedron only */
+	public List<Triangle> getSurfaceTriangles(double alpha) {
+		List<CTetrahedron> tetrahedra = getTetrahedra(alpha);
+		List<Triangle> triangles = new ArrayList<Triangle>();
+		for (CTetrahedron tetrahedron : tetrahedra) {
+			for (int i = 0; i < 4; i++) {
+				CTetrahedron neighbor = tetrahedron.getNeighbour(i);
+				if ((neighbor == null) || (getInAlpha(neighbor) >= alpha)) triangles.add(tetrahedron.getTriangle(i));
+			}
+		}
+		return triangles;
 	}
 
 	/** Get a list of edges that are part of the alpha-complex with the specified probe radius. */
