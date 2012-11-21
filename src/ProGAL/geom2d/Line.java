@@ -3,13 +3,13 @@ package ProGAL.geom2d;
 
 import ProGAL.math.Constants;
 
-public class Line {
+public class Line implements Shape {
 	protected Point p;     // point on the line
 	protected Vector n;    // normal vector of the line, unit length
 	
 	/** creates a line through a given point and with a given normal vector */
 	public Line(Point p, Vector n) { 
-		this.p = p; 
+		this.p = p;  
 		this.n = n.normalize(); 
 	}
 	
@@ -102,6 +102,11 @@ public class Line {
 		Vector c = l.p.vectorTo(p);
 		double s = (lDir.x()*c.y()-lDir.y()*c.x())/denom;
 		return s;
+	}
+
+	@Override
+	public Point getCenter() {
+		return getPoint(0);
 	}
 	
 }
