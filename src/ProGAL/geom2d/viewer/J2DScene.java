@@ -200,6 +200,7 @@ public class J2DScene {
 		new LSCPainter(),
 		new TrianglePainter(),
 		new PolygonPainter(),
+		new LinePainter()
 	};
 	private static ShapePainter getShapePainter(Shape s){
 		if(s instanceof Circle) return shapePainters[0];
@@ -208,6 +209,7 @@ public class J2DScene {
 		if(s instanceof LSC) return shapePainters[3];
 		if(s instanceof Triangle) return shapePainters[4];
 		if(s instanceof Polygon) return shapePainters[5];
+		if(s instanceof Line) return shapePainters[6];
 		return null;
 	}
 
@@ -231,7 +233,9 @@ public class J2DScene {
 						BasicStroke.CAP_ROUND, 
 						BasicStroke.JOIN_ROUND)  );
 				g2d.setColor(so.color);
-				getShapePainter(so.shape).paintShape(so, g2d);
+				ShapePainter sp = getShapePainter(so.shape);
+				if(sp==null) System.err.println("J2DScene: ShapePainter not implemented for "+so.shape.getClass().getSimpleName());
+				else sp.paintShape(so, g2d);
 				g2d.setStroke(oldStroke);
 			}
 		}
@@ -288,6 +292,15 @@ public class J2DScene {
 			return new java.awt.Point(gX,gY);
 		}
 
+		Point transformPoint(java.awt.Point p){
+			int w = canvasPanel.getWidth();
+			int h = canvasPanel.getHeight();
+			int gX = p.x;
+			int gY = p.y;
+			double x = ((gX-w/2)/scale)+camCenter.x();
+			double y = ((gY-h/2)/-scale)+camCenter.y(); 
+			return new Point(x,y);
+		}
 		
 		
 		double getScale(){ return scale; }
@@ -331,6 +344,8 @@ public class J2DScene {
 						new Point(-1.6,2.8),
 						}
 				), Color.BLUE,0,true);
+		
+		scene.addShape(new Line(new Point(3,0), new Vector(0,0.0000001)));
 		
 		scene.centerCamera();
 		
