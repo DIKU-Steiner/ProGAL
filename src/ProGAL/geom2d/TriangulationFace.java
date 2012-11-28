@@ -200,4 +200,7 @@ public class TriangulationFace {
 	public String toString() {
 		return "[" + corners[0].id + "," + corners[1].id + "," + corners[2].id + "]"; 
 	}
+	public TriangulationVertex[] getCorners() {
+		return corners;
+	}
 }

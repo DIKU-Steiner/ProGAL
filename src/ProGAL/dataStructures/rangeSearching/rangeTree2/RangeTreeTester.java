@@ -283,8 +283,8 @@ public class RangeTreeTester {
 
 		//testCorrectness(tests, dimensions, points);
 
-//		new QueryBenchmark(tests, dimensions, 1000).runBenchmark();
-		new QueryBenchmark(tests, dimensions, 10000).runBenchmark();
+		new QueryBenchmark(tests, dimensions, 1000).runBenchmark();
+//		new QueryBenchmark(test, dimensions, 10000).runBenchmark();
 		//		benchmarkQuery(tests, dimensions, 100000);
 	}
 

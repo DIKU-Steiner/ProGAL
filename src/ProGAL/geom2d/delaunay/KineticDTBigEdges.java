@@ -9,10 +9,12 @@ import ProGAL.dataStructures.SortTool;
 import ProGAL.geom2d.Circle;
 import ProGAL.geom2d.Point;
 import ProGAL.geom2d.PointSet;
+import ProGAL.geom2d.Polygon;
 import ProGAL.geom2d.Shape;
 import ProGAL.geom2d.Triangulation;
 import ProGAL.geom2d.TriangulationFace;
 import ProGAL.geom2d.TriangulationVertex;
+import ProGAL.geom2d.TriangulationVertex.VertexType;
 import ProGAL.geom2d.viewer.J2DScene;
 import ProGAL.geom2d.viewer.TextShape;
 import ProGAL.math.Constants;
@@ -404,6 +406,22 @@ public class KineticDTBigEdges extends Triangulation{
 		for (TriangulationFace t : triangulationFaces) t.setAlive(true);
 	}
 	
+	private boolean convex(TriangulationFace t013, TriangulationFace t123){
+		int p0Indx = t013.getIndex(t123);
+		int p2Indx = t123.getIndex(t013);
+		TriangulationVertex p0 = t013.getCorner(p0Indx);
+		TriangulationVertex p1 = t013.getCorner((p0Indx+1)%3);
+		TriangulationVertex p2 = t123.getCorner(p2Indx);
+		TriangulationVertex p3 = t123.getCorner((p2Indx+1)%3);
+
+		if (Point.rightTurn(p0, p1, p2) || Point.leftTurn(p0, p3, p2) || Point.rightTurn(p2, p3, p0) || Point.leftTurn(p2, p1, p0)) {
+			System.out.println(flipNr + " Back animation angle: " + Functions.toDeg(angleTotal));
+			return false;
+//			System.exit(0);
+		}
+		return true;
+	}
+	
 	public void flip(TriangulationFace t013, TriangulationFace t123, double rotAngle, Direction rotDir){
 
 		flipNr++;
@@ -422,11 +440,47 @@ public class KineticDTBigEdges extends Triangulation{
 
 		
 		if (Point.rightTurn(p0, p1, p2) || Point.leftTurn(p0, p3, p2) || Point.rightTurn(p2, p3, p0) || Point.leftTurn(p2, p1, p0)) {
-			System.out.println(flipNr + " Back animation angle: " + Functions.toDeg(angleTotal-rotAngle));
 			animate(angleTotal-rotAngle, rotDir);
-			System.exit(0);
-		}
-		else {
+			System.out.println(flipNr + " Back animation angle: " + Functions.toDeg(angleTotal-rotAngle));
+			
+			J2DScene scene = J2DScene.createJ2DSceneInFrame();
+			scene.addShape(new Polygon(t013.getCorners()),Color.BLACK, 0.0004);
+			scene.addShape(new Polygon(t123.getCorners()),Color.BLACK, 0.0004);
+			scene.addShape(new Polygon(t123.getNeighbor(0).getCorners()),Color.GRAY, 0.0004);
+			scene.addShape(new Polygon(t123.getNeighbor(1).getCorners()),Color.GRAY, 0.0004);
+			scene.addShape(new Polygon(t123.getNeighbor(2).getCorners()),Color.GRAY, 0.0004);
+			scene.addShape(new Polygon(t013.getNeighbor(0).getCorners()),Color.GRAY, 0.0004);
+			scene.addShape(new Polygon(t013.getNeighbor(1).getCorners()),Color.GRAY, 0.0004);
+			scene.addShape(new Polygon(t013.getNeighbor(2).getCorners()),Color.GRAY, 0.0004);
+			scene.addShape(new Circle(t013.getCorner(0),0.0006), t013.getCorner(0).getType()==VertexType.R?Color.RED:Color.GRAY, 0, true);
+			scene.addShape(new Circle(t013.getCorner(1),0.0006), t013.getCorner(1).getType()==VertexType.R?Color.RED:Color.GRAY, 0, true);
+			scene.addShape(new Circle(t013.getCorner(2),0.0006), t013.getCorner(2).getType()==VertexType.R?Color.RED:Color.GRAY, 0, true);
+			scene.addShape(new Circle(t123.getCorner(0),0.0006), t123.getCorner(0).getType()==VertexType.R?Color.RED:Color.GRAY, 0, true);
+			scene.addShape(new Circle(t123.getCorner(1),0.0006), t123.getCorner(1).getType()==VertexType.R?Color.RED:Color.GRAY, 0, true);
+			scene.addShape(new Circle(t123.getCorner(2),0.0006), t123.getCorner(2).getType()==VertexType.R?Color.RED:Color.GRAY, 0, true);
+			for(TriangulationVertex v: t013.getCorners()){
+				if(v.getType()==VertexType.R){
+					scene.addShape(v.getOrbit(new Point(0,0)), Color.BLUE, 0.0002);
+				}
+			}
+			for(TriangulationVertex v: t123.getCorners()){
+				if(v.getType()==VertexType.R){
+					scene.addShape(v.getOrbit(new Point(0,0)), Color.BLUE, 0.0002);
+				}
+			}
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			
+			
+			throw new RuntimeException("No msg now");
+//			System.exit(0);
+		} else {
+			
+			
 			angleTotal = rotAngle;
 			t013.setAlive(false);
 			t013.hide(scene, testing);
@@ -552,6 +606,7 @@ public class KineticDTBigEdges extends Triangulation{
 			TriangulationFace oppT = heapItem.getOppT();
 			if (testing) System.out.print(t.toString() + oppT.toString());
 			if (t.isAlive() && oppT.isAlive()) {
+				
 				flip(t, oppT, angle, rotDir);
 			}
 			if (testing) {
@@ -595,7 +650,7 @@ public class KineticDTBigEdges extends Triangulation{
 		rotList.add(5);
 		kDT.setRotVertices(rotList);
 */
-		kDT.setRotVertices(125,126);
+		kDT.setRotVertices(110,126);
 		kDT.rotate();
 
 	}

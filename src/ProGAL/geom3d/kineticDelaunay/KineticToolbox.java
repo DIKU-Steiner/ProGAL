@@ -1,5 +1,6 @@
 package ProGAL.geom3d.kineticDelaunay;
 
+import java.awt.Color;
 import java.util.Arrays;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
@@ -10,7 +11,9 @@ import ProGAL.geom3d.Line;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Triangle;
 import ProGAL.geom3d.Vector;
+import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.Sphere;
+import ProGAL.geom3d.volumes.Tetrahedron;
 import ProGAL.math.Constants;
 import ProGAL.math.Matrix;
 
@@ -128,20 +131,21 @@ public class KineticToolbox {
 		
 		//Entering [rcos(alpha), rsin(alpha), v.z, v.dot(v), 1] as last row, expanding the determinant by 
 		//minors on the last row and rewriting to the expression K1*cos(alpha) + K2*sin(alpha) + K3 = 0 gives:
-		double A12 = m.minor(4, 1).minor(3, 0).determinant();
-		double A13 = m.minor(4, 2).minor(3, 0).determinant();
-		double A14 = m.minor(4, 3).minor(3, 0).determinant();
-		double A15 = m.minor(4, 4).minor(3, 0).determinant();
-		double A23 = m.minor(4, 2).minor(3, 1).determinant();
-		double A24 = m.minor(4, 3).minor(3, 1).determinant();
-		double A25 = m.minor(4, 4).minor(3, 1).determinant();
-		double A34 = m.minor(4, 3).minor(3, 2).determinant();
-		double A35 = m.minor(4, 4).minor(3, 2).determinant();
-		double A45 = m.minor(4, 4).minor(3, 3).determinant();
+		double A12 = m.minor(4, 1).minor(3, 0).determinant();// System.out.println("A12: "+m.minor(4, 1).minor(3, 0).determinant());
+		double A13 = m.minor(4, 2).minor(3, 0).determinant();// System.out.println("A13: "+m.minor(4, 2).minor(3, 0).determinant());
+		double A14 = m.minor(4, 3).minor(3, 0).determinant();// System.out.println("A14: "+m.minor(4, 3).minor(3, 0).determinant());
+		double A15 = m.minor(4, 4).minor(3, 0).determinant();// System.out.println("A15: "+m.minor(4, 4).minor(3, 0).determinant());
+		double A23 = m.minor(4, 2).minor(3, 1).determinant();// System.out.println("A23: "+m.minor(4, 2).minor(3, 1).determinant());
+		double A24 = m.minor(4, 3).minor(3, 1).determinant();// System.out.println("A24: "+m.minor(4, 3).minor(3, 1).determinant());
+		double A25 = m.minor(4, 4).minor(3, 1).determinant();// System.out.println("A25: "+m.minor(4, 4).minor(3, 1).determinant());
+		double A34 = m.minor(4, 3).minor(3, 2).determinant();// System.out.println("A34: "+m.minor(4, 3).minor(3, 2).determinant());
+		double A35 = m.minor(4, 4).minor(3, 2).determinant();// System.out.println("A35: "+m.minor(4, 4).minor(3, 2).determinant());
+		double A45 = m.minor(4, 4).minor(3, 3).determinant();// System.out.println("A45: "+m.minor(4, 4).minor(3, 3).determinant());
+		
 		double k1 = -r1*r2*A12;
-		double k2 =  r2*(v1.z()*A13-v1.dot(v1)*A14+A15);
-//		double k3 = -k1;
-		double k4 = -r2*(v1.z()*A23-v1.dot(v1)*A24+A25);
+//		double k2 = -k1;
+		double k3 =  r2*(v1.z()*A13-v1.dot(v1)*A14+A15);
+		double k4 = -r2*(v1.z()*A23+v1.dot(v1)*A24-A25);
 		double k5 = -r1*(v2.z()*A13-v2.dot(v2)*A14+A15);
 		double k6 =  r1*(v2.z()*A23-v2.dot(v2)*A24+A25);
 		double k7 = A34*(v2.dot(v2)*v1.z()-v1.dot(v1)*v2.z()) + A35*(v2.z()-v1.z()) + A45*(v1.dot(v1)-v2.dot(v2));
@@ -149,16 +153,17 @@ public class KineticToolbox {
 		double a1 = Math.atan2(v1.y(),v1.x())+curAlpha;
 		double a2 = Math.atan2(v2.y(),v2.x())+curAlpha;
 		
-		double C1 = k2*cos(a2)-k4*sin(a2)+k5*cos(a1)-k6*sin(a1);
-		double C2 = k2*sin(a2)+k4*cos(a2)+k5*sin(a1)+k6*cos(a1);
+		double C1 = k3*cos(a2)+k4*sin(a2)+k5*cos(a1)+k6*sin(a1);
+		double C2 =-k3*sin(a2)+k4*cos(a2)-k5*sin(a1)+k6*cos(a1);
 		double C3 = k1*sin(a1-a2)+k7;
 
 		//The solutions to the above equation are of the form alpha = 2*atan( (-K2±Ã(K1^2+K2^2-K3^2))/(K3-K1) )
 		double D = C1*C1 + C2*C2 - C3*C3;
+		
 		if(D<-Constants.EPSILON) return Double.POSITIVE_INFINITY;
 		if(D<Constants.EPSILON){
 			double t = -C2/(C3-C1);
-			double alpha = -2*atan( t );
+			double alpha = 2*atan( t );
 			if(curAlpha>alpha) return alpha+2*Math.PI;
 			return alpha;
 		}
@@ -167,10 +172,10 @@ public class KineticToolbox {
 		double t2 = (-C2-Math.sqrt(D))/(C3-C1);
 		if(t1>t2){ double tmp = t1; t1 = t2; t2=tmp; }
 		
-		double alpha1 = -2*atan( t1 );
-		double alpha2 = -2*atan( t2 );
-//		System.out.println(alpha1*180/Math.PI);
-//		System.out.println(alpha2*180/Math.PI);
+		double alpha1 = 2*atan( t1 );
+		double alpha2 = 2*atan( t2 );
+		System.out.println(alpha1*180/Math.PI);
+		System.out.println(alpha2*180/Math.PI);
 		
 		//Find the current position of the rotating point and determine the correct earliest absolute rotation angle
 		if(curAlpha>alpha2) return alpha1+2*Math.PI;
@@ -185,7 +190,7 @@ public class KineticToolbox {
 				new Vertex(new Point( 0, 0.1, 1)),
 				new Vertex(new Point( 0, 1.1, 0)),
 				new Vertex(new Point( 1,   0, 0)),
-				new Vertex(new Point(-1,   0, 0))
+				new Vertex(new Point(-1,   0, 0)),
 		};
 		Line l = new Line(new Triangle(vs[0],vs[1],vs[2]).circumcenter(), new Vector(1,0,1).normalizeThis());
 		vs[4] = new Vertex(new Sphere(new Triangle(vs[0],vs[1],vs[2]).circumcenter(), new Triangle(vs[0],vs[1],vs[2]).circumradius()).getIntersection(l).getA());
@@ -211,74 +216,85 @@ public class KineticToolbox {
 	
 	
 	static double nextEvent(Vertex[] vertices, int moving1, int moving2, int moving3, double curAlpha){
-		//Create the inSphere matrix (except the last two rows)
+		int[] staticIds = new int[2];
+		int c=0;
+		for(int i=0;i<5;i++){
+			if(i!=moving1&&i!=moving2&&i!=moving3) staticIds[c++]=i;
+		}
+			
+		double twoAngle = nextEvent(vertices, staticIds[0], staticIds[1], -curAlpha);
+		return 2*Math.PI-twoAngle;
+	}
+	
+	static void testEvent3(){
+		J3DScene scene = J3DScene.createJ3DSceneInFrame();
+		scene.setAxisEnabled(true);
+		Vertex[] vs = {
+				new Vertex(new Point( 1,1, 0)),
+				new Vertex(new Point( 0, 2, 0)),
+				new Vertex(new Point( 0, 1, 1)),
+				new Vertex(new Point( 0,   1, 0)),
+				null
+		};
+		Line l;
+		l = new Line(new Triangle(vs[0],vs[1],vs[2]).circumcenter(), new Vector(1,0,0).normalizeThis());
+		vs[4] = new Vertex(new Sphere(new Tetrahedron(vs[0],vs[1],vs[2],vs[3]).circumcenter(), new Tetrahedron(vs[0],vs[1],vs[2],vs[3]).circumradius()).getIntersection(l).getB());
+
+		for(Vertex v: vs){
+			System.out.println(Arrays.toString(v.getCoords()));
+		}
+		
+		
 		Matrix m = new Matrix(5,5);
-		for(int r=0;r<3;r++){
-			int vIdx = r+(r<moving1?0:1)+(r<moving2?0:1);
+		for(int r=0;r<5;r++){
+			int vIdx = r;
 			for(int c=0;c<3;c++){
-				m.set(r, c, vertices[vIdx].get(c));
+				m.set(r, c, vs[vIdx].get(c));
 			}
-			m.set(r, 3, vertices[vIdx].dot(vertices[vIdx]));
+			m.set(r, 3, vs[vIdx].dot(vs[vIdx]));
 			m.set(r, 4, 1);
 		}
 
-		Vertex v1 = vertices[moving1];
+		Vertex v1 = vs[3];
 		double r1 = Math.sqrt(v1.x()*v1.x()+v1.y()*v1.y());
-		Vertex v2 = vertices[moving2];
+		Vertex v2 = vs[4];
 		double r2 = Math.sqrt(v2.x()*v2.x()+v2.y()*v2.y());
+		
+		double a;
+		l = new Line(new Point(0,0,0), new Vector(0,0,1));
+		
+		a = nextEvent(vs, 3,4, 0*Math.PI/180);
+		System.out.printf("Common sphere at angle %.2f¡\n", a*180/Math.PI);
 
-		//Entering [rcos(alpha), rsin(alpha), v.z, v.dot(v), 1] as last row, expanding the determinant by 
-		//minors on the last row and rewriting to the expression K1*cos(alpha) + K2*sin(alpha) + K3 = 0 gives:
-		double A12 = m.minor(4, 1).minor(3, 0).determinant();
-		double A13 = m.minor(4, 2).minor(3, 0).determinant();
-		double A14 = m.minor(4, 3).minor(3, 0).determinant();
-		double A15 = m.minor(4, 4).minor(3, 0).determinant();
-		double A23 = m.minor(4, 2).minor(3, 1).determinant();
-		double A24 = m.minor(4, 3).minor(3, 1).determinant();
-		double A25 = m.minor(4, 4).minor(3, 1).determinant();
-		double A34 = m.minor(4, 3).minor(3, 2).determinant();
-		double A35 = m.minor(4, 4).minor(3, 2).determinant();
-		double A45 = m.minor(4, 4).minor(3, 3).determinant();
-		double k1 = -r1*r2*A12;
-		double k2 =  r2*(v1.z()*A13-v1.dot(v1)*A14+A15);
-		//				double k3 = -k1;
-		double k4 = -r2*(v1.z()*A23-v1.dot(v1)*A24+A25);
-		double k5 = -r1*(v2.z()*A13-v2.dot(v2)*A14+A15);
-		double k6 =  r1*(v2.z()*A23-v2.dot(v2)*A24+A25);
-		double k7 = A34*(v2.dot(v2)*v1.z()-v1.dot(v1)*v2.z()) + A35*(v2.z()-v1.z()) + A45*(v1.dot(v1)-v2.dot(v2));
+		double a1 = Math.atan2(v1.y(),v1.x());
+		double a2 = Math.atan2(v2.y(),v2.x());
+		System.out.println(a1*180/Math.PI+" "+a2*180/Math.PI);
+		scene.addShape(new Sphere(new Point(vs[3]),0.03), new Color(200,50,50,100));
+		scene.addShape(new Sphere(new Point(vs[4]),0.03), new Color(200,50,50,100));
+//		l.rotateIn(vs[3], a);
+//		l.rotateIn(vs[4], a);
 
-		double a1 = Math.atan2(v1.y(),v1.x())+curAlpha;
-		double a2 = Math.atan2(v2.y(),v2.x())+curAlpha;
-
-		double C1 = k2*cos(a2)-k4*sin(a2)+k5*cos(a1)-k6*sin(a1);
-		double C2 = k2*sin(a2)+k4*cos(a2)+k5*sin(a1)+k6*cos(a1);
-		double C3 = k1*sin(a1-a2)+k7;
-
-		//The solutions to the above equation are of the form alpha = 2*atan( (-K2±Ã(K1^2+K2^2-K3^2))/(K3-K1) )
-		double D = C1*C1 + C2*C2 - C3*C3;
-		if(D<-Constants.EPSILON) return Double.POSITIVE_INFINITY;
-		if(D<Constants.EPSILON){
-			double t = -C2/(C3-C1);
-			double alpha = 2*atan( t );
-			if(curAlpha>alpha) return alpha+2*Math.PI;
-			return alpha;
+		scene.addShape(new Sphere(new Tetrahedron(vs[0],vs[1],vs[2],vs[3]).circumcenter(), new Tetrahedron(vs[0],vs[1],vs[2],vs[3]).circumradius()), new Color(0,200,0,100));
+		for(Vertex v: vs){
+			scene.addShape(new Sphere(new Point(v),0.05));
+			System.out.println(Arrays.toString(v.getCoords()));
 		}
 
-		double t1 = (-C2+Math.sqrt(D))/(C3-C1);
-		double t2 = (-C2-Math.sqrt(D))/(C3-C1);
-		if(t1>t2){ double tmp = t1; t1 = t2; t2=tmp; }
+		
+		double angle = 10*Math.PI/180;
+//		l.rotateIn(vs[0], angle);
+//		l.rotateIn(vs[1], angle);
+//		l.rotateIn(vs[2], angle);
+//		System.out.println(Arrays.toString(vs[4].getCoords()));
+//		scene.addShape(new Sphere(new Point(vs[0]),0.05),Color.RED);
+//		scene.addShape(new Sphere(new Point(vs[1]),0.05),Color.RED);
+//		scene.addShape(new Sphere(new Point(vs[2]),0.05),Color.RED);
+//		a = nextEvent(vs, 0,1,2, 0*Math.PI/180);
+//		System.out.printf("Common sphere at angle %.2f¡ (expects %.2f¡)\n", a*180/Math.PI, angle*180/Math.PI);
 
-		double alpha1 = 2*atan( t1 );
-		double alpha2 = 2*atan( t2 );
-		//				System.out.println(alpha1*180/Math.PI);
-		//				System.out.println(alpha2*180/Math.PI);
 
-		//Find the current position of the rotating point and determine the correct earliest absolute rotation angle
-		if(curAlpha>alpha2) return alpha1+2*Math.PI;
-		if(curAlpha>alpha1) return alpha2;
-		return alpha1;
+
 	}
-	
 	
 
 	static void flip(Tet t, int face){
@@ -407,7 +423,7 @@ public class KineticToolbox {
 	}
 	
 	public static void main(String[] args){
-		testEvent2();
+		testEvent3();
 	}
 	
 	static void testSort(){
