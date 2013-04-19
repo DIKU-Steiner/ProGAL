@@ -3,13 +3,20 @@ package ProGAL.geom3d.kineticDelaunay;
 import java.util.List;
 
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.volumes.Tetrahedron;
 import ProGAL.geomNd.Vector;
 
 public class BigTet extends Tet{
+	
 	BigTet(List<Point> points){
-		super(createCorners(points));
-		
+		super(createCorners(points));		
 	}
+	
+	public BigTet(Tetrahedron tetra, List<Vertex> vertices) {
+		super(tetra);
+		for (int i = 0; i < 4; i++) vertices.add(this.corners[i]);
+	}
+
 	private static Vertex[] createCorners(List<Point> points){
 		int d = 3;
 		double[][] minMax = new double[d][2];

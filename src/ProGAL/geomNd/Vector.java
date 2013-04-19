@@ -1,6 +1,7 @@
 package ProGAL.geomNd;
 
 import ProGAL.math.Constants;
+import ProGAL.math.Matrix;
 
 /** 
  *  A vector in metric space represented with double precision.
@@ -145,6 +146,14 @@ public class Vector {
 	public Vector divideThis(double s){
 		for(int d=0;d<dim;d++) coords[d]/=s;
 		return this; 
+	}
+	
+	public Matrix outerProduct(Vector v) {
+		Matrix M = new Matrix(dim, dim);
+		for (int i = 0; i < dim; i++)
+			for (int j = 0; j < dim; j++)
+				M.set(i, j, coords[i]*coords[j]);
+		return M;
 	}
 
 	/** Normalize this vector and return the result (without changing this object). */

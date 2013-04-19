@@ -1,6 +1,7 @@
 package ProGAL.math;
 
 import java.util.Arrays;
+import java.util.Random;
 
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Vector;
@@ -26,6 +27,14 @@ public class Matrix {
 		this.M = coords.length;
 		this.N = M>0?coords[0].length:0;
 		this.coords = coords;
+	}
+	
+	public Matrix (int M, int N, int seed) {
+		coords = new double[M][N];
+		Random r = new Random(seed);
+		for(int i=0;i<M;i++) for(int j=0;j<N;j++) coords[i][j] = r.nextDouble();
+		this.M = M;
+		this.N = N;		
 	}
 
 	public void set(int r, int c, double v){
@@ -76,6 +85,17 @@ public class Matrix {
 	}
 
 
+	public Matrix getSubmatrix(int i1, int i2, int j1, int j2) {
+		Matrix X = new Matrix(i2-i1, j2-j1);
+		for (int i = 0; i < i2-i1; i++)
+				for (int j = 0; j < j2-j1; j++) X.coords[i][j] = coords[i1+i][j1+j];
+		return X;
+	}
+
+	public void setSubmatrix(int i1, int j1, Matrix M) {
+		for (int i = 0; i < M.M; i++) 
+			for (int j = 0; j < M.N; j++ ) coords[i1+i][j1+j] = M.coords[i][j];
+	}
 
 
 	/** Get the transpose of this matrix */
@@ -205,6 +225,47 @@ public class Matrix {
 		return ret;
 	}
 
+	public Matrix multiply_Strassen(Matrix B) {
+		if (N != B.M) throw new Error("Incompatible matrix sizes");
+		// add appropriate zero rows or columns so both matrices are 2^n x 2^n matrices
+		Matrix extA = this.expand();
+		Matrix extB = B.expand();
+		return extA.multiply_Strassen_regular(extB);
+	}
+	private Matrix multiply_Strassen_regular(Matrix B)	{
+		Matrix C = new Matrix(M, M);
+		if (M == 1) {
+			C.coords[0][0] = coords[0][0] * B.coords[0][0]; 
+			return C;
+		}
+		// get submatrices A11, A12, A21, A22, B11, B12, B21, B22
+		Matrix A11 = getSubmatrix(0, M/2, 0, M/2);
+		Matrix A12 = getSubmatrix(0, M/2, M/2, M);
+		Matrix A21 = getSubmatrix(M/2, M, 0, M/2);
+		Matrix A22 = getSubmatrix(M/2, M, M/2, M);
+		Matrix B11 = B.getSubmatrix(0, M/2, 0, M/2);
+		Matrix B12 = B.getSubmatrix(0, M/2, M/2, M);
+		Matrix B21 = B.getSubmatrix(M/2, M, 0, M/2);
+		Matrix B22 = B.getSubmatrix(M/2, M, M/2, M);
+				
+		// compute M1, M2, M3, M4, M5, M6, M7
+		Matrix M1 = A11.add(A22).multiply_Strassen_regular(B11.add(B22));
+		Matrix M2 = A21.add(A22).multiply_Strassen_regular(B11);
+		Matrix M3 = A11.multiply_Strassen_regular(B12.subtract(B22));
+		Matrix M4 = A22.multiply_Strassen_regular(B21.subtract(B11));
+		Matrix M5 = A11.add(A12).multiply_Strassen_regular(B22);
+		Matrix M6 = A21.subtract(A11).multiply_Strassen_regular(B11.add(B12));
+		Matrix M7 = A12.subtract(A22).multiply_Strassen_regular(B21.add(B22));
+		
+		// compute C
+		C.setSubmatrix(0, 0, M1.add(M4).subtract(M5).add(M7));
+		C.setSubmatrix(0, M/2, M3.add(M5));
+		C.setSubmatrix(M/2, 0, M2.add(M4));
+		C.setSubmatrix(M/2, M/2, M1.subtract(M2).add(M3).add(M6));
+		
+		return C;
+	}
+	
 	/** Add the components of two matrices. The result is stored in a new matrix and then returned. */
 	public Matrix add(Matrix m){
 		Matrix ret = new Matrix(M, N);
@@ -216,6 +277,20 @@ public class Matrix {
 	/** Add the components of two matrices. The result is stored in this matrix and then returned. */
 	public Matrix addThis(Matrix m){
 		for(int i=0;i<M;i++) for(int j=0;j<N;j++) coords[i][j]+=m.coords[i][j];
+		return this;
+	}
+
+	/** Subtract the components of two matrices. The result is stored in a new matrix and then returned. */
+	public Matrix subtract(Matrix m){
+		Matrix ret = new Matrix(M, N);
+		for(int i=0;i<M;i++) for(int j=0;j<N;j++) 
+			ret.set(i, j, coords[i][j] - m.coords[i][j]);
+		return ret;
+	}
+
+	/** Subtract the components of two matrices. The result is stored in this matrix and then returned. */
+	public Matrix subtractThis(Matrix m){
+		for(int i=0;i<M;i++) for(int j=0;j<N;j++) coords[i][j] -= m.coords[i][j];
 		return this;
 	}
 
@@ -273,6 +348,37 @@ public class Matrix {
 
 	
 	public boolean isSquare(){ return M==N; }
+	
+	
+	/** extends to the smallest square matrix by adding appropriate zero rows or columns */
+	public Matrix extend() {
+		Matrix X;
+		if (M < N) {
+			X = new Matrix(N, N);
+			X.setSubmatrix(0, 0, this);
+			for (int i = M; i < N; i++)
+				for (int j = 0; j < N; j++) X.coords[i][j] = 0.0;
+			
+		}
+		else {
+			X = new Matrix(M, M);
+			X.setSubmatrix(0,  0, this);
+			for (int j = N; j < M; j++) 
+				for (int i = 0; i < M; i++) X.coords[i][j] = 0.0;
+		}
+		return X;
+	}
+	
+	/** extends to the smallest power of 2 square matrix by adding appropriate zero rows and columns */
+	public Matrix expand() {
+		Matrix X = extend();
+		int ext = Functions.roundUpToPowerOf2(X.M);
+		Matrix Y = new Matrix(ext, ext);
+		Y.setSubmatrix(0, 0, X);
+		for (int i = 0; i < X.M; i++) for (int j = X.M; j < ext; j++) Y.coords[i][j] = 0.0;
+		for (int i = X.M; i < ext; i++) for (int j = 0; j < ext; j++) Y.coords[i][j] = 0.0;
+		return Y;
+	}
 
 	/** Return the inverse of this matrix. */
 	public Matrix invert(){
@@ -1315,8 +1421,5 @@ public class Matrix {
 		}
 		return X;
 	}
-
-
-
 
 }

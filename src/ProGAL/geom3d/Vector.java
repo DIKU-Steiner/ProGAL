@@ -2,7 +2,12 @@ package ProGAL.geom3d;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
+
+import java.awt.Color;
+
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.geom3d.volumes.LSS;
 import ProGAL.math.Constants;
 
 /** 
@@ -60,7 +65,8 @@ public class Vector extends ProGAL.geomNd.Vector{
 
 	/** Get the angle between this vector and v. */
 	public double angle(Vector v) {
-		return Math.acos(Math.min(  1, this.dot(v)/Math.sqrt(this.getLengthSquared()*v.getLengthSquared())  ));
+		return Math.acos(dot(v)/(length()*v.length()));
+//		return Math.acos(Math.min(  1, this.dot(v)/Math.sqrt(this.getLengthSquared()*v.getLengthSquared())  ));
 	}
 
 	/** Add v to this vector and return the result (without changing this object). */
@@ -68,6 +74,12 @@ public class Vector extends ProGAL.geomNd.Vector{
 	
 	/** Add v to this vector and return the result (changing this object). */ 
 	public Vector addThis(Vector v){ coords[0]+=v.coords[0]; coords[1]+=v.coords[1]; coords[2]+=v.coords[2]; return this; }
+
+	/** Add p to this vector and return the result (without changing this object). */
+	public Vector add(Point p){ return new Vector(coords[0]+p.x(),coords[1]+p.y(),coords[2]+p.z()); }
+	
+	/** Add p to this vector and return the result (changing this object). */ 
+	public Vector addThis(Point p){ coords[0]+=p.x(); coords[1]+=p.y(); coords[2]+=p.z(); return this; }
 
 	/** Subtract v from this vector and return the result (without changing this object). */
 	public Vector subtract(Vector v){ return new Vector(coords[0]-v.coords[0],coords[1]-v.coords[1],coords[2]-v.coords[2]); }
@@ -114,7 +126,10 @@ public class Vector extends ProGAL.geomNd.Vector{
 	public Vector scaleToLengthThis(double length) { return multiplyThis(length/length()); }
 	
 	/** Get the cross-product of this vector and v (without changing this object). */
-	public Vector cross(Vector v){ return new Vector(coords[1]*v.coords[2] - coords[2]*v.coords[1], coords[2]*v.coords[0] - coords[0]*v.coords[2], coords[0]*v.coords[1] - coords[1]*v.coords[0]); }
+	public Vector cross(Vector v){ 
+		return new Vector(coords[1]*v.coords[2] - coords[2]*v.coords[1], 
+						  coords[2]*v.coords[0] - coords[0]*v.coords[2], 
+						  coords[0]*v.coords[1] - coords[1]*v.coords[0]); }
 	
 	/** Get the cross-product of this vector and v and store the result in this vector (changes this object). */
 	public Vector crossThis(Vector v){ 
@@ -175,6 +190,11 @@ public class Vector extends ProGAL.geomNd.Vector{
 	/** Writes this vector to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 
+	
+	public void toScene(J3DScene scene, Color clr, double width) {
+		scene.addShape(new LSS(new Point(0,0,0), toPoint(), width), clr, 3);
+	}
+	
 	/** Create a clone of this vector. */
 	public Vector clone(){ return new Vector(coords[0], coords[1], coords[2]); }
 
@@ -207,6 +227,9 @@ public class Vector extends ProGAL.geomNd.Vector{
 	 * added by pawel 12-11-2011
 	 */
 	public boolean isParallel(Vector v) { return cross(v).isZeroVector(); }
+	
+	public boolean isSteinerAngle(Vector v) { return dot(v)/(this.length()*v.length()) > -0.5; }
+
 	
   	/*
   	 * returns cosinus of the dihedral angle between three vectors 

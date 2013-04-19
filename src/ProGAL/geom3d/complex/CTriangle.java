@@ -86,9 +86,7 @@ public class CTriangle extends Triangle {
 		return ((CVertex)p1).isBigpoint() || ((CVertex)p2).isBigpoint() || ((CVertex)p3).isBigpoint(); 
 	}
 	
-	public void toScene(J3DScene scene, double rad, Color clr) {
-		for (int i = 0; i < 3; i++) { edges[i].toScene(scene, rad, clr); }		
-	}
+	public void toScene(J3DScene scene, double rad, Color clr) { }
 
 	public void toScene(J3DScene scene, Color clr) {
 		scene.addShape(new Tetrahedron(getCorner(0), getCorner(1), getCorner(2), getCenter()), clr);

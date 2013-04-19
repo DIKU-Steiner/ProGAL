@@ -1,9 +1,13 @@
 package ProGAL.geom3d.volumes;
 
+import java.awt.Color;
+
 import ProGAL.geom3d.Plane;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Simplex;
+import ProGAL.geom3d.Triangle;
 import ProGAL.geom3d.Vector;
+import ProGAL.geom3d.viewer.J3DScene;
 
 /** 
  * A tetrahedron is a polyhedron with four triangular faces. It is defined using 
@@ -24,6 +28,14 @@ public class Tetrahedron implements Simplex, Volume {
 		this.corners = corners; 
 	}
 	
+	/* returns a tetrahedron with its circumscribing circle at (0,0,0) and four corners at unit distance */
+	public static Tetrahedron regularTetrahedron() {
+		return new Tetrahedron(new Point( 1.0,      0.0,               0.0),
+						       new Point(-1.0/3.0,  Math.sqrt(8)/3.0,  0.0),
+					     	   new Point(-1.0/3.0, -Math.sqrt(2)/3.0,  Math.sqrt(2.0/3.0)),
+							   new Point(-1.0/3.0, -Math.sqrt(2)/3.0, -Math.sqrt(2.0/3.0)));
+	}
+	
 	/** Return the specified corner. Throws an error if <code>c<0 || c>3</code>. */
 	public Point getCorner(int c){
 		if(c<0 || c>3) throw new IllegalArgumentException();
@@ -35,6 +47,23 @@ public class Tetrahedron implements Simplex, Volume {
 		return corners;
 	}
 	
+	
+	public void translate(Vector v) {
+		for (Point p : corners) p.translateThis(v.x(), v.y(), v.z());
+	}
+	public void translate(Point q) {
+		for (Point p : corners) p.translateThis(q.x(), q.y(), q.z());
+	}
+	public void translate(double x, double y, double z) {
+		for (Point p : corners) p.translateThis(x, y, z);
+	}
+	
+	public void blowUp(double t) {
+		Point center = circumCenter();
+		translate(-center.x(), -center.y(), -center.z());
+		for (Point p : corners) p.scaleThis(t);
+		translate(center);
+	}
 	
 	/** Return the specified corner-point. Throws an error if <code>c<0 || c>3</code>. */
 	public Point getPoint(int c){
@@ -65,6 +94,22 @@ public class Tetrahedron implements Simplex, Volume {
 	}
 
 
+	/** Return common triangle of 2 tetrahedra */
+	public Triangle getCommonTriangle(Tetrahedron t) {
+		Point[] common = new Point[4];
+		int count = 0;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				if (corners[i] == t.corners[j]) {
+					common[count++] = corners[i];
+					j = 4;
+				}
+			}
+		}
+		if (count != 3) return null;
+		return new Triangle(common[0], common[1], common[2]);	
+	}
+	
 	/** Calculate the radius of the insphere. */
 	public double getInradius(){
 		Vector a = corners[3].vectorTo(corners[0]);
@@ -79,7 +124,7 @@ public class Tetrahedron implements Simplex, Volume {
 	}
 	
 	/** Calculate the radius of the circumsphere. */
-	public double circumradius(){
+	public double circumRadius(){
 		Vector a = corners[3].vectorTo(corners[0]);
 		Vector b = corners[3].vectorTo(corners[1]);
 		Vector c = corners[3].vectorTo(corners[2]);
@@ -92,7 +137,7 @@ public class Tetrahedron implements Simplex, Volume {
 	
 
 	/** Find the center of the circumscribing sphere. */
-	public Point circumcenter(){
+	public Point circumCenter(){
 		Vector a = corners[3].vectorTo(corners[0]);
 		Vector b = corners[3].vectorTo(corners[1]);
 		Vector c = corners[3].vectorTo(corners[2]);
@@ -103,8 +148,9 @@ public class Tetrahedron implements Simplex, Volume {
 		return corners[3].add(O);
 	}
 	
+	
 	/** Find the circumscribing sphere */
-	public Sphere circumsphere(){
+	public Sphere circumSphere(){
 		Vector a = corners[3].vectorTo(corners[0]);
 		Vector b = corners[3].vectorTo(corners[1]);
 		Vector c = corners[3].vectorTo(corners[2]);
@@ -194,6 +240,10 @@ public class Tetrahedron implements Simplex, Volume {
 	/** Writes this tetrahedron to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 	
+	public void toScene(J3DScene scene) {
+		for (int i = 0; i < 4; i++)
+			for (int j = i+1; j < 4; j++) scene.addShape(new LSS(corners[i], corners[j], 0.01), Color.BLACK, 3);	
+	}
 	
 	public static void main(String[] args) {
 		Point p1 = new Point(1,0,0);

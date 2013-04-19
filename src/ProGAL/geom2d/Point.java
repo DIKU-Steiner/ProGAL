@@ -62,9 +62,9 @@ public class Point extends ProGAL.geomNd.Point {
 	/* Returns true if the three points a, b, and c are collinear */
 	public static boolean collinear(Point a, Point b, Point c) { return area(a, b, c) < Constants.EPSILON; }
 	
+	
 	/** returns squared distance of this point to the origo. */
 	public double getSquaredDistance() { return x()*x() + y()*y(); }
-	
 	/** returns squared distance of this point to point q. */
 	public double getSquaredDistance(Point q) { return Math.pow(x()-q.x(), 2) + Math.pow(y()-q.y(), 2); }
 

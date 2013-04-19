@@ -23,7 +23,7 @@ package ProGAL.dataStructures;
 	   ******************************************************************************/
 	  public Heap(int capacity, SortTool tool) 
 	  throws IllegalArgumentException {
-		  if (capacity <= 0) throw new IllegalArgumentException();
+		  if (capacity < 0) capacity = 0;
 		  nodes = new Object[capacity];
 		  this.tool = tool;
 	  }
@@ -49,6 +49,8 @@ package ProGAL.dataStructures;
 	  protected final int left(int k)   { return 2 * k + 1; }
 	  protected final int right(int k)  { return 2 * (k + 1); }
 
+	  public Object[] getObjects() { return nodes; }
+	  
 	  /**
 	   * returns true if the heap is empty.
 	   * @return

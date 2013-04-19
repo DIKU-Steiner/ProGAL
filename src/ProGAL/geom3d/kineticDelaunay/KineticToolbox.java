@@ -60,7 +60,7 @@ public class KineticToolbox {
 		}
 
 		Vertex v = vertices[moving];
-		double r = Math.sqrt(v.x()*v.x()+v.y()*v.y());
+		double r = v.getPolarRadius();
 		
 		//Entering [rcos(alpha), rsin(alpha), v.z, v.dot(v), 1] as last row, expanding the determinant by 
 		//minors on the last row and rewriting to the expression K1*cos(alpha) + K2*sin(alpha) + K3 = 0 gives:  
@@ -75,7 +75,7 @@ public class KineticToolbox {
 		double t1 = (-K2+Math.sqrt(D))/(K3-K1);
 		double t2 = (-K2-Math.sqrt(D))/(K3-K1);
 		if(t1>t2){ double tmp = t1; t1 = t2; t2=tmp; }
-		
+		 
 		double alpha1 = 2*Math.atan( t1 );
 		double alpha2 = 2*Math.atan( t2 );
 		
@@ -228,21 +228,28 @@ public class KineticToolbox {
 	
 	static void testEvent3(){
 		J3DScene scene = J3DScene.createJ3DSceneInFrame();
-		scene.setAxisEnabled(true);
+		scene.setAxisEnabled(false);
 		Vertex[] vs = {
-				new Vertex(new Point( 1,1, 0)),
+				new Vertex(new Point( 1, 1, 0)),
 				new Vertex(new Point( 0, 2, 0)),
 				new Vertex(new Point( 0, 1, 1)),
-				new Vertex(new Point( 0,   1, 0)),
+				new Vertex(new Point( 0, 1, 0)),
 				null
 		};
 		Line l;
 		l = new Line(new Triangle(vs[0],vs[1],vs[2]).circumcenter(), new Vector(1,0,0).normalizeThis());
-		vs[4] = new Vertex(new Sphere(new Tetrahedron(vs[0],vs[1],vs[2],vs[3]).circumcenter(), new Tetrahedron(vs[0],vs[1],vs[2],vs[3]).circumradius()).getIntersection(l).getB());
+		Tetrahedron tetra = new Tetrahedron(vs[0],vs[1],vs[2],vs[3]);
+		tetra.toScene(scene);
+		Sphere circumTetra = tetra.circumSphere();
+		circumTetra.toScene(scene, new Color(0, 0, 0, 75));
+		vs[4] = new Vertex(circumTetra.getIntersection(l).getB());
+		vs[0].toScene(scene, 0.03, Color.red);
+		vs[1].toScene(scene, 0.03, Color.red);
+		vs[2].toScene(scene, 0.03, Color.red);
+		vs[3].toScene(scene, 0.03, Color.red);
+		vs[4].toScene(scene, 0.03, Color.pink);
 
-		for(Vertex v: vs){
-			System.out.println(Arrays.toString(v.getCoords()));
-		}
+		for(Vertex v: vs) System.out.println(Arrays.toString(v.getCoords()));
 		
 		
 		Matrix m = new Matrix(5,5);
@@ -274,7 +281,7 @@ public class KineticToolbox {
 //		l.rotateIn(vs[3], a);
 //		l.rotateIn(vs[4], a);
 
-		scene.addShape(new Sphere(new Tetrahedron(vs[0],vs[1],vs[2],vs[3]).circumcenter(), new Tetrahedron(vs[0],vs[1],vs[2],vs[3]).circumradius()), new Color(0,200,0,100));
+		scene.addShape(new Sphere(new Tetrahedron(vs[0],vs[1],vs[2],vs[3]).circumCenter(), new Tetrahedron(vs[0],vs[1],vs[2],vs[3]).circumRadius()), new Color(0,200,0,100));
 		for(Vertex v: vs){
 			scene.addShape(new Sphere(new Point(v),0.05));
 			System.out.println(Arrays.toString(v.getCoords()));
@@ -297,6 +304,15 @@ public class KineticToolbox {
 	}
 	
 
+	static Tet getThirdTet(Tet t1, Tet t2) {
+		for (int i = 0; i < 4; i++) {
+			if (t1.neighbors[i] == t2) continue;
+			for (int j = 0; j < 4; j++) 
+				if(t2.neighbors[j] == t1.neighbors[i]) return t1.neighbors[i];				
+		}
+		return null;
+	}
+	
 	static void flip(Tet t, int face){
 		Tet n = t.neighbors[face];
 		for(int i=0;i<4;i++){
@@ -335,8 +351,10 @@ public class KineticToolbox {
 		for(int i=0;i<4&&(vs[0]==v1 || vs[1]==v1 || v0==v1);i++)
 			v1 = t0.corners[i];
 		
-		int a0 = t0.indexOf(v0); int b0 = t0.indexOf(v1);
-		int a1 = t1.indexOf(v1); int b1 = t1.indexOf(v0);
+		int a0 = t0.indexOf(v0); 
+		int b0 = t0.indexOf(v1);
+		int a1 = t1.indexOf(v1); 
+		int b1 = t1.indexOf(v0);
 		
 		//Name neighbors
 		Tet[][] ns = {
@@ -350,20 +368,34 @@ public class KineticToolbox {
 		t1.corners[b1] = vs[0];
 		
 		//Change neighbors
-		t0.neighbors[a0] = t1; 							t1.neighbors[a1] = t0;
+		t0.neighbors[a0] = t1; 							
+		t1.neighbors[a1] = t0;
 		
-		t0.neighbors[t0.indexOf_slow(vs[0])] = ns[1][1]; 	if(ns[1][1]!=null) ns[1][1].neighbors[ns[1][1].apex(t1)] = t0;
-		t0.neighbors[t0.indexOf_slow(vs[1])] = ns[2][1]; 	if(ns[2][1]!=null) ns[2][1].neighbors[ns[2][1].apex(t2)] = t0;
+		t0.neighbors[t0.indexOf_slow(vs[0])] = ns[1][1]; 	
+		if(ns[1][1]!=null) {
+			ns[1][1].neighbors[ns[1][1].apex(t1)] = t0;
+			Vertex oppV = ns[1][1].corners[ns[1][1].apex(t0)];
+			int count = t0.getCount();
+			if (oppV.getType() == Vertex.VertexType.R) count = count + 16;
+			angles = getRoot(t0, oppV, count);
+			if (angles != null) addToHeap(angles, t0, ns[1][1], heapItem);
+
+		}
+		t0.neighbors[t0.indexOf_slow(vs[1])] = ns[2][1]; 	
+		if(ns[2][1]!=null) ns[2][1].neighbors[ns[2][1].apex(t2)] = t0;
 		///t0.neighbors[t0.indexOf(vs[2])] = ns[0][1]; 	if(ns[0][1]!=null) ns[0][1].neighbors[ns[0][1].apex(t0)] = t0;//Already there
 		
 		//t1.neighbors[t1.indexOf(vs[0])] = ns[1][0];		if(ns[1][0]!=null) ns[1][0].neighbors[ns[1][0].apex(t1)] = t1;//Already there
-		t1.neighbors[t1.indexOf_slow(vs[1])] = ns[2][0];		if(ns[2][0]!=null) ns[2][0].neighbors[ns[2][0].apex(t2)] = t1;
-		t1.neighbors[t1.indexOf_slow(vs[2])] = ns[0][0];		if(ns[0][0]!=null) ns[0][0].neighbors[ns[0][0].apex(t0)] = t1;
+		t1.neighbors[t1.indexOf_slow(vs[1])] = ns[2][0];		
+		if(ns[2][0]!=null) ns[2][0].neighbors[ns[2][0].apex(t2)] = t1;
+		t1.neighbors[t1.indexOf_slow(vs[2])] = ns[0][0];		
+		if(ns[0][0]!=null) ns[0][0].neighbors[ns[0][0].apex(t0)] = t1;
 
 		//Resort
 		t0.sortCorners();
 		t1.sortCorners();
 		
+		t2.setAlive(false);
 		return t2;
 	}
 

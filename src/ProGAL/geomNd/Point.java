@@ -138,6 +138,27 @@ public class Point implements Serializable{
 		return Math.acos(v1.dot(v2)/Math.sqrt(v1.getLengthSquared()*v2.getLengthSquared()));
 	}
 	
+	/** Returns the squared distance to the origo of this point projected onto xy plane */
+	public double distanceSquaredXY() { return coords[0]*coords[0] + coords[1]*coords[1]; }
+
+	/** Returns the distance to the origo of this point projected onto xy plane */
+	public double distanceXY() { return Math.sqrt(distanceSquaredXY()); }
+
+	/** Returns the sinus of the polar angle of this point projected onto xy plane */
+	public double polarAngleSinXY() { return coords[1]/(Math.sqrt(coords[0]*coords[0] + coords[1]*coords[1])); }
+
+	/** Returns the cosinus of the polar angle of this point projected onto xy plane */
+	public double polarAngleCosXY() { return coords[0]/(Math.sqrt(coords[0]*coords[0] + coords[1]*coords[1])); }
+
+	/** Returns polar angle of this point projected onto xy plane */
+	public double polarAngleXY() {
+		double angle = Math.acos(polarAngleCosXY());
+		if (coords[1] < 0) angle = 2*Math.PI - angle;
+		return angle;
+	}
+
+
+	
 	public Vector vectorTo(Point p1) {
 		double[] newCoords = new double[dim];
 		for(int d=0;d<dim;d++) newCoords[d] = p1.coords[d]-this.coords[d];

@@ -1,12 +1,8 @@
 package ProGAL.geom3d;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-
-import ProGAL.geom3d.viewer.J3DScene;
-import ProGAL.geom3d.volumes.Sphere;
 import ProGAL.math.Matrix3x3;
 import ProGAL.math.Randomization;
 
@@ -52,7 +48,7 @@ public class PointList extends ArrayList<Point> {
 		Collections.shuffle(ret, Randomization.getGenerator());
 		return ret;
 	}
-	
+		
 	/** Get the centroid of the points. */
 	public Point getCentroid() {
 		double x = 0.0, y = 0.0, z = 0.0;
@@ -228,13 +224,15 @@ public class PointList extends ArrayList<Point> {
 
 	/** Construct a point-list containing n uniformly distributed random points in 
 	 * the unit cube. Uses the ProGAL.math.Randomization class.*/
-	public static PointList generatePointsInCube(int n) {
+	public static PointList generatePointsInCube(int n) { return generatePointsInCube(n, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0); }
+
+	public static PointList generatePointsInCube(int n, double xL, double xH, double yL, double yH, double zL, double zH) {
 		PointList list = new PointList();
 		for (int i = 0; i < n; i++) 
 			list.add(new Point( 
-					Randomization.randBetween(-1.0,1.0),
-					Randomization.randBetween(-1.0,1.0),
-					Randomization.randBetween(-1.0,1.0) 
+					Randomization.randBetween(xL,xH),
+					Randomization.randBetween(yL,yH),
+					Randomization.randBetween(zL,zH) 
 					));
 		return list;
 	}

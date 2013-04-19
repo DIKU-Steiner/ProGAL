@@ -6,7 +6,7 @@ public class Trigonometry {
 	public static Double[] solveAsinXPlusBcosXplusC(double A, double B, double C) {
 		Double[] roots = new Double[2];
 		double a = C-B; 
-		if (Math.abs(a) < Constants.EPSILON) { System.out.println("No solution"); return null; }
+		if (Math.abs(a) < Constants.EPSILON) { /*System.out.println("No solutions");*/ return null; }
 		double b = 2 * A;
 		double c = B + C;
 		double delta = b*b - 4*a*c;

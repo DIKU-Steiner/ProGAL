@@ -164,6 +164,8 @@ public class Line {
 		
 	}
 
+	
+	
 	/** Gets the largest squared distance from the points to the line. */
 	public double getMaxDistanceSquared(PointList points) {
 		if (points.size() == 0) throw new Error("No point");

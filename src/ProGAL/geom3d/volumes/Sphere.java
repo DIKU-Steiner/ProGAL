@@ -1,6 +1,8 @@
 package ProGAL.geom3d.volumes;
 
+
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -13,6 +15,7 @@ import ProGAL.geom3d.LineSegment;
 import ProGAL.geom3d.PointWeighted;
 import ProGAL.geom3d.Vector;
 import ProGAL.geom3d.complex.CTetrahedron;
+import ProGAL.geom3d.kineticDelaunay.Vertex;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.math.Constants;
 
@@ -49,6 +52,12 @@ public class Sphere implements Volume{
 		this.radius = Math.sqrt(p.getWeight());
 	}
 
+	/** creates a sphere with the specified circle as equator */
+	public Sphere(Circle c) {
+		center = c.getCenter();
+		radius = c.getRadius();
+	}
+	
 	private void computeSphere(Point[] points) {
 		Point p0 = points[0];
 		Point p1 = points[1];
@@ -134,7 +143,16 @@ public class Sphere implements Volume{
 		for (int i = 0; i < points.length; i++) if (isInside(points[i], eps)) return false;
 		return true;
 	}
+	public boolean isEmpty(List<Vertex> points, double eps) {
+		for (Point p : points) if (isInside(p, eps)) return false;
+		return true;
+	}
 	
+	public void contains(List<Vertex> points, double eps) {
+		for (Vertex p : points) if (isInside(p, eps)) System.out.print(p.getId() + " " + (radius*radius) + " " + center.distanceSquared(p) + ", ");
+		System.out.println();
+	}
+
 	public void setCenter(Point center) { this.center = center; }
 	
 	public void setCenter(Point p0, Point p1, Point p2, Point p3) { computeSphere(p0, p1, p2, p3); }
@@ -246,6 +264,10 @@ public class Sphere implements Volume{
 	/** Writes this sphere to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 
+	public void toScene(J3DScene scene, Color clr) {
+		scene.addShape(this, clr);
+	}
+	
 	/** Returns true if the sphere overlaps with <code>vol</code>. TODO: Implement for all volumes. */
 	public boolean overlaps(Volume vol) {
 		if(vol instanceof Sphere) 

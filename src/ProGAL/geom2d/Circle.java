@@ -33,27 +33,33 @@ public class Circle implements Shape{
 
 	/** Creates circle through 3 given points. */
 	public Circle(Point a, Point b, Point c) {
-		Line ab = Point.getBisector(a, b);
-		Line bc = Point.getBisector(b, c);
-		if(a.equals(b) || b.equals(c)){
+		if (a.equals(b) || b.equals(c)) {
 			center = Point.midPoint(a, c);
 			radius = center.distance(a);
-		}else if(a.equals(c)){
-			center = Point.midPoint(a, b);
-			radius = center.distance(a);
-		}else if(ab.isParallelWith(bc)){
-			Point p1 = a;
-			Point p2 = b;
-			if(a.distance(b)<a.distance(c)) p2 = c;
-			if(b.distance(c)>p1.distance(p2)) p1 = b;
-			center = Point.midPoint(p1, p2);
-			radius = p1.distance(p2);
-		}else{
-			center = Line.getIntersection(ab, bc);
-			if(center==null) throw new Error(a+" "+b+" "+c);
-			radius = center.distance(b);
 		}
-	}
+		else 
+			if (a.equals(c)) {
+				center = Point.midPoint(a, b);
+				radius = center.distance(a);
+			}
+			else {
+				Line ab = Point.getBisector(a, b);
+				Line bc = Point.getBisector(b, c);
+				if (ab.isParallelWith(bc)) {
+					Point p1 = a;
+					Point p2 = b;
+					if (a.distance(b) < a.distance(c)) p2 = c;
+					if (b.distance(c) > p1.distance(p2)) p1 = b;
+					center = Point.midPoint(p1, p2);
+					radius = p1.distance(p2);
+				}
+				else {
+					center = Line.getIntersection(ab, bc);
+					if (center == null) throw new Error(a+" "+b+" "+c);
+					radius = center.distance(b);
+				}
+			}
+		}
 	
 
 	

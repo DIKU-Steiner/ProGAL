@@ -1,6 +1,9 @@
 package ProGAL.geom3d;
 
+
+
 import java.awt.Color;
+
 
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.math.Constants;
@@ -31,6 +34,16 @@ public class Circle implements Shape{
 		radius = center.distance(through);
 		this.normal = normal.normalize();
 	}
+	
+	/** Circle in the plane through p0, p1, p2 */ 
+    public Circle(Point p0, Point p1, Point p2) {
+	  center = Point.getCircumCenter(p0,  p1, p2);
+	  radius = center.distance(p0);
+	  Vector v0 = new Vector(center, p0);
+	  Vector v1 = new Vector(center, p1);
+	  normal = v0.cross(v1).normalize();
+	}		
+
 	
 	/*
 	 * Given three points p0, p1, p2 and a vector v, find the circle or just the radius of the circle through the 
@@ -253,12 +266,12 @@ public class Circle implements Shape{
 					      center.y() + radius*(a.y()*cosAlpha + b.y()*sinAlpha),
 					      center.z() + radius*(a.z()*cosAlpha + b.z()*sinAlpha));
 			seg = new LineSegment(p,q);
-			seg.toScene(scene, 0.01, Color.black);
+			seg.toScene(scene, width, Color.blue);
 			p = q;
 		}
 		q = new Point(center.x() + radius*a.x(), center.y() + radius*a.y(), center.z() + radius*a.z());
 		seg = new LineSegment(p,q);
-		seg.toScene(scene, 0.01, Color.black);
+		seg.toScene(scene, width, Color.blue);
 		
 	}
 	public static void main(String[] args) {

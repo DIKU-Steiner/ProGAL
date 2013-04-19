@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TriangulationVertex extends Point {
+	private static final long serialVersionUID = 1L;
 	public static enum VertexType { S, R };
 
 	

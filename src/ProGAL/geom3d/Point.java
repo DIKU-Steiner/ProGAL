@@ -1,7 +1,7 @@
 package ProGAL.geom3d;
 
-
 import java.awt.Color;
+
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.Sphere;
 
@@ -118,14 +118,46 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	public Point add(Vector p) { return new Point(coords[0]+p.x(), coords[1]+p.y(), coords[2]+p.z()); }
 	
 	/** Returns p subtracted from this (changing this object). */
-	public Point subtractThis(Vector p) { coords[0]-=p.x(); coords[1]-=p.y(); coords[2]-=p.z(); return this;	}
-	
+	public Point subtractThis(Vector p) { coords[0] -= p.x(); coords[1] -= p.y(); coords[2] -= p.z(); return this; }
+	public Point subtractThis(Point  p) { coords[0] -= p.x(); coords[1] -= p.y(); coords[2] -= p.z(); return this; }
+
 	/** Returns p subtracted from this (without changing this object). */
 	public Point subtract(Vector p) {return new Point(coords[0]-p.x(),coords[1]-p.y(),coords[2]-p.z());	}
 	
 	/** Reflects this point through origo. */
 	public Point reflectThroughOrigoThis() { coords[0]*=-1; coords[1]*=-1; coords[2]*=-1; return this; }
 
+	/** rotates (clockwise) the point around the line through the  origo with the direction unit vector v.
+	 * For counterclockwise rotation change signs within parentheses in non-diagonal terms. */
+	public void rotation(Vector v, double alpha) {
+		double c = Math.cos(alpha);
+		double d = 1.0-c;
+		double s = Math.sin(alpha);
+		double vxyd = v.x()*v.y()*d, vxzd = v.x()*v.z()*d, vyzd = v.y()*v.z()*d;
+		double vxs = v.x()*s, vys = v.y()*s, vzs = v.z()*s; 
+		double xNew = (v.x()*v.x()*d+c)*x() + (vxyd-vzs)*y()    + (vxzd+vys)*z();
+		double yNew = (vxyd+vzs)*x()    + (v.y()*v.y()*d+c)*y() + (vyzd-vxs)*z();
+		setZ((vxzd-vys)*x()    + (vyzd+vxs)*y()    + (v.z()*v.z()*d+c)*z());
+		setX(xNew);
+		setY(yNew);
+	}
+
+	/** rotates (clockwise) the point around the line through the  point p with the direction unit vector v.
+	 * For counterclockwise rotation change signs within parentheses in non-diagonal terms. */
+	public void rotation(Vector v, double alpha, Point p) {
+		this.translateThis(-p.x(), -p.y(), -p.z());
+		rotation(v, alpha);
+		this.translateThis(p.x(), p.y(), p.z());
+	}
+
+	/** Returns the sinus of the polar angle of this point with the z-axis*/
+	public double polarAngleSinZ() { return coords[1]/distance(); }
+
+	/** Returns the cosinus of the polar angle of this point with the z-axis*/
+	public double polarAngleCosZ() { return coords[0]/distance(); }
+
+
+	
 	/** Get the squared distance from this point to point q. */
 	public double distanceSquared(Point q) {
 		double dx = coords[0]-q.coords[0];
@@ -234,6 +266,52 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 		if(Math.abs(coords[1]-p.coords[1])>Constants.EPSILON) return false;
 		if(Math.abs(coords[2]-p.coords[2])>Constants.EPSILON) return false;
 		return true;
+	}
+	
+	
+	public static Point getCircumCenter(Point a, Point b, Point c) {
+		Vector ca = new Vector(c, a);
+		Vector cb = new Vector(c, b);
+		Vector cr = ca.cross(cb);
+		Vector v1 = cb.multiply(ca.getLengthSquared());
+		Vector v2 = ca.multiply(cb.getLengthSquared());
+		v1.subtractThis(v2);
+		v1.crossThis(cr);
+		v1.divideThis(2.0*cr.getLengthSquared());
+		return c.add(v1);
+	}
+	
+	
+	/* Returns equilateral point of 2 points a and b in the plane through point c */
+	public static Point getEquilateralPoint(Point a, Point b, Point c) {
+		Point e = a.clone();
+		Vector ba = new Vector(b, a);
+		Vector normal = ba.cross(new Vector(b,c));
+		normal.normalize();
+		e.rotation(normal, -Math.PI/3,b);	
+		return e;
+	}
+
+	
+	/* Returns Steiner point of 3 points */
+	public static Point getSteinerPoint(Point a, Point b, Point c) {
+		// if the angle at a is 120 or more, return a. Similarly for b and c
+		Vector ab = new Vector(a,b);
+		Vector ba = new Vector(b,a);
+		Vector bc = new Vector(b,c);
+		Vector cb = new Vector(c,b);
+		Vector ca = new Vector(c,a);
+		Vector ac = new Vector(a,c);
+
+		if (!ab.isSteinerAngle(ac)) return a;
+		if (!ba.isSteinerAngle(bc)) return b;
+		if (!ca.isSteinerAngle(cb)) return c;
+		Point eab = Point.getEquilateralPoint(a, b, c);
+		Point center = Point.getCircumCenter(a, b, eab);
+		Vector normal = ab.cross(ac).normalize();
+		Sphere sphere = new Sphere(new Circle(center, a, normal));
+		LineSegment sgm =  sphere.getIntersection(new Line(eab, c));
+		if (sgm.a.distanceSquared(eab) > sgm.b.distanceSquared(eab)) return sgm.a; else return sgm.b;
 	}
 
 	/** Return a new object that equals this object. */
