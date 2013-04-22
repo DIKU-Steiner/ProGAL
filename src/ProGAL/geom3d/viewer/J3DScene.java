@@ -1,6 +1,5 @@
 package ProGAL.geom3d.viewer;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GraphicsConfiguration;
@@ -369,7 +368,7 @@ public class J3DScene {
 
 		trans = new Transform3D();
 		trans.setScale(new Vector3d(1,lens.getSphereRadius(0)-lens.getFocalDistance(0),1));
-		System.out.println(lens.getSphereRadius(0)+" "+ lens.getFocalDistance(0));
+//		System.out.println(lens.getSphereRadius(0)+" "+ lens.getFocalDistance(0));
 		//		trans.setTranslation(new Vector3d(0,0,0));
 		((TransformGroup)bg.getChild(0)).setTransform(trans);
 
@@ -935,7 +934,7 @@ public class J3DScene {
 		trans.setTranslation(new Vector3d(0,0,0));
 		TransformGroup tg  = new TransformGroup(trans);
 		float angle = (float)(Math.PI/2+Math.atan(lens.getRadius()/lens.getFocalDistance(0)));
-		System.out.println(angle);
+//		System.out.println(angle);
 		Shape3D shape = new Hemisphere3D(1f,angle, app, divisions);//new SphereTop3D(1,angle,app,divisions);
 		enablePicking(shape);
 		pickMap.put(shape, lens);
@@ -1588,9 +1587,7 @@ public class J3DScene {
 					updateTransforms(entry.getKey());
 				}
 
-			}catch(ConcurrentModificationException exc){
-				return;
-			}
+			}catch(ConcurrentModificationException exc){}
 			wakeupOn(criterion);
 			rebuilding = false;
 		}
