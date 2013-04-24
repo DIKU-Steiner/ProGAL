@@ -197,7 +197,7 @@ public class KineticDelaunayTessellation {
 	}
 	
 	public void animate(J3DScene scene, double alpha) {
-		int steps = 10;
+		int steps = 1;
 		double angleStep = alpha/steps;
 		for (int k = 0; k < steps; k++) {
 			for (int i = 0; i < rotIndx.size(); i++) {
@@ -717,7 +717,7 @@ public class KineticDelaunayTessellation {
 	public boolean isDelaunay() {
 		boolean cont = true;
 		for (Tet t : tets) {
-			if (t.circumSphere == null) t.setCircumSphere();
+			t.setCircumSphere();
 			if (!t.circumSphere.isEmpty(vertices, Constants.EPSILON)) {
 				System.out.print(t + " is not empty: ");
 				t.circumSphere.contains(vertices, Constants.EPSILON);
@@ -775,6 +775,8 @@ public class KineticDelaunayTessellation {
 			rotAngle = heapItem.getAngle();
 			if (t.isAlive() && nt.isAlive() && (rotAngle < Constants.TAU)) {
 				if (testing) {
+//					t.toSceneFaces(scene, Color.blue);
+//					nt.toSceneFaces(scene, Color.red);
 					animate(scene, (rotAngle-angleTotal)/2.0);
 					isDelaunay();
 					animate(scene, (rotAngle-angleTotal)/2.0);	
@@ -797,7 +799,19 @@ public class KineticDelaunayTessellation {
 						System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngle()));
 						System.out.println();
 					}
+					if (testing) {
+						t.fromSceneFaces(scene);
+						nt.fromSceneFaces(scene);
+					}
 					newTets = flip23(t, nt);
+					if (testing) {
+//						newTets[0].toSceneFaces(scene, Color.blue);
+//						newTets[1].toSceneFaces(scene, Color.red);
+//						newTets[2].toSceneFaces(scene, Color.green);
+//						newTets[0].fromSceneFaces(scene);
+//						newTets[1].fromSceneFaces(scene);
+//						newTets[2].fromSceneFaces(scene);
+					}
 					if (testing) System.out.println(++nrFlips + ". flip.");
 				}
 			}
@@ -827,14 +841,16 @@ public class KineticDelaunayTessellation {
 	public void toScene(J3DScene scene, double alpha) {
 		scene.removeAllShapes();
 		Vector tr = new Vector (0.02, 0.02, 0.02);
-		for (Tet tet : tets) { tet.toSceneEdges(scene, Color.black, 0.005, 0.0005); }
+		for (Tet tet : tets) { 
+			if (tet.circumRadius() <= alpha) tet.toSceneEdges(scene, Color.black, 0.005, 0.0005); 
+			}
 		for (Vertex v : vertices) {
 			if (v.getType() == VertexType.S) {
-				v.toScene(scene, 0.03, Color.red);
+				v.toScene(scene, 0.01, Color.red);
 				scene.addText(String.valueOf(v.getId()), v.add(tr));
 			}
 			else {
-				v.toScene(scene, 0.03, Color.blue);
+				v.toScene(scene, 0.01, Color.blue);
 				Circle c = new Circle(new Point(0, 0, v.z()), v, getRotationAxis());
 				c.toScene(scene, 0.002, 32);
 				scene.addText(String.valueOf(v.getId()), v);
@@ -862,17 +878,17 @@ public class KineticDelaunayTessellation {
 //		System.out.println(t.inSphere(new Point(0.1,0,0)));
 		
 		Randomization.seed(3);
-		List<Point> points = PointList.generatePointsInCube(10, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
+		List<Point> points = PointList.generatePointsInCube(100, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 		KineticDelaunayTessellation kDT = new KineticDelaunayTessellation(points);
 		kDT.setRotationPoint(new Point(0.5,0.5,0.5));
 		kDT.setRotationAxis(new Vector(0, 0, 1));
 		kDT.setDirection(KineticDelaunayTessellation.Direction.CCW);
-		kDT.setRotVertices(4, 6);
+		kDT.setRotVertices(4, 14);
 
 		for(Tet t: kDT.getTetrahedra()) System.out.println(t);
 		
 		
-		kDT.alpha = 0.5;
+		kDT.alpha = 0.425;
 		
 		kDT.toScene(kDT.scene);
 /*		for (Vertex v : kDT.vertices) {

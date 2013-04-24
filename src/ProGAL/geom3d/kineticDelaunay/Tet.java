@@ -15,12 +15,13 @@ import ProGAL.geom3d.volumes.Tetrahedron;
 import ProGAL.math.Constants;
 import ProGAL.math.Matrix;
 
-public class Tet  {
+public class Tet {
 	Vertex[] corners = new Vertex[4];
 	Tet[] neighbors = new Tet[4];
 	Sphere circumSphere = null;
 	Integer count = null;
-	boolean alive = true;
+	boolean dAlive = true;
+	boolean cAlive = true;
 	Shape[] LSSs = new Shape[6];
 	Shape[] faces = new Shape[4];
 	
@@ -68,6 +69,19 @@ public class Tet  {
 		circumSphere = tetra.circumSphere();
 	}
 	
+	/** Calculate the radius of the circumsphere. */
+	public double circumRadius(){
+		Vector a = corners[3].vectorTo(corners[0]);
+		Vector b = corners[3].vectorTo(corners[1]);
+		Vector c = corners[3].vectorTo(corners[2]);
+		Vector O = b.cross(c).multiplyThis(a.dot(a));
+		O.addThis(c.cross(a).multiplyThis(b.dot(b)));
+		O.addThis(a.cross(b).multiplyThis(c.dot(c)));
+		O.multiplyThis(1.0/(2*a.dot(b.crossThis(c))));
+		return O.length();
+	}
+
+	
 	public boolean hasVertex(Vertex v) {
 		for (int i = 0; i < 4; i++) 
 			if (corners[i] == v) return true;
@@ -80,8 +94,8 @@ public class Tet  {
 		return false;
 	}
 
-	public boolean isAlive() { return alive; }
-	public void setAlive(boolean alive) {this.alive = alive; }
+	public boolean isAlive() { return dAlive; }
+	public void setAlive(boolean dAlive) {this.dAlive = dAlive; }
 	
 	public boolean isFlat() { return Point.coplanar(corners[0], corners[1], corners[2], corners[3]); }
 	
