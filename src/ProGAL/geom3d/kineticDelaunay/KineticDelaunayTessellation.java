@@ -35,6 +35,7 @@ public class KineticDelaunayTessellation {
 	private Tet lastTet;
 	private Double[] angles = new Double[2];
 	private double angleTotal = 0.0;
+	private double angleLimit = Constants.TAU;        
 	
 	private Point rotationPoint;   // rotation center
 	private Vector rotationAxis; // rotation vector
@@ -68,7 +69,7 @@ public class KineticDelaunayTessellation {
 			this.nt = nt;
 		}
 				
-		private Double getAngle() { return angles[0];} 
+		private Double[] getAngles() { return angles;} 
 		private Tet getT()  { return t; }
 		private Tet getNT() { return nt; }
 	}
@@ -76,8 +77,8 @@ public class KineticDelaunayTessellation {
 	private class SortToolHeapItems implements SortTool {
 		public int compare(Object x1, Object x2) {
 			if ((x1 instanceof HeapItem) && (x2 instanceof HeapItem)) {
-				double d1 = ((HeapItem)x1).getAngle();
-				double d2 = ((HeapItem)x2).getAngle();
+				double d1 = ((HeapItem)x1).getAngles()[0];
+				double d2 = ((HeapItem)x2).getAngles()[0];
 				if (d1 < d2) return COMP_LESS;
 				else { if (d1 > d2) return COMP_GRTR; else return COMP_EQUAL; }
 			}
@@ -197,14 +198,14 @@ public class KineticDelaunayTessellation {
 	}
 	
 	public void animate(J3DScene scene, double alpha) {
-		int steps = 1;
+		int steps = 10;
 		double angleStep = alpha/steps;
 		for (int k = 0; k < steps; k++) {
 			for (int i = 0; i < rotIndx.size(); i++) {
 				Vertex v = vertices.get(rotIndx.get(i));
 				v.rotation(rotationAxis, angleStep);
 			}
-			try { Thread.sleep(10); } catch (InterruptedException e) {}
+			try { Thread.sleep(5); } catch (InterruptedException e) {}
 			if (sphereAnimation) animateSpheres();			
 			scene.repaint();
 		}
@@ -436,7 +437,7 @@ public class KineticDelaunayTessellation {
 						count = count4;
 						if (oppV.getType() == Vertex.VertexType.R) count = count + 16;	
 						angles = getRoot(t, oppV, count);
-						if (angles != null) {
+						if ((angles != null) && (angles[0] < angleLimit)) {
 							addToHeap(angles, t, nt);
 							if (testing) System.out.println(t + " " + nt + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 						}
@@ -520,25 +521,25 @@ public class KineticDelaunayTessellation {
 		newTets[1] = nt1;
 		newTets[2] = nt2;
 		if (testing) {
-			newTets[0].toSceneEdges(scene, Color.black, 0.005, 0.0001);
-			newTets[1].toSceneEdges(scene, Color.black, 0.005, 0.0001);
-			newTets[2].toSceneEdges(scene, Color.black, 0.005, 0.0001);
+			newTets[0].toSceneEdges(scene, Color.black, 0.001, 0.0001);
+			newTets[1].toSceneEdges(scene, Color.black, 0.001, 0.0001);
+			newTets[2].toSceneEdges(scene, Color.black, 0.001, 0.0001);
 		}
 		tets.add(nt0);
 		tets.add(nt1);
 		tets.add(nt2);
 		angles = getRoot(nt0, nt1);
-		if (angles != null) {
+		if (angles[0] < angleLimit) {
 			addToHeap(angles, nt0, nt1);
 			if (testing) System.out.println(nt0 + " " + nt1 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
 		angles = getRoot(nt0, nt2);
-		if (angles != null) {
+		if (angles[0] < angleLimit) {
 			addToHeap(angles, nt0, nt2);
 			if (testing) System.out.println(nt0 + " " + nt2 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
 		angles = getRoot(nt1, nt2);
-		if (angles != null) {
+		if (angles[0] < angleLimit) {
 			addToHeap(angles, nt1, nt2);
 			if (testing) System.out.println(nt1 + " " + nt2 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
@@ -549,7 +550,7 @@ public class KineticDelaunayTessellation {
 			nti = nt0.neighbors[i];
 			if ((nti != null) && (nti != nt1) && (nti != nt2)) {
 				angles = getRoot(nt0, nti);
-				if (angles != null) {
+				if ((angles != null) && (angles[0] < angleLimit)) {
 					addToHeap(angles, nt0, nti);
 					if (testing) System.out.println(nt0 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
@@ -560,7 +561,7 @@ public class KineticDelaunayTessellation {
 			nti = nt1.neighbors[i];
 			if ((nti != null) && (nti != nt0) && (nti != nt2)) {
 				angles = getRoot(nt1, nti);
-				if (angles != null) {
+				if ((angles != null) && (angles[0] < angleLimit)) {
 					addToHeap(angles, nt1, nti);
 					if (testing) System.out.println(nt1 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
@@ -571,7 +572,7 @@ public class KineticDelaunayTessellation {
 			nti = nt2.neighbors[i];
 			if ((nti != null) && (nti != nt0) && (nti != nt1)) {
 				angles = getRoot(nt2, nti);
-				if (angles != null) {
+				if ((angles != null) && (angles[0] < angleLimit)) {
 					addToHeap(angles, nt2, nti);
 					if (testing) System.out.println(nt2 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
@@ -677,12 +678,12 @@ public class KineticDelaunayTessellation {
 		Tet[] newTets = new Tet[2];
 		newTets[0] = nt0;
 		newTets[1] = nt1;
-		newTets[0].toSceneEdges(scene, Color.black, 0.005, 0.0001);
-		newTets[1].toSceneEdges(scene, Color.black, 0.005, 0.0001);
+		newTets[0].toSceneEdges(scene, Color.black, 0.001, 0.0001);
+		newTets[1].toSceneEdges(scene, Color.black, 0.001, 0.0001);
 		tets.add(nt0);
 		tets.add(nt1);
 		angles = getRoot(nt0, nt1);
-		if (angles != null) {
+		if (angles[0] < angleLimit) {
 			addToHeap(angles, nt0, nt1);
 			if (testing) System.out.println(nt0 + " " + nt1 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
@@ -694,7 +695,7 @@ public class KineticDelaunayTessellation {
 			nti = nt0.neighbors[i];
 			if ((nti != null) && (nti != nt1)) {
 				angles = getRoot(nt0, nti);
-				if (angles != null) {
+				if ((angles != null) && (angles[0] < angleLimit)) {
 					addToHeap(angles, nt0, nti);
 					if (testing) System.out.println(nt0 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
@@ -705,7 +706,7 @@ public class KineticDelaunayTessellation {
 			nti = nt1.neighbors[i];
 			if ((nti != null) && (nti != nt0)) {
 				angles = getRoot(nt1, nti);
-				if (angles != null) {
+				if ((angles != null) && (angles[0] < angleLimit)) {
 					addToHeap(angles, nt1, nti);
 					if (testing) System.out.println(nt1 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
@@ -769,34 +770,36 @@ public class KineticDelaunayTessellation {
 			t = heapItem.getT();   
 			nt = heapItem.getNT(); 
 			if (testing) {
-				System.out.print(t.toString());  if (!t.isAlive()) System.out.print(" ");
+				System.out.print(t.toString());  if (!t.isAlive())  System.out.print(" ");
 				System.out.print(nt.toString()); if (!nt.isAlive()) System.out.print(" ");
 			}
-			rotAngle = heapItem.getAngle();
+			angles = heapItem.getAngles();
+			rotAngle = angles[0];
 			if (t.isAlive() && nt.isAlive() && (rotAngle < Constants.TAU)) {
 				if (testing) {
-//					t.toSceneFaces(scene, Color.blue);
-//					nt.toSceneFaces(scene, Color.red);
-					animate(scene, (rotAngle-angleTotal)/2.0);
-					isDelaunay();
-					animate(scene, (rotAngle-angleTotal)/2.0);	
+					animate(scene, rotAngle-angleTotal);
+//					isDelaunay();
+//					animate(scene, (rotAngle-angleTotal)/2.0);	
 				}
 				angleTotal = rotAngle;
 				
 				if (!t.isConvex(nt)) {
 					tt = KineticToolbox.getThirdTet(t, nt);
-					if (testing) {
-						System.out.print(tt.toString()); 
-						if (!tt.isAlive())  System.out.print(" ");
-						System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngle()));						
-						System.out.println();
+					if (tt != null) {
+						if (testing) {
+							System.out.print(tt.toString()); 
+							if (!tt.isAlive())  System.out.print(" ");
+							System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngles()[0]));						
+							System.out.println();
+						}
+						newTets = flip32(t, nt, tt);
+						if (testing) System.out.println(++nrFlips + ". flip.");
 					}
-					newTets = flip32(t, nt, tt);
-					if (testing) System.out.println(++nrFlips + ". flip.");
+					else { System.out.println(" not convex but tt = null"); break; }
 				}
 				else {
 					if (testing) {
-						System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngle()));
+						System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngles()[0]));
 						System.out.println();
 					}
 					if (testing) {
@@ -805,12 +808,6 @@ public class KineticDelaunayTessellation {
 					}
 					newTets = flip23(t, nt);
 					if (testing) {
-//						newTets[0].toSceneFaces(scene, Color.blue);
-//						newTets[1].toSceneFaces(scene, Color.red);
-//						newTets[2].toSceneFaces(scene, Color.green);
-//						newTets[0].fromSceneFaces(scene);
-//						newTets[1].fromSceneFaces(scene);
-//						newTets[2].fromSceneFaces(scene);
 					}
 					if (testing) System.out.println(++nrFlips + ". flip.");
 				}
@@ -842,19 +839,17 @@ public class KineticDelaunayTessellation {
 		scene.removeAllShapes();
 		Vector tr = new Vector (0.02, 0.02, 0.02);
 		for (Tet tet : tets) { 
-			if (tet.circumRadius() <= alpha) tet.toSceneEdges(scene, Color.black, 0.005, 0.0005); 
+			tet.setCircumSphere();
+			if (tet.circumRadius() <= alpha) tet.toSceneEdges(scene, Color.black, 0.001, 0.0001); 
 			}
 		for (Vertex v : vertices) {
-			if (v.getType() == VertexType.S) {
-				v.toScene(scene, 0.01, Color.red);
-				scene.addText(String.valueOf(v.getId()), v.add(tr));
-			}
+			if (v.getType() == VertexType.S) v.toScene(scene, 0.01, Color.red);
 			else {
 				v.toScene(scene, 0.01, Color.blue);
 				Circle c = new Circle(new Point(0, 0, v.z()), v, getRotationAxis());
 				c.toScene(scene, 0.002, 32);
-				scene.addText(String.valueOf(v.getId()), v);
 			}
+			if (this.vertices.size() < 20) scene.addText(String.valueOf(v.getId()), v);
 		}
 	}
 	
@@ -878,7 +873,7 @@ public class KineticDelaunayTessellation {
 //		System.out.println(t.inSphere(new Point(0.1,0,0)));
 		
 		Randomization.seed(3);
-		List<Point> points = PointList.generatePointsInCube(100, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
+		List<Point> points = PointList.generatePointsInCube(30, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 		KineticDelaunayTessellation kDT = new KineticDelaunayTessellation(points);
 		kDT.setRotationPoint(new Point(0.5,0.5,0.5));
 		kDT.setRotationAxis(new Vector(0, 0, 1));
@@ -888,7 +883,7 @@ public class KineticDelaunayTessellation {
 		for(Tet t: kDT.getTetrahedra()) System.out.println(t);
 		
 		
-		kDT.alpha = 0.425;
+		kDT.alpha = 0.000001;
 		
 		kDT.toScene(kDT.scene);
 /*		for (Vertex v : kDT.vertices) {

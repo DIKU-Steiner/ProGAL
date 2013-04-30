@@ -41,7 +41,7 @@ public class KineticDTBigEdges extends Triangulation {
 	
 	private boolean testing = false;
 	private boolean circleAnimation = false;
-	private boolean printLabels = false;
+	private boolean printLabels = true;
 	
 	private class HeapItem {
 		private Double[] angles;
@@ -511,7 +511,7 @@ public class KineticDTBigEdges extends Triangulation {
 	}
 	
 	public static void main(String[] args) {
-		PointSet points = new PointSet(3000);
+		PointSet points = new PointSet(30);
 		Sorter sort = new SorterQuick();
 		sort.Sort(points, new SortToolPoint2dDistance());
 		for (int i = 1; i < points.getSize(); i++) {
@@ -542,6 +542,14 @@ public class KineticDTBigEdges extends Triangulation {
 		kDT.setRotationPoint(new Point(0,0));
 		kDT.setDirection(KineticDTBigEdges.Direction.CCW);
 
+		TriangulationVertex u = kDT.vertices.get(22);
+		List<TriangulationVertex> neighbors = u.getNeighboringVertices();
+		for (TriangulationVertex v : neighbors) System.out.print(v.getId() + ", ");
+		System.out.println();
+		kDT.delete(u);
+		kDT.scene.removeAllShapes();
+		kDT.draw(kDT.scene);
+		
 		double fraction = 0.05;
 		List<Integer> rotList = new ArrayList<Integer>();
 		Random random = new Random(2);

@@ -3,7 +3,11 @@ package ProGAL.geom2d;
 import java.util.ArrayList;
 import java.util.List;
 
+import ProGAL.dataStructures.DLCyclicList;
+import ProGAL.dataStructures.DLCyclicList.DLNode;
+import ProGAL.dataStructures.Heap;
 import ProGAL.dataStructures.Set;
+import ProGAL.dataStructures.SortTool;
 import ProGAL.dataStructures.SortToolLineSegment2dAroundCommonPoint;
 import ProGAL.dataStructures.SortToolLineSegment2dByLength;
 import ProGAL.dataStructures.SortToolPoint2dXY;
@@ -13,10 +17,11 @@ import ProGAL.geom2d.Point;
 import ProGAL.geom2d.TriangulationVertex;
 import ProGAL.geom2d.TriangulationFace;
 import ProGAL.geom2d.viewer.J2DScene;
+import ProGAL.geom3d.kineticDelaunay.Tet;
+import ProGAL.geom3d.kineticDelaunay.KineticDelaunayTessellation.HeapItem;
+import ProGAL.geom3d.kineticDelaunay.KineticDelaunayTessellation.SortToolHeapItems;
 import ProGAL.geom3d.predicates.ExactJavaPredicates;
 
-
-	
 public class Triangulation {
 	
 	public List<TriangulationVertex> vertices = new ArrayList<TriangulationVertex>();
@@ -355,6 +360,62 @@ public class Triangulation {
 			else {  // this case probably never applies 
 				System.out.println("This boundaryFlipIn case should not occur");
 			}
+		}
+	}
+	
+	private class HeapItem<T> {
+		private double power;
+		private DLNode<T> node;
+		private TriangulationFace fP;
+		private TriangulationFace fN;
+		
+		private HeapItem(double power, DLNode<T> node, TriangulationFace fP, TriangulationFace fN) {
+			this.power = power;
+			this.node = node;
+			this.fP = fP;
+			this.fN = fN;
+		}
+				
+		private double getPower() { return power;} 
+		private DLNode<T> getNode()  { return node; }
+		private TriangulationFace getFN() { return fN; }
+		private TriangulationFace getFP() { return fP; }
+	}
+	private class SortToolHeapItems implements SortTool {
+		public int compare(Object x1, Object x2) {
+			if ((x1 instanceof HeapItem) && (x2 instanceof HeapItem)) {
+				double d1 = ((HeapItem)x1).getPower();
+				double d2 = ((HeapItem)x2).getPower();
+				if (d1 < d2) return COMP_LESS;
+				else { if (d1 > d2) return COMP_GRTR; else return COMP_EQUAL; }
+			}
+			else throw SortTool.err1;
+		}
+	}
+
+	
+	/* deletes vertex v and all incident faces */
+	public List<TriangulationVertex> delete(TriangulationVertex u) {
+		DLCyclicList<TriangulationVertex> adjacentVertices = u.getNeighboringVertices();
+		vertices.remove(u);
+		List<TriangulationFace> facesToDelete = u.getFaces();
+		for (TriangulationFace face : facesToDelete) triangulationFaces.remove(face);
+		Heap heap = new Heap(this.vertices.size(), new SortToolHeapItems());
+		while (adjacentVertices.getSize() > 3) {
+			HeapItem item = (HeapItem)heap.extract();
+			DLNode<T> node = item.getNode();
+			TriangulationVertex v = (TriangulationVertex)node.getObject();
+			TriangulationVertex vP = (TriangulationVertex)node.getPrev().getObject();
+			TriangulationVertex vN = (TriangulationVertex)node.getNext().getObject();
+			TriangulationFace fP = item.getFP();
+			TriangulationFace fN = item.getFN();
+			TriangulationFace face = new TriangulationFace(v, vN, vP);
+			triangulationFaces.add(face);
+			face.setNeighbor(face.getIndex(vP), fN);
+			fN.setNeighbor(fN.getIndex(fN.getThirdVertex(face)), face);
+			face.setNeighbor(face.getIndex(vN), fP);
+			fP.setNeighbor(fP.getIndex(fP.getThirdVertex(face)), face);
+			
 		}
 	}
 	

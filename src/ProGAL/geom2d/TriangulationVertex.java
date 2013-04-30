@@ -3,6 +3,8 @@ package ProGAL.geom2d;
 import java.util.ArrayList;
 import java.util.List;
 
+import ProGAL.dataStructures.DLCyclicList;
+
 public class TriangulationVertex extends Point {
 	private static final long serialVersionUID = 1L;
 	public static enum VertexType { S, R };
@@ -23,6 +25,7 @@ public class TriangulationVertex extends Point {
 	}
 	
 	public TriangulationFace getFace() { return face; }
+	
 	public void setFace(TriangulationFace face) { this.face = face; }
 
 	public TriangulationFace getNextFace(TriangulationFace f) {
@@ -40,6 +43,7 @@ public class TriangulationVertex extends Point {
 		if (nextFace == null) return currFace; else return face;
 	}
 	
+	/* returns in counterclockwise order the faces incident with this vertex */
 	public List<TriangulationFace> getFaces() {
 		List<TriangulationFace> faces = new ArrayList<TriangulationFace>();
 		TriangulationFace firstFace = getFace();
@@ -50,6 +54,21 @@ public class TriangulationVertex extends Point {
 			face = getNextFace(face);
 		}
 		return faces;
+	}
+	
+	/* returns counterclockwise list of vertices adjacent to this vertex */
+	public DLCyclicList<TriangulationVertex> getNeighboringVertices() {
+		DLCyclicList<TriangulationVertex> vertices = new DLCyclicList<TriangulationVertex>();
+		TriangulationFace currentFace = getFace();
+		TriangulationVertex u = currentFace.getCorner((face.getIndex(this)+1)%3);
+		TriangulationVertex v = currentFace.getCorner((face.getIndex(this)+2)%3);
+		vertices.pushBefore(v);
+		while (v != u) {
+			currentFace = getNextFace(currentFace);
+			v = currentFace.getThirdVertex(this, v);
+			vertices.pushBefore(v);
+		}
+		return vertices;
 	}
 	
 	public Circle getOrbit(Point p) { 
