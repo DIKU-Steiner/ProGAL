@@ -112,6 +112,278 @@ public class KineticDelaunayTessellation {
 		heap.insert(new HeapItem(angles, t, nt));
 	}
 
+	/*returns a tetrahedron containing vertex v */
+	public Tet getTetrahedron(Vertex v) {
+		for (Tet tet : tets) {
+			if (tet.hasVertex(v)) return tet;
+		}
+		return null;
+	}
+	
+	private class HeapItemDelete<T> {
+		private double power;
+		private Tet tet;
+		private Tet nTet;
+		private Vertex a, b, c, d;
+		
+		private HeapItemDelete(Tet tet, Tet nTet, double power, Vertex a, Vertex b, Vertex c, Vertex d) {
+			this.power = power;
+			this.tet = tet;
+			this.nTet = nTet;
+			this.a = a;
+			this.b = b;
+			this.c = c;
+			this.d = d;
+		}
+				
+		private double getPower() { return power;} 
+		private Tet getTet() { return tet; }
+		private Tet getNTet() { return nTet; }
+		private Vertex getA() { return a; }
+		private Vertex getB() { return b; }
+		private Vertex getC() { return c; }
+		private Vertex getD() { return d; }
+	}
+	private class SortToolHeapItemsDelete implements SortTool {
+		public int compare(Object x1, Object x2) {
+			if ((x1 instanceof HeapItemDelete) && (x2 instanceof HeapItemDelete)) {
+				double d1 = ((HeapItemDelete)x1).getPower();
+				double d2 = ((HeapItemDelete)x2).getPower();
+				if (d1 < d2) return COMP_LESS;
+				else { if (d1 > d2) return COMP_GRTR; else return COMP_EQUAL; }
+			}
+			else throw SortTool.err1;
+		}
+	}
+
+	private double getPower(Point a, Point b, Point c, Point d, Point p) {
+		double delta = Point.orientation(a, b, c, d, p);
+		if (delta <= 0.0) return Constants.bigDouble;
+		return -Point.inSphere(b, a, c, d, p)/delta;
+	}
+	
+	/* deletes vertex v and all incident tetrahedra. Determines Delauney triangulation of the remaining points. */
+	public void delete(Vertex u, J3DScene scene) {
+		boolean testing = true;
+		int indx, indxN;
+		Tet tet, nTet, tTet, newTet, newTetU, newTetU1, newTetU2;
+		Vertex a, b, c, d;
+		double power;
+		
+		// set up the heap of pairs of tetrahedra with u as their vertex and sharing a facet around vertex u
+		Heap heap = new Heap(vertices.size(), new SortToolHeapItemsDelete());
+		List<Tet> processed = new ArrayList<Tet>();
+		List<Tet> toBeProcessed = new ArrayList<Tet>();
+		toBeProcessed.add(getTetrahedron(u));
+		
+		// set up the heap
+		while (!toBeProcessed.isEmpty()) {
+			tet = toBeProcessed.remove(0);
+			indx = tet.indexOf(u);
+//			tet.toSceneFace(scene, indx, Color.red);
+			
+			// a and b are shared by tet and nTet while c and d are facing each other
+			c = tet.corners[tet.apex(nTet)];
+			a = tet.corners[(indx+1)%4];
+			if (a == c) {
+				a = tet.corners[(indx+2)%4];
+				b = tet.corners[(indx+3)%4];
+			}
+			else {
+				b = tet.corners[(indx+2)%4];
+				if (b == c) b = tet.corners[(indx+3)%4];
+			}
+			for (int i = 1; i < 4; i++) {
+				nTet = tet.neighbors[(indx+i)%4];
+				d = nTet.corners[nTet.apex(tet)];
+				if (!processed.contains(nTet)) {				
+					power = getPower(a, b, c, d, u);
+					if (power < Constants.bigDouble) 
+						heap.insert(new HeapItemDelete(tet, nTet, power, a, b, c, d));
+					if (!toBeProcessed.contains(nTet)) toBeProcessed.add(nTet);				
+				}
+			}
+			processed.add(tet);
+		}
+	
+		// loop
+		Color transp1 = new Color(255,0,0,50);
+		Color transp2 = new Color(0,255,0,50);
+		while (!heap.isEmpty()) {
+			HeapItemDelete item = (HeapItemDelete)heap.extract();
+			tet = item.getTet();
+			nTet = item.getNTet();
+			tet.toSceneFaces(scene, transp1);
+			nTet.toSceneFaces(scene, transp2);
+			System.out.print(tet.toString() + nTet.toString() + item.getPower());
+			if (tet.isAlive() && nTet.isAlive()) {
+				a = item.getA();
+				b = item.getB();
+				c = item.getC();
+				d = item.getD();
+				tTet = tet.neighbors[tet.indexOf(a)];
+				if (tTet != nTet.neighbors[nTet.indexOf(a)]) {
+					tTet = tet.neighbors[tet.indexOf(b)];
+					if (tTet != nTet.neighbors[nTet.indexOf(b)]) tTet = null; 		
+				}
+				if (tTet != null) {
+					if (tTet.isAlive()) {
+						if (tTet.hasVertex(a)) {
+							newTet = new Tet(a, b, c, d);
+							newTetU = new Tet(u, b, c, d);
+							newTet.neighbors[newTet.indexOf(a)] = newTetU;
+							newTet.neighbors[newTet.indexOf(b)] = tTet.neighbors[tTet.indexOf(u)];
+							newTet.neighbors[newTet.indexOf(c)] = nTet.neighbors[nTet.indexOf(u)];
+							newTet.neighbors[newTet.indexOf(d)] = tet.neighbors[tet.indexOf(u)];
+							newTetU.neighbors[newTetU.indexOf(u)] = newTet;
+							newTetU.neighbors[newTetU.indexOf(b)] = tTet.neighbors[tTet.indexOf(a)];
+							newTetU.neighbors[newTetU.indexOf(c)] = nTet.neighbors[nTet.indexOf(a)];
+							newTetU.neighbors[newTetU.indexOf(d)] = tet.neighbors[tet.indexOf(a)];
+						}
+						else {
+							newTet = new Tet(b, a, c, d); 
+							newTetU = new Tet(u, a, c, d);
+							newTet.neighbors[newTet.indexOf(b)] = newTetU;
+							newTet.neighbors[newTet.indexOf(a)] = tTet.neighbors[tTet.indexOf(u)];
+							newTet.neighbors[newTet.indexOf(c)] = nTet.neighbors[nTet.indexOf(u)];
+							newTet.neighbors[newTet.indexOf(d)] = tet.neighbors[tet.indexOf(u)];
+							newTetU.neighbors[newTetU.indexOf(u)] = newTet;
+							newTetU.neighbors[newTetU.indexOf(a)] = tTet.neighbors[tTet.indexOf(b)];
+							newTetU.neighbors[newTetU.indexOf(c)] = nTet.neighbors[nTet.indexOf(b)];
+							newTetU.neighbors[newTetU.indexOf(d)] = tet.neighbors[tet.indexOf(b)];
+						}
+						tets.add(newTet);
+						tet.setAlive(false);
+						nTet.setAlive(false);
+						tTet.setAlive(false);
+					}
+				}
+				else {
+					newTet = new Tet(a, b, c, d);
+					newTetU1 = new Tet(u, a, c, d);
+					newTetU2 = new Tet(u, b, c, d);
+					newTet.neighbors[newTet.indexOf(a)] = newTetU2;
+					newTet.neighbors[newTet.indexOf(b)] = newTetU1;
+					newTet.neighbors[newTet.indexOf(c)] = nTet.neighbors[nTet.indexOf(u)];
+					newTet.neighbors[newTet.indexOf(d)] = tet.neighbors[tet.indexOf(u)];
+					newTetU1.neighbors[newTetU1.indexOf(u)] = newTet;
+					newTetU1.neighbors[newTetU1.indexOf(a)] = newTetU2;
+					newTetU1.neighbors[newTetU1.indexOf(c)] = nTet.neighbors[nTet.indexOf(b)];
+					newTetU1.neighbors[newTetU1.indexOf(d)] = tet.neighbors[tet.indexOf(b)];
+					newTetU2.neighbors[newTetU2.indexOf(u)] = newTet;
+					newTetU2.neighbors[newTetU2.indexOf(b)] = newTetU1;
+					newTetU2.neighbors[newTetU2.indexOf(c)] = nTet.neighbors[nTet.indexOf(a)];
+					newTetU2.neighbors[newTetU2.indexOf(d)] = tet.neighbors[tet.indexOf(a)];
+				
+				}
+				// check if they are both adjacent to third tetrahedron with u as a corner 
+			}
+			tet.fromSceneFaces(scene);
+			nTet.fromSceneFaces(scene);
+		}
+	}
+/*		
+		TriangulationFace[] newFaces = new TriangulationFace[2];
+		while (sz != 3) {
+			HeapItem item = (HeapItem)heap.extract();
+			face1 = item.getFace();
+			face2 = item.getNextFace();
+			if (face1.isAlive() && face2.isAlive()) {
+			
+				// add new face to the triangulation
+				int indx1 = face1.getIndex(u);
+				int indx2 = face2.getIndex(u);
+				a = face1.corners[(indx1+1)%3];
+				b = face1.corners[(indx1+2)%3];
+				c = face2.corners[(indx2+2)%3];
+				oppFace1 = face1.getNeighbor(indx1);
+				oppFace2 = face2.getNeighbor(indx2);
+			
+				newFace1 = new TriangulationFace(a, b, c);
+				newFace2 = new TriangulationFace(a, c, u);
+
+				newFace1.setNeighbor(0, oppFace2);
+				if (oppFace2 != null) oppFace2.setNeighbor((oppFace2.getIndex(b)+1)%3, newFace1);
+				newFace1.setNeighbor(1, newFace2);
+				newFace1.setNeighbor(2, oppFace1);
+				if (oppFace1 != null) oppFace1.setNeighbor((oppFace1.getIndex(a)+1)%3, newFace1);
+				if (a.face == face1) a.face = newFace1;
+				if ((b.face == face1) || (b.face == face2)) b.face = newFace1;
+				if (c.face == face2) c.face = newFace1;
+			    triangulationFaces.add(newFace1);
+				if (testing) {
+					Circle cir = new Circle(a, b, c);
+					cir.toScene(scene, Color.blue);
+					scene.removeShape(cir);
+				}
+
+			    // update star of u
+				prevFace = u.getPrevFace(face1);
+				nextFace = u.getNextFace(face2);
+				
+			    newFace2.setNeighbor(0, nextFace);
+			    newFace2.setNeighbor(1, prevFace);
+			    newFace2.setNeighbor(2, newFace1);
+			    
+			    nextFace.setNeighbor((nextFace.getIndex(c)+1)%3, newFace2);
+			    prevFace.setNeighbor((prevFace.getIndex(a)+2)%3, newFace2);
+                if ((u.face == face1) || (u.face == face2)) u.face = newFace2;
+                triangulationFaces.add(newFace2);
+                
+			    power = getPower(prevFace.corners[(prevFace.getIndex(a)+2)%3], a, c, u);
+			    if (power < Constants.bigDouble) heap.insert(new HeapItem(prevFace, newFace2, power));
+			    power = getPower(a, c, nextFace.corners[(nextFace.getIndex(c)+1)%3], u);
+			    if (power < Constants.bigDouble) heap.insert(new HeapItem(newFace2, nextFace, power));
+			    
+			    face1.setAlive(false);
+				triangulationFaces.remove(face1);
+			    face2.setAlive(false);
+				triangulationFaces.remove(face2);
+			    sz--;
+       		}   
+		}		
+			
+       	// remove u and its 3 faces
+		face1 = u.getFace();
+		face2 = u.getNextFace(face1);
+		face3 = u.getNextFace(face2);
+		a = face1.corners[(face1.getIndex(u)+1)%3];
+		b = face2.corners[(face2.getIndex(u)+1)%3];
+		c = face3.corners[(face3.getIndex(u)+1)%3];
+		oppFace1 = face1.getNeighbor(face1.getIndex(u));
+		oppFace2 = face2.getNeighbor(face2.getIndex(u));
+		oppFace3 = face3.getNeighbor(face3.getIndex(u));
+		 
+		newFace = new TriangulationFace(a, b, c);
+		newFace.setNeighbor(0, oppFace2);
+		newFace.setNeighbor(1, oppFace3);
+		newFace.setNeighbor(2, oppFace1);
+		
+		if (oppFace1 != null) oppFace1.setNeighbor((oppFace1.getIndex(a)+1)%3, newFace);
+		if (oppFace2 != null) oppFace2.setNeighbor((oppFace2.getIndex(b)+1)%3, newFace);
+		if (oppFace3 != null) oppFace3.setNeighbor((oppFace3.getIndex(c)+1)%3, newFace);
+
+		face1.setAlive(false);
+		triangulationFaces.remove(face1);
+		face2.setAlive(false);
+		triangulationFaces.remove(face2);
+		face3.setAlive(false);
+		triangulationFaces.remove(face3);
+		if ((a.face == face1) || (a.face == face2)) a.face = newFace;
+		if ((b.face == face2) || (b.face == face3)) b.face = newFace;
+		if ((c.face == face3) || (c.face == face1)) c.face = newFace;
+		u.face = null;
+		
+       	triangulationFaces.add(newFace);
+       	if (testing) {
+       		scene.removeAllShapes();
+       		draw(scene);
+       	}
+	}
+*/
+	
+	
+	
 	
 	
 	public void insertPoint(Point p){
@@ -818,6 +1090,7 @@ public class KineticDelaunayTessellation {
 
 	}
 	/* specify what is rotating - 3 methods to do it */
+	public void setRotVertices() { for (Vertex v : vertices) v.setType(Vertex.VertexType.S); }
 	public void setRotVertices(int a) { setRotVertices(a, a); }
 	public void setRotVertices(int a, int b) { 
 		for (int i = a; i <= b; i++) rotIndx.add(i); 
@@ -873,12 +1146,16 @@ public class KineticDelaunayTessellation {
 //		System.out.println(t.inSphere(new Point(0.1,0,0)));
 		
 		Randomization.seed(3);
-		List<Point> points = PointList.generatePointsInCube(30, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
+		List<Point> points = PointList.generatePointsInCube(10, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 		KineticDelaunayTessellation kDT = new KineticDelaunayTessellation(points);
 		kDT.setRotationPoint(new Point(0.5,0.5,0.5));
 		kDT.setRotationAxis(new Vector(0, 0, 1));
 		kDT.setDirection(KineticDelaunayTessellation.Direction.CCW);
-		kDT.setRotVertices(4, 14);
+		kDT.setRotVertices();
+		kDT.toScene(kDT.scene);
+//		kDT.delete(kDT.vertices.get(5), kDT.scene);
+//		kDT.scene.removeAllShapes();
+//		kDT.toScene(kDT.scene);
 
 		for(Tet t: kDT.getTetrahedra()) System.out.println(t);
 		
@@ -886,15 +1163,15 @@ public class KineticDelaunayTessellation {
 		kDT.alpha = 0.000001;
 		
 		kDT.toScene(kDT.scene);
-/*		for (Vertex v : kDT.vertices) {
-			if (v.getType() == VertexType.S) v.toScene(kDT.scene, 0.05, Color.red);
+		for (Vertex v : kDT.vertices) {
+			if (v.getType() == VertexType.S) v.toScene(kDT.scene, 0.01, Color.red);
 			else {
-				v.toScene(kDT.scene, 0.05, Color.blue);
+				v.toScene(kDT.scene, 0.01, Color.blue);
 				Circle c = new Circle(new Point(0, 0, v.z()), v, kDT.getRotationAxis());
 				c.toScene(kDT.scene, 0.005, 32);
 			}
 		}
-*/	
+	
 		kDT.rotate();
 /*		Vector u = new Vector(1, 0, 0);	
 		Vector v = new Vector(0, 1, 0);

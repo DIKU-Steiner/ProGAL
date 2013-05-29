@@ -93,24 +93,15 @@ public class Point extends ProGAL.geomNd.Point {
 	
 	/** Returns a positive double if the point is inside the circle through the 3 specified points (must be in clockwise order). */
 	public static double inCircle(Point p, Point q, Point r, Point s) {
-//		double aa = a.x()*a.x() + a.y()*a.y();
-//		double bb = b.x()*b.x() + b.y()*b.y();
-//		double cc = c.x()*c.x() + c.y()*c.y();
-//		double dd = p.x()*p.x() + p.y()*p.y();
-//		return a.x()*(b.y()-p.y())*cc + b.x()*(c.y()-a.y())*dd + c.x()*(p.y()-b.y())*aa + p.x()*(a.y()-c.y())*bb;
+		double pp = p.x()*p.x() + p.y()*p.y();
+		double qq = q.x()*q.x() + q.y()*q.y();
+		double rr = r.x()*r.x() + r.y()*r.y();
+		double ss = s.x()*s.x() + s.y()*s.y();
 		
-		
-		double pos1 = p.x()*q.y()*(r.x()*r.x()+r.y()*r.y());
-		double pos2 = p.y()*s.x()*(q.x()*q.x()+q.y()*q.y());
-		double pos3 = r.x()*s.y()*(p.x()*p.x()+p.y()*p.y());
-		double pos4 = q.x()*r.y()*(s.x()*s.x()+s.y()*s.y());
-		
-		double neg1 = p.x()*s.y()*(r.x()*r.x()+r.y()*r.y());
-		double neg2 = p.y()*q.x()*(s.x()*s.x()+s.y()*s.y());
-		double neg3 = q.y()*r.x()*(p.x()*p.x()+p.y()*p.y());
-		double neg4 = r.y()*s.x()*(q.x()*q.x()+q.y()*q.y());
-		
-		return pos1+pos2+pos3+pos4-neg1-neg2-neg3-neg4;
+		return pp*(q.x()*(r.y()-s.y()) + q.y()*(s.x()-r.x()) + r.x()*s.y() - r.y()*s.x()) -
+			   qq*(p.x()*(r.y()-s.y()) + p.y()*(s.x()-r.x()) + r.x()*s.y() - r.y()*s.x()) +
+			   rr*(p.x()*(q.y()-s.y()) + p.y()*(s.x()-q.x()) + q.x()*s.y() - q.y()*s.x()) -
+			   ss*(p.x()*(q.y()-r.y()) + p.y()*(r.x()-q.x()) + q.x()*r.y() - q.y()*r.x());
 	}
 	
 	/** Returns polar angle of this point */

@@ -171,6 +171,9 @@ public class Circle implements Shape{
 		return null;
 	}
 	
+	
+	/* returns 0-2 intersections of this circle with another circle 
+	 * */
 	public Point[] intersections(Circle c){
 		Point[] ret = null;
 		double centerDist =center.distance(c.center); 
@@ -203,7 +206,36 @@ public class Circle implements Shape{
 		return ret;
 	}
 	
-
+	/* returns 0-2 intersections of this circle with a line, source: http://mathworld.wolfram.com/Circle-LineIntersection.html*/
+	public Point[] intersections(Line l) {
+		double x1 = l.p.x() - center.x();
+		double y1 = l.p.y() - center.y();
+		double x2 = l.p.x() + l.n.y() - center.x();
+		double y2 = l.p.y() - l.n.x() - center.y();
+		double dx = x2 - x1;
+		double dy = y2 - y1;
+		double dr2 = dx*dx + dy*dy;
+		double D = x1*y2 - x2*y1;
+		double delta = radius*radius*dr2 - D*D;
+		if (delta < -Constants.EPSILON) return null;
+		if (delta <  Constants.EPSILON) {
+			Point[] ret = new Point[1];
+			ret[0] = new Point(center.x() + D*dy/dr2, center.y() - D*dx/dr2);
+			return ret;
+		}
+		Point[] ret = new Point[2];
+		double deltaRoot = Math.sqrt(delta);
+		if (dy < 0.0) {
+			ret[0] = new Point(center.x() + (D*dy - dx*deltaRoot)/dr2, center.y() - (D*dx - dy*deltaRoot)/dr2);
+			ret[1] = new Point(center.x() + (D*dy + dx*deltaRoot)/dr2, center.y() - (D*dx + dy*deltaRoot)/dr2);
+		}
+		else {
+			ret[0] = new Point(center.x() + (D*dy + dx*deltaRoot)/dr2, center.y() - (D*dx - dy*deltaRoot)/dr2);
+			ret[1] = new Point(center.x() + (D*dy - dx*deltaRoot)/dr2, center.y() - (D*dx + dy*deltaRoot)/dr2);
+		}
+		return ret;
+	}
+	
 	public static Circle minimumEnclosingCircle_Welzl(List<Point> points){
 		Point[] b = new Point[3];
 		return findMEC(points.size(), points,0,b);
@@ -542,7 +574,19 @@ public class Circle implements Shape{
 	}
 */
 	public static void main(String[] args) {
-		zerooneMove(new Point(-8, 1), new Point(-6, 8), new Point(-1, 3), new Point(0.5, -5) );
+		J2DScene scene = J2DScene.createJ2DSceneInFrame();
+		Point c = new Point(0.5,0.2);
+		Circle cir = new Circle(c, 1);
+		cir.toScene(scene);
+		Point p = new Point(1,1.5);
+		Line l = new Line(c, p);
+		LineSegment seg = new LineSegment(c, p);
+		seg.toScene(scene);
+		Point[] inter =  cir.intersections(l);
+		inter[0].toScene(scene, 0.02, Color.red);
+		inter[1].toScene(scene, 0.02, Color.blue);
+		System.out.println(inter);
+//		zerooneMove(new Point(-8, 1), new Point(-6, 8), new Point(-1, 3), new Point(0.5, -5) );
 //		oneoneMove(new Point(-8, 1), new Point(-6, 8), new Point(-1, 3), new Point(0.5, -5) );
 //		oneoneMove(new Point(3, 1), new Point(2, 6), new Point(1, 6), new Point(2, 2) );
 //		twozeroMove(new Point(1.35, 2.2), new Point(-0.1, 4.8), new Point(1.5, 1.8), new Point(0.7, 0.6) );

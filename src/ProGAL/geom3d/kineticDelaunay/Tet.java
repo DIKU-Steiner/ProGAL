@@ -285,9 +285,19 @@ public class Tet {
 		scene.repaint();
 	}
 	
+	public void toSceneFace(J3DScene scene, int i, Color clr) {
+		if (faces[i] == null) faces[i] = new Triangle(corners[(i+1)%4], corners[(i+2)%4], corners[(i+3)%4]);
+		scene.addShape(faces[i], clr);
+	}
+	
 	public void fromSceneFaces(J3DScene scene) {
 		for (int i = 0; i < 4; i++) scene.removeShape(faces[i]);
 		scene.repaint();
 	}
 	
+	public void fromSceneFaces(J3DScene scene, int i) {
+		scene.removeShape(faces[i]);
+		scene.repaint();
+	}
+
 }

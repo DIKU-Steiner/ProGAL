@@ -153,9 +153,11 @@ public class TriangulationFace {
 	
 	public void draw(J2DScene scene, boolean testing) {
 		if (scene != null) {
+			Color clr;
 			for (int i = 0; i < 3; i++) {
 				edgeShape[i] = new LineSegment(corners[i], corners[(i+1)%3]);
-				scene.addShape(edgeShape[i], Color.black);
+				if (corners[i].getType() == corners[(i+1)%3].getType()) clr = Color.black; else clr = Color.red;
+				scene.addShape(edgeShape[i], clr);
 			}
 		}
 	}

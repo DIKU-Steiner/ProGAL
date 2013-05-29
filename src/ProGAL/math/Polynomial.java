@@ -146,4 +146,15 @@ public class Polynomial {
 
 	private static double sign(double n){	return n<0?-1:1;	}
 	
+	public static double[]ÊsolveHighDegree(double[] a) {
+		double[] der = new double[a.length-1];
+		for (int j = 1; j < a.length; j++) {
+			der[j] = (j+1)*a[]
+		}
+		double tolerance = 10^-8;
+		int maxIterations = 10^4;
+		
+		for (int i = 0; i < maxIterations; i++) {
+	}
+	
 }

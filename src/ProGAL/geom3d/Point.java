@@ -94,6 +94,70 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 				-ay*cx*dz + by*cx*dz + ax*cy*dz - bx*cy*dz	) < Constants.EPSILON; 
 	}
 
+	/* returns a positive double if point s is above the plane through p, q, r */
+	public static double orientation(Point p, Point q, Point r, Point s) {
+		double M1 = q.x()*(r.y()-s.y()) + r.x()*(s.y()-q.y()) + s.x()*(q.y()-r.y());
+		double M2 = p.x()*(r.y()-s.y()) + r.x()*(s.y()-p.y()) + s.x()*(p.y()-r.y());
+		double M3 = p.x()*(q.y()-s.y()) + q.x()*(s.y()-p.y()) + s.x()*(p.y()-q.y());
+		double M4 = p.x()*(q.y()-r.y()) + q.x()*(r.y()-p.y()) + r.x()*(p.y()-q.y());
+		return -p.z()*M1 + q.z()*M2 - r.z()*M3 + s.z()*M4;
+	}
+
+	/* returns a positive double if points s and t are on the same side of above the plane through p, q, r */
+	/* This strange solution is needed as the ordering of p, q, r in tetrahedra is not known. It would be much 
+	 * easier if the ordering was counterclockwise w.r.t. the fourth corner t
+	 */
+	public static double orientation(Point p, Point q, Point r, Point s, Point t) {
+		double pqy = p.y()-q.y();
+		double pry = p.y()-r.y();
+		double psy = p.y()-s.y();
+		double pty = p.y()-t.y();
+		double qry = q.y()-r.y();
+		double qsy = q.y()-s.y();
+		double qty = q.y()-t.y();
+		double rsy = r.y()-s.y();
+		double rty = r.y()-t.y();
+		double Ms1 = q.x()*rsy - r.x()*qsy + s.x()*qry;
+		double Ms2 = p.x()*rsy - r.x()*psy + s.x()*pry;
+		double Ms3 = p.x()*qsy - q.x()*psy + s.x()*pqy;
+		double Mt1 = q.x()*rty - r.x()*qty + t.x()*qry;
+		double Mt2 = p.x()*rty - r.x()*pty + t.x()*pry;
+		double Mt3 = p.x()*qty - q.x()*pty + t.x()*pqy;
+		double M4 =  p.x()*qry - q.x()*pry + r.x()*pqy;
+		double Ms = -p.z()*Ms1 + q.z()*Ms2 - r.z()*Ms3 + s.z()*M4;
+		double Mt = -p.z()*Mt1 + q.z()*Mt2 - r.z()*Mt3 + t.z()*M4;
+		if (Ms*Mt >= 0.0) return Math.abs(Ms);
+		return -Math.abs(Ms);
+	}
+
+	
+	/** Returns a positive double if point t is inside the sphere through points p, q, r, s. */
+	public static double inSphere(Point p, Point q, Point r, Point s, Point t) {
+		double pp = p.x()*p.x() + p.y()*p.y() + p.z()*p.z();
+		double qq = q.x()*q.x() + q.y()*q.y() + q.z()*q.z();
+		double rr = r.x()*r.x() + r.y()*r.y() + r.z()*r.z();
+		double ss = s.x()*s.x() + s.y()*s.y() + s.z()*s.z();
+		double tt = t.x()*t.x() + t.y()*t.y() + t.z()*t.z();
+		
+		double M12 = r.x()*(s.y()-t.y()) + s.x()*(t.y()-r.y()) + t.x()*(r.y()-s.y()); 
+		double M13 = q.x()*(s.y()-t.y()) + s.x()*(t.y()-q.y()) + t.x()*(q.y()-s.y());
+		double M14 = q.x()*(r.y()-t.y()) + r.x()*(t.y()-q.y()) + t.x()*(q.y()-r.y());
+		double M15 = q.x()*(r.y()-s.y()) + r.x()*(s.y()-q.y()) + s.x()*(q.y()-r.y());
+		double M23 = p.x()*(s.y()-t.y()) + s.x()*(t.y()-p.y()) + t.x()*(p.y()-s.y());
+		double M24 = p.x()*(r.y()-t.y()) + r.x()*(t.y()-p.y()) + t.x()*(p.y()-r.y());
+		double M25 = p.x()*(r.y()-s.y()) + r.x()*(s.y()-p.y()) + s.x()*(p.y()-r.y());
+		double M34 = p.x()*(q.y()-t.y()) + q.x()*(t.y()-p.y()) + t.x()*(p.y()-q.y());
+		double M35 = p.x()*(q.y()-s.y()) + q.x()*(s.y()-p.y()) + s.x()*(p.y()-q.y());
+		double M45 = p.x()*(q.y()-r.y()) + q.x()*(r.y()-p.y()) + r.x()*(p.y()-q.y());
+		                         
+		double M1 = -q.z()*M12 + r.z()*M13 - s.z()*M14 + t.z()*M15;
+		double M2 = -p.z()*M12 + r.z()*M23 - s.z()*M24 + t.z()*M25;
+		double M3 = -p.z()*M13 + q.z()*M23 - s.z()*M34 + t.z()*M35;
+		double M4 = -p.z()*M14 + q.z()*M24 - r.z()*M34 + t.z()*M45;
+		double M5 = -p.z()*M15 + q.z()*M25 - r.z()*M35 + s.z()*M45;
+		
+		return pp*M1 - qq*M2 + rr*M3 - ss*M4 + tt*M5;
+	}
 
 	/** Translates this point by (x,y,z). */
 	public void translateThis(double dx, double dy, double dz) {
@@ -339,6 +403,19 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	/** Writes this point to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 
+	public static void main(String[] args) {
+		Point a = new Point(0, 0, 0);
+		Point b = new Point(1, 0, 0);
+		Point c = new Point(0, 1, 0);
+		Point d = new Point(0, 0, -1);
+		Sphere sphere = new Sphere(a,b,d,c);
+		Point e = new Point(0.5, 0.5, 0.5);
+		if (sphere.contains(e)) System.out.println("e is inside");
+		double w = Point.inSphere(a, b, c, d, e);
+		System.out.println(w);
+		double o = Point.orientation(a, c, b, d);
+		System.out.println(o);
+	}
 }
 
 

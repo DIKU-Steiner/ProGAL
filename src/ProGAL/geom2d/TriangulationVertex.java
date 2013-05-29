@@ -33,6 +33,12 @@ public class TriangulationVertex extends Point {
 		return f.getNeighbor((indx+1)%3);
 	}
 	
+	public TriangulationFace getPrevFace(TriangulationFace f) {
+		int indx = f.getIndex(this);
+		return f.getNeighbor((indx+2)%3);
+		
+	}
+	
 	public TriangulationFace getLastFace() {
 		TriangulationFace currFace = face;
 		TriangulationFace nextFace = getNextFace(currFace);

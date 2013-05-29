@@ -1,10 +1,9 @@
 package ProGAL.geom2d;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-import ProGAL.dataStructures.DLCyclicList;
-import ProGAL.dataStructures.DLCyclicList.DLNode;
 import ProGAL.dataStructures.Heap;
 import ProGAL.dataStructures.Set;
 import ProGAL.dataStructures.SortTool;
@@ -17,10 +16,11 @@ import ProGAL.geom2d.Point;
 import ProGAL.geom2d.TriangulationVertex;
 import ProGAL.geom2d.TriangulationFace;
 import ProGAL.geom2d.viewer.J2DScene;
+import ProGAL.geom2d.viewer.TextShape;
 import ProGAL.geom3d.kineticDelaunay.Tet;
-import ProGAL.geom3d.kineticDelaunay.KineticDelaunayTessellation.HeapItem;
-import ProGAL.geom3d.kineticDelaunay.KineticDelaunayTessellation.SortToolHeapItems;
 import ProGAL.geom3d.predicates.ExactJavaPredicates;
+import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.math.Constants;
 
 public class Triangulation {
 	
@@ -219,13 +219,13 @@ public class Triangulation {
 		if (inc > 0) flip(triangulationFace, oppTriangulationFace, recursive, scene, false);
 	}
 
-	public void flip(TriangulationFace t013, TriangulationFace t123, boolean recursive) {
-		flip(t013, t123, recursive, null, false);
+	public TriangulationFace[] flip(TriangulationFace t013, TriangulationFace t123, boolean recursive) {
+		return flip(t013, t123, recursive, null, false);
 	}
 
 	
 	
-	public void flip(TriangulationFace t013, TriangulationFace t123, boolean recursive, 
+	public TriangulationFace[] flip(TriangulationFace t013, TriangulationFace t123, boolean recursive, 
 					 J2DScene scene, boolean testing){
 		t013.setAlive(false);
 		t013.hide(scene, testing);
@@ -277,6 +277,10 @@ public class Triangulation {
 			if (t12 != null) legalizeEdge(t012, 0, true, scene);
 			if (t23 != null) legalizeEdge(t023, 0, true, scene);
 		}
+		TriangulationFace[] newFaces = new TriangulationFace[2];
+		newFaces[0] = t012;
+		newFaces[1] = t023;
+		return newFaces;
 	}
 	
 	/* v becomes a new vertex on the convex hull */
@@ -365,21 +369,18 @@ public class Triangulation {
 	
 	private class HeapItem<T> {
 		private double power;
-		private DLNode<T> node;
-		private TriangulationFace fP;
-		private TriangulationFace fN;
+		private TriangulationFace face;
+		private TriangulationFace nextFace;
 		
-		private HeapItem(double power, DLNode<T> node, TriangulationFace fP, TriangulationFace fN) {
+		private HeapItem(TriangulationFace face, TriangulationFace nextFace, double power) {
 			this.power = power;
-			this.node = node;
-			this.fP = fP;
-			this.fN = fN;
+			this.face = face;
+			this.nextFace = nextFace;
 		}
 				
 		private double getPower() { return power;} 
-		private DLNode<T> getNode()  { return node; }
-		private TriangulationFace getFN() { return fN; }
-		private TriangulationFace getFP() { return fP; }
+		private TriangulationFace getFace() { return face; }
+		private TriangulationFace getNextFace() { return nextFace; }
 	}
 	private class SortToolHeapItems implements SortTool {
 		public int compare(Object x1, Object x2) {
@@ -393,30 +394,137 @@ public class Triangulation {
 		}
 	}
 
+	private double getPower(Point a, Point b, Point c, Point p) {
+		double area = Point.area(a, b, c);
+		if (area <= 0.0) return Constants.bigDouble;
+		return -Point.inCircle(b, a, c, p)/area;
+	}
 	
-	/* deletes vertex v and all incident faces */
-	public List<TriangulationVertex> delete(TriangulationVertex u) {
-		DLCyclicList<TriangulationVertex> adjacentVertices = u.getNeighboringVertices();
-		vertices.remove(u);
-		List<TriangulationFace> facesToDelete = u.getFaces();
-		for (TriangulationFace face : facesToDelete) triangulationFaces.remove(face);
-		Heap heap = new Heap(this.vertices.size(), new SortToolHeapItems());
-		while (adjacentVertices.getSize() > 3) {
-			HeapItem item = (HeapItem)heap.extract();
-			DLNode<T> node = item.getNode();
-			TriangulationVertex v = (TriangulationVertex)node.getObject();
-			TriangulationVertex vP = (TriangulationVertex)node.getPrev().getObject();
-			TriangulationVertex vN = (TriangulationVertex)node.getNext().getObject();
-			TriangulationFace fP = item.getFP();
-			TriangulationFace fN = item.getFN();
-			TriangulationFace face = new TriangulationFace(v, vN, vP);
-			triangulationFaces.add(face);
-			face.setNeighbor(face.getIndex(vP), fN);
-			fN.setNeighbor(fN.getIndex(fN.getThirdVertex(face)), face);
-			face.setNeighbor(face.getIndex(vN), fP);
-			fP.setNeighbor(fP.getIndex(fP.getThirdVertex(face)), face);
-			
+	/* deletes vertex v and all incident faces. Determines Delauney triangulation of the remaining points. */
+	public void delete(TriangulationVertex u, J2DScene scene) {
+		boolean testing = true;
+		int indx, indxN;
+		TriangulationFace face, face1, face2, face3, prevFace, nextFace, newFace, newFace1, newFace2, oppFace1, oppFace2, oppFace3;
+		TriangulationVertex a, b, c;
+		
+		// set up the heap of consecutive pairs of faces around vertex u
+		Heap heap = new Heap(vertices.size(), new SortToolHeapItems());
+		double power;
+		int sz = u.getFaces().size();
+		face = u.getFaces().get(sz-1);
+		indx = face.getIndex(u);
+		for (int i = 0; i < sz; i++) {
+			nextFace = u.getFaces().get(i);
+			indxN = nextFace.getIndex(u);
+			power = getPower(face.corners[(indx+1)%3], face.corners[(indx+2)%3], nextFace.corners[(indxN+2)%3],   u);
+			if (power < Constants.bigDouble) heap.insert(new HeapItem(face, nextFace, power));
+			if (testing) {
+				Circle cir = new Circle(face.corners[(indx+1)%3], face.corners[(indx+2)%3], nextFace.corners[(indxN+2)%3]);
+				cir.toScene(scene, Color.blue);
+				System.out.println(power);
+				scene.removeShape(cir);
+			}
+			face = nextFace;
+			indx = indxN;
 		}
+				
+		// loop
+		TriangulationFace[] newFaces = new TriangulationFace[2];
+		while (sz != 3) {
+			HeapItem item = (HeapItem)heap.extract();
+			face1 = item.getFace();
+			face2 = item.getNextFace();
+			if (face1.isAlive() && face2.isAlive()) {
+			
+				// add new face to the triangulation
+				int indx1 = face1.getIndex(u);
+				int indx2 = face2.getIndex(u);
+				a = face1.corners[(indx1+1)%3];
+				b = face1.corners[(indx1+2)%3];
+				c = face2.corners[(indx2+2)%3];
+				oppFace1 = face1.getNeighbor(indx1);
+				oppFace2 = face2.getNeighbor(indx2);
+			
+				newFace1 = new TriangulationFace(a, b, c);
+				newFace2 = new TriangulationFace(a, c, u);
+
+				newFace1.setNeighbor(0, oppFace2);
+				if (oppFace2 != null) oppFace2.setNeighbor((oppFace2.getIndex(b)+1)%3, newFace1);
+				newFace1.setNeighbor(1, newFace2);
+				newFace1.setNeighbor(2, oppFace1);
+				if (oppFace1 != null) oppFace1.setNeighbor((oppFace1.getIndex(a)+1)%3, newFace1);
+				if (a.face == face1) a.face = newFace1;
+				if ((b.face == face1) || (b.face == face2)) b.face = newFace1;
+				if (c.face == face2) c.face = newFace1;
+			    triangulationFaces.add(newFace1);
+				if (testing) {
+					Circle cir = new Circle(a, b, c);
+					cir.toScene(scene, Color.blue);
+					scene.removeShape(cir);
+				}
+
+			    // update star of u
+				prevFace = u.getPrevFace(face1);
+				nextFace = u.getNextFace(face2);
+				
+			    newFace2.setNeighbor(0, nextFace);
+			    newFace2.setNeighbor(1, prevFace);
+			    newFace2.setNeighbor(2, newFace1);
+			    
+			    nextFace.setNeighbor((nextFace.getIndex(c)+1)%3, newFace2);
+			    prevFace.setNeighbor((prevFace.getIndex(a)+2)%3, newFace2);
+                if ((u.face == face1) || (u.face == face2)) u.face = newFace2;
+                triangulationFaces.add(newFace2);
+                
+			    power = getPower(prevFace.corners[(prevFace.getIndex(a)+2)%3], a, c, u);
+			    if (power < Constants.bigDouble) heap.insert(new HeapItem(prevFace, newFace2, power));
+			    power = getPower(a, c, nextFace.corners[(nextFace.getIndex(c)+1)%3], u);
+			    if (power < Constants.bigDouble) heap.insert(new HeapItem(newFace2, nextFace, power));
+			    
+			    face1.setAlive(false);
+				triangulationFaces.remove(face1);
+			    face2.setAlive(false);
+				triangulationFaces.remove(face2);
+			    sz--;
+       		}   
+		}		
+			
+       	// remove u and its 3 faces
+		face1 = u.getFace();
+		face2 = u.getNextFace(face1);
+		face3 = u.getNextFace(face2);
+		a = face1.corners[(face1.getIndex(u)+1)%3];
+		b = face2.corners[(face2.getIndex(u)+1)%3];
+		c = face3.corners[(face3.getIndex(u)+1)%3];
+		oppFace1 = face1.getNeighbor(face1.getIndex(u));
+		oppFace2 = face2.getNeighbor(face2.getIndex(u));
+		oppFace3 = face3.getNeighbor(face3.getIndex(u));
+		 
+		newFace = new TriangulationFace(a, b, c);
+		newFace.setNeighbor(0, oppFace2);
+		newFace.setNeighbor(1, oppFace3);
+		newFace.setNeighbor(2, oppFace1);
+		
+		if (oppFace1 != null) oppFace1.setNeighbor((oppFace1.getIndex(a)+1)%3, newFace);
+		if (oppFace2 != null) oppFace2.setNeighbor((oppFace2.getIndex(b)+1)%3, newFace);
+		if (oppFace3 != null) oppFace3.setNeighbor((oppFace3.getIndex(c)+1)%3, newFace);
+
+		face1.setAlive(false);
+		triangulationFaces.remove(face1);
+		face2.setAlive(false);
+		triangulationFaces.remove(face2);
+		face3.setAlive(false);
+		triangulationFaces.remove(face3);
+		if ((a.face == face1) || (a.face == face2)) a.face = newFace;
+		if ((b.face == face2) || (b.face == face3)) b.face = newFace;
+		if ((c.face == face3) || (c.face == face1)) c.face = newFace;
+		u.face = null;
+		
+       	triangulationFaces.add(newFace);
+       	if (testing) {
+       		scene.removeAllShapes();
+       		draw(scene);
+       	}
 	}
 	
 	public void print() {
@@ -437,6 +545,7 @@ public class Triangulation {
 		for (TriangulationFace t : triangulationFaces) {
 			t.draw(scene);
 		}
+		for (TriangulationVertex v: vertices) scene.addShape(new TextShape(String.valueOf(v.id), v, 0.1));
 	}
 	public static void main(String[] args) {
 		PointSet points = new PointSet(150);

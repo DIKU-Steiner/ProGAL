@@ -2,6 +2,7 @@ package ProGAL.geom3d.kineticDelaunay;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import ProGAL.geom2d.TriangulationFace;
 import ProGAL.geom3d.Point;
@@ -42,11 +43,32 @@ public class Vertex extends Point implements Comparable<Vertex>{
     public void setSinAngle(double sinAngle)         { this.sinAngle = sinAngle; }
 
     
+    
     public List<Tet> getTets() {
-		List<Tet> tets = new ArrayList<Tet>();
-		TriangulationFace firstTet = getTet();
-		tets.add(firstTet);
-		Tet face = getNextTet(firstTet);
+    	Tet tet = getFirstTetrahedron();
+    	return getTets(tet);
+    }
+    
+    /* returns list of tetrahedra having this vertex as a corner given one tetrahedron with this vertex */
+    public List<Tet> getTets(Tet tet) {
+    	List<Tet> incidentTetrahedra = new ArrayList<Tet>();
+    	Stack<Tet> stack = new Stack<Tet>();
+    	incidentTetrahedra.add(tet);
+    	stack.push(tet);
+    	Tet cTet, nTet;
+    	while (!stack.isEmpty()) {
+    		cTet = stack.pop();
+    		for (int i = 0; i < 4; i++) {
+    			if (cTet.corners[i] != this) {
+    				nTet = cTet.neighbors[i];
+    				if (!incidentTetrahedra.contains(nTet)) {
+    					incidentTetrahedra.add(nTet);
+    					stack.push(nTet);
+    				}
+    			}
+    		}
+    	}
+    	return incidentTetrahedra;
     }
     
 	public int compareTo(Vertex arg0) {
