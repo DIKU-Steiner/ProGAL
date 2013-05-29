@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import ProGAL.dataStructures.DLCyclicList;
 import ProGAL.dataStructures.Heap;
 import ProGAL.dataStructures.SortTool;
 import ProGAL.dataStructures.SortToolPoint2dDistance;
@@ -266,8 +267,11 @@ public class KineticDTBigEdges extends Triangulation {
 		double dd  = D.getSquaredPolarRadius(); 
 		double d   = D.getPolarRadius();
 	
-		double m41 = A.y()*(bb-cc) + B.y()*(cc-aa) + C.y()*(aa-bb);
-		double m42 = A.x()*(bb-cc) + B.x()*(cc-aa) + C.x()*(aa-bb);
+		double bb_cc = bb - cc;
+		double cc_aa = cc - aa;
+		double aa_bb = aa - bb;
+		double m41 = A.y()*bb_cc + B.y()*cc_aa + C.y()*aa_bb;
+		double m42 = A.x()*bb_cc + B.x()*cc_aa + C.x()*aa_bb;
 		double m43 = A.x()*(B.y()-C.y()) + B.x()*(C.y()-A.y()) + C.x()*(A.y()-B.y());
 		double m44 = A.x()*(B.y()*cc -C.y()*bb) + B.x()*(C.y()*aa - A.y()*cc) + C.x()*(A.y()*bb - B.y()*aa);
 
@@ -511,7 +515,7 @@ public class KineticDTBigEdges extends Triangulation {
 	}
 	
 	public static void main(String[] args) {
-		PointSet points = new PointSet(30);
+		PointSet points = new PointSet(1000);
 		Sorter sort = new SorterQuick();
 		sort.Sort(points, new SortToolPoint2dDistance());
 		for (int i = 1; i < points.getSize(); i++) {
@@ -542,15 +546,13 @@ public class KineticDTBigEdges extends Triangulation {
 		kDT.setRotationPoint(new Point(0,0));
 		kDT.setDirection(KineticDTBigEdges.Direction.CCW);
 
-		TriangulationVertex u = kDT.vertices.get(22);
-		List<TriangulationVertex> neighbors = u.getNeighboringVertices();
-		for (TriangulationVertex v : neighbors) System.out.print(v.getId() + ", ");
-		System.out.println();
-		kDT.delete(u);
-		kDT.scene.removeAllShapes();
-		kDT.draw(kDT.scene);
+//		kDT.delete(kDT.vertices.get(22), kDT.scene);
+//		kDT.delete(kDT.vertices.get(5), kDT.scene);
+//		kDT.delete(kDT.vertices.get(3), kDT.scene);
+//		kDT.scene.removeAllShapes();
+//		kDT.draw(kDT.scene);
 		
-		double fraction = 0.05;
+		double fraction = 0.15;
 		List<Integer> rotList = new ArrayList<Integer>();
 		Random random = new Random(2);
 		for (int i = 2; i < points.getSize()-1; i++) 
