@@ -11,9 +11,12 @@ import ProGAL.dataStructures.Heap;
 import ProGAL.dataStructures.SortTool;
 import ProGAL.geom3d.Circle;
 import ProGAL.geom3d.LineSegment;
+
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.Triangle;
+import ProGAL.geom3d.kineticDelaunay.Hole;
+import ProGAL.geom3d.kineticDelaunay.Hole.Face;
 import ProGAL.geom3d.kineticDelaunay.Vertex.VertexType;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.LSS;
@@ -25,13 +28,18 @@ import ProGAL.math.Functions;
 import ProGAL.math.Matrix;
 import ProGAL.math.Randomization;
 import ProGAL.math.Trigonometry;
+import ProGAL.proteins.PDBFile;
+
+
 
 public class KineticDelaunayTessellation {
 	private static enum Direction { CW, CCW }
+	public static enum ProblemInstanceType { random, pdb, pdbNCC, toy }
 
+	private ProblemInstanceType instanceType;
 	private List<Vertex> vertices = new ArrayList<Vertex>();
-
 	private List<Tet> tets = new LinkedList<Tet>();
+	
 	private Tet lastTet;
 	private Double[] angles = new Double[2];
 	private double angleTotal = 0.0;
@@ -43,9 +51,11 @@ public class KineticDelaunayTessellation {
 	private List<Integer> rotIndx = new ArrayList<Integer>();     // indicies of vertices that move
 
 	private Heap heap = new Heap(this.vertices.size(), new SortToolHeapItems());
-	private boolean testing = true;
+//	private boolean testing = true;
+	private boolean testingPrint = false;
+	private boolean testingScreen = true;
 	private boolean sphereAnimation = false;
-	J3DScene scene  = J3DScene.createJ3DSceneInFrame();
+	J3DScene scene;
 
 	Triangle commonTriangle = null;
 	Triangle commonTriangle02 = null;
@@ -56,7 +66,7 @@ public class KineticDelaunayTessellation {
 	LineSegment apexSegment = null;
 	LSS apexLSS = null;
 
-	double alpha;
+	private double alpha;
 	
 	private class HeapItem {
 		private Double[] angles;
@@ -86,63 +96,20 @@ public class KineticDelaunayTessellation {
 		}
 	}
 
-	
-	public KineticDelaunayTessellation(List<Point> points) {
-		Tetrahedron bigT = Tetrahedron.regularTetrahedron();
-		bigT.blowUp(5);
-		lastTet = new BigTet(bigT, vertices);
-		for (Point p: points) insertPoint(p);		
-	}
-
-	public Direction getDirection() { return rotDir; }
-	public void setDirection(Direction rotDir) { this.rotDir = rotDir; }
-
-	public Point getRotationPoint() { return rotationPoint; }
-	/* Sets the rotation point and translates all vertices so that the rotation point is in the origo.  */
-	public void setRotationPoint(Point rotationPoint) { 
-		if (this.rotationPoint != null) for (Vertex v : vertices) v.addThis(this.rotationPoint);
-		this.rotationPoint = rotationPoint; 
-		for (Vertex v : vertices) v.subtractThis(rotationPoint);	
-	}
-
-	public void setRotationAxis(Vector v)  { rotationAxis = v; }
-	public Vector getRotationAxis() { return rotationAxis; }
-	
-	private void addToHeap(Double[] angles, Tet t, Tet nt) {
-		heap.insert(new HeapItem(angles, t, nt));
-	}
-
-	/*returns a tetrahedron containing vertex v */
-	public Tet getTetrahedron(Vertex v) {
-		for (Tet tet : tets) {
-			if (tet.hasVertex(v)) return tet;
-		}
-		return null;
-	}
-	
 	private class HeapItemDelete<T> {
 		private double power;
-		private Tet tet;
-		private Tet nTet;
-		private Vertex a, b, c, d;
+		private Face f;
+		private Face oppFace;
 		
-		private HeapItemDelete(Tet tet, Tet nTet, double power, Vertex a, Vertex b, Vertex c, Vertex d) {
+		private HeapItemDelete(Face f, Face oppFace, double power) {
 			this.power = power;
-			this.tet = tet;
-			this.nTet = nTet;
-			this.a = a;
-			this.b = b;
-			this.c = c;
-			this.d = d;
+			this.f = f;
+			this.oppFace = oppFace;
 		}
 				
 		private double getPower() { return power;} 
-		private Tet getTet() { return tet; }
-		private Tet getNTet() { return nTet; }
-		private Vertex getA() { return a; }
-		private Vertex getB() { return b; }
-		private Vertex getC() { return c; }
-		private Vertex getD() { return d; }
+		private Face getF() { return f; }
+		private Face getOppFace() { return oppFace; }
 	}
 	private class SortToolHeapItemsDelete implements SortTool {
 		public int compare(Object x1, Object x2) {
@@ -156,239 +123,437 @@ public class KineticDelaunayTessellation {
 		}
 	}
 
-	private double getPower(Point a, Point b, Point c, Point d, Point p) {
-		double delta = Point.orientation(a, b, c, d, p);
-		if (delta <= 0.0) return Constants.bigDouble;
-		return -Point.inSphere(b, a, c, d, p)/delta;
+	
+	public KineticDelaunayTessellation(double alpha, ProblemInstanceType type) {
+		setInstanceType(type);
+		List<Point> points = getInstance(getInstanceType());
+		if (testingScreen) scene  = J3DScene.createJ3DSceneInFrame();
+
+		Tetrahedron bigT = Tetrahedron.regularTetrahedron();
+		bigT.blowUp(1000);
+		lastTet = new BigTet(bigT, vertices);
+		int j = 0;
+		for (Point p: points) {
+//			if (j++ > 12) break;
+			insertPoint(p);	
+		}
+		this.setAlpha(alpha);
+		
+		/** Each vertex gets a pointer to one of its faces */
+		for (Tet tet : tets) {
+			for (int i = 0; i < 4; i++) tet.getCorner(i).setTet(tet);
+		}
+		
+		if (getInstanceType() == ProblemInstanceType.random) {
+			setRotationPoint(new Point(0.5,0.5,0.5));
+			setRotationAxis(new Vector(0, 0, 1));
+			setDirection(KineticDelaunayTessellation.Direction.CCW);
+			setRotVertices(vertices.size()/2,vertices.size()-1);
+		}
+		else {
+			Vector dir = new Vector(vertices.get(10), vertices.get(11));
+			double scaleFactor = 1/dir.length();
+			this.setAlpha(alpha*scaleFactor);
+			dir.scaleToLengthThis(1);
+			Vector newDir = new Vector(0,0,1);
+			Vector cross = dir.cross(newDir).scaleToLength(1);
+			double angle = Vector.getAngle(dir, newDir);
+			Point vOld = vertices.get(10).clone();
+			Vertex v;
+			for (int i = 0; i < vertices.size(); i++) {
+				v = vertices.get(i);
+				v.translateThis(vOld);
+				v.scaleThis(scaleFactor);
+				v.rotation(cross, angle);
+			}
+			setRotationPoint(vertices.get(10));
+			setRotationAxis(newDir);
+			setDirection(KineticDelaunayTessellation.Direction.CCW);
+			setRotVertices(12, 13);
+		}
 	}
 	
-	/* deletes vertex v and all incident tetrahedra. Determines Delauney triangulation of the remaining points. */
+	/** Adds new event to the heap */
+	private void addToHeap(Double[] angles, Tet t, Tet nt) {
+		heap.insert(new HeapItem(angles, t, nt));
+	}
+	
+	/** Rotates and draws kinetic DT */
+	public void animate(J3DScene scene, double alpha) {
+		int steps = 1;
+		double angleStep = alpha/steps;
+		for (int k = 0; k < steps; k++) {
+			for (int i = 0; i < rotIndx.size(); i++) {
+				Vertex v = vertices.get(rotIndx.get(i));
+				v.rotation(rotationAxis, angleStep);
+			}
+			try { Thread.sleep(1000); } catch (InterruptedException e) {}
+			if (testingScreen && sphereAnimation) animateSpheres();			
+		}
+	}
+
+	
+	/** Deletes vertex v and all incident tetrahedra. Determines DT of the remaining vertices. */
 	public void delete(Vertex u, J3DScene scene) {
 		boolean testing = true;
-		int indx, indxN;
-		Tet tet, nTet, tTet, newTet, newTetU, newTetU1, newTetU2;
+		Face f, oppFace, thirdFace;
+		Tet newTet, tet, faceOppTet, oppFaceOppTet;
 		Vertex a, b, c, d;
-		double power;
+		double gamma;
+		Color clr;
+		Sphere sphere = null;
 		
-		// set up the heap of pairs of tetrahedra with u as their vertex and sharing a facet around vertex u
+		Hole hole = new Hole(this, u, scene, testing);
+		if (testing)
+			for (Face face : hole.faces) face.tet.fromSceneFace(scene, face.tet.indexOf(u));
+		
 		Heap heap = new Heap(vertices.size(), new SortToolHeapItemsDelete());
-		List<Tet> processed = new ArrayList<Tet>();
-		List<Tet> toBeProcessed = new ArrayList<Tet>();
-		toBeProcessed.add(getTetrahedron(u));
-		
-		// set up the heap
-		while (!toBeProcessed.isEmpty()) {
-			tet = toBeProcessed.remove(0);
-			indx = tet.indexOf(u);
-//			tet.toSceneFace(scene, indx, Color.red);
-			
-			// a and b are shared by tet and nTet while c and d are facing each other
-			c = tet.corners[tet.apex(nTet)];
-			a = tet.corners[(indx+1)%4];
-			if (a == c) {
-				a = tet.corners[(indx+2)%4];
-				b = tet.corners[(indx+3)%4];
-			}
-			else {
-				b = tet.corners[(indx+2)%4];
-				if (b == c) b = tet.corners[(indx+3)%4];
-			}
-			for (int i = 1; i < 4; i++) {
-				nTet = tet.neighbors[(indx+i)%4];
-				d = nTet.corners[nTet.apex(tet)];
-				if (!processed.contains(nTet)) {				
-					power = getPower(a, b, c, d, u);
-					if (power < Constants.bigDouble) 
-						heap.insert(new HeapItemDelete(tet, nTet, power, a, b, c, d));
-					if (!toBeProcessed.contains(nTet)) toBeProcessed.add(nTet);				
+
+		// heap containing pairs of faces surrounding vertex u is set up
+		for (Face face: hole.faces) {
+			if (testing) face.shape = face.tet.toSceneFace(scene, face.tet.indexOf(u), Color.pink);
+			for (int i = 0; i < 3; i++) {
+				oppFace = face.neighbors[i];
+				if (testing) {
+					oppFace.shape = oppFace.tet.toSceneFace(scene, oppFace.tet.indexOf(u), Color.yellow);
+				}
+				if (!oppFace.processed) {
+					gamma = Point.orientation(face.vertices[0], face.vertices[1], face.vertices[2], oppFace.getFreeVertex(face));
+					if (gamma > 0.0) {
+						double beta = Point.inSphere(face.vertices[0], face.vertices[1], face.vertices[2], oppFace.getFreeVertex(face), u);
+						heap.insert(new HeapItemDelete(face, oppFace, -beta/gamma));
+						if (testing) { 
+							System.out.println(face.toString() + oppFace.toString() + " " + (beta/gamma));
+							sphere = new Sphere(face.vertices[0], face.vertices[1], face.vertices[2], oppFace.getFreeVertex(face));
+							sphere.toScene(scene, new Color(255,0,0,50));
+						}
+					}
+				}
+				if (testing) {
+					scene.removeShape(oppFace.shape);
+					scene.removeShape(sphere);
 				}
 			}
-			processed.add(tet);
+			face.processed = true;
+			if (testing) scene.removeShape(face.shape);
 		}
-	
-		// loop
-		Color transp1 = new Color(255,0,0,50);
-		Color transp2 = new Color(0,255,0,50);
-		while (!heap.isEmpty()) {
-			HeapItemDelete item = (HeapItemDelete)heap.extract();
-			tet = item.getTet();
-			nTet = item.getNTet();
-			tet.toSceneFaces(scene, transp1);
-			nTet.toSceneFaces(scene, transp2);
-			System.out.print(tet.toString() + nTet.toString() + item.getPower());
-			if (tet.isAlive() && nTet.isAlive()) {
-				a = item.getA();
-				b = item.getB();
-				c = item.getC();
-				d = item.getD();
-				tTet = tet.neighbors[tet.indexOf(a)];
-				if (tTet != nTet.neighbors[nTet.indexOf(a)]) {
-					tTet = tet.neighbors[tet.indexOf(b)];
-					if (tTet != nTet.neighbors[nTet.indexOf(b)]) tTet = null; 		
-				}
-				if (tTet != null) {
-					if (tTet.isAlive()) {
-						if (tTet.hasVertex(a)) {
-							newTet = new Tet(a, b, c, d);
-							newTetU = new Tet(u, b, c, d);
-							newTet.neighbors[newTet.indexOf(a)] = newTetU;
-							newTet.neighbors[newTet.indexOf(b)] = tTet.neighbors[tTet.indexOf(u)];
-							newTet.neighbors[newTet.indexOf(c)] = nTet.neighbors[nTet.indexOf(u)];
-							newTet.neighbors[newTet.indexOf(d)] = tet.neighbors[tet.indexOf(u)];
-							newTetU.neighbors[newTetU.indexOf(u)] = newTet;
-							newTetU.neighbors[newTetU.indexOf(b)] = tTet.neighbors[tTet.indexOf(a)];
-							newTetU.neighbors[newTetU.indexOf(c)] = nTet.neighbors[nTet.indexOf(a)];
-							newTetU.neighbors[newTetU.indexOf(d)] = tet.neighbors[tet.indexOf(a)];
-						}
-						else {
-							newTet = new Tet(b, a, c, d); 
-							newTetU = new Tet(u, a, c, d);
-							newTet.neighbors[newTet.indexOf(b)] = newTetU;
-							newTet.neighbors[newTet.indexOf(a)] = tTet.neighbors[tTet.indexOf(u)];
-							newTet.neighbors[newTet.indexOf(c)] = nTet.neighbors[nTet.indexOf(u)];
-							newTet.neighbors[newTet.indexOf(d)] = tet.neighbors[tet.indexOf(u)];
-							newTetU.neighbors[newTetU.indexOf(u)] = newTet;
-							newTetU.neighbors[newTetU.indexOf(a)] = tTet.neighbors[tTet.indexOf(b)];
-							newTetU.neighbors[newTetU.indexOf(c)] = nTet.neighbors[nTet.indexOf(b)];
-							newTetU.neighbors[newTetU.indexOf(d)] = tet.neighbors[tet.indexOf(b)];
-						}
-						tets.add(newTet);
-						tet.setAlive(false);
-						nTet.setAlive(false);
-						tTet.setAlive(false);
+
+		if (testing)
+			for (Face face : hole.faces) {
+				face.oppTet.toSceneFace(scene, face.oppTet.indexOf(face.vertices[0], face.vertices[1], face.vertices[2]), Color.red);
+			}
+		
+		for (Face face: hole.faces) face.processed = false;
+		
+		Face face;
+		while (hole.faces.size() != 4) {
+			
+			HeapItemDelete item = null;
+			
+			item = (HeapItemDelete)heap.extract();
+			f = item.getF();
+			oppFace = item.getOppFace();
+			faceOppTet = f.oppTet;
+			if (!f.processed && !oppFace.processed) {
+				oppFaceOppTet = oppFace.oppTet;
+				thirdFace = f.commonNeighbor(oppFace);
+				if ((thirdFace != null) && !thirdFace.processed) {
+					a = f.getFreeVertex(oppFace);
+					b = oppFace.getFreeVertex(thirdFace);
+					c = thirdFace.getFreeVertex(f);
+					d = f.getCommonVertex(oppFace, thirdFace);
+					hole.vertices.remove(d);
+					hole.faces.remove(f); 
+					f.processed = true;
+					hole.faces.remove(oppFace);
+					oppFace.processed = true;
+					hole.faces.remove(thirdFace);
+					thirdFace.processed = true;
+					if (testing) {
+						f.oppTet.fromSceneFace(scene, f.oppTet.indexOf(f.vertices[0], f.vertices[1], f.vertices[2]));
+						oppFace.oppTet.fromSceneFace(scene, oppFace.oppTet.indexOf(oppFace.vertices[0], oppFace.vertices[1], oppFace.vertices[2]));
+						thirdFace.oppTet.fromSceneFace(scene, thirdFace.oppTet.indexOf(thirdFace.vertices[0], thirdFace.vertices[1], thirdFace.vertices[2]));
+					}
+					newTet = new Tet(a, b, c, d);
+					tets.add(newTet);
+					if (testing) newTet.toSceneEdges(scene, Color.blue, 0.001);
+					if (testing) if (!newTet.getCircumSphere().containsNoneButAtMostOne(u, vertices)) System.out.println("Not Delaunay");
+
+					// neighbor pointers are updated
+					newTet.neighbors[newTet.indexOf(a)] = oppFace.oppTet;
+					newTet.neighbors[newTet.indexOf(b)] = thirdFace.oppTet;
+					newTet.neighbors[newTet.indexOf(c)] = f.oppTet;
+					newTet.neighbors[newTet.indexOf(d)] = null;
+					oppFace.oppTet.neighbors[oppFace.oppTet.indexOf(b, c, d)] = newTet;
+					thirdFace.oppTet.neighbors[thirdFace.oppTet.indexOf(c, a, d)] = newTet;
+					f.oppTet.neighbors[f.oppTet.indexOf(a, b, d)] = newTet;
+					
+					// hole is updated
+					Face newFace = hole.new Face(a, b, c, d, null, newTet);
+					hole.faces.add(newFace);
+					if (testing) newTet.toSceneFace(scene, newTet.indexOf(a, b, c), Color.red);
+					face = oppFace.neighbors[oppFace.indexOf(d)];
+					newFace.neighbors[newFace.indexOf(a)] = face;
+					face.neighbors[face.IndexOfFreeVertex(oppFace)] = newFace;
+					
+					// new face pairs are identified
+					gamma = Point.orientation(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace));
+					if (gamma > 0.0) {
+						double beta = Point.inSphere(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace), u);
+						heap.insert(new HeapItemDelete(face, oppFace, -beta/gamma));
+					}
+					face = thirdFace.neighbors[thirdFace.indexOf(d)];
+					newFace.neighbors[newFace.indexOf(b)] = face;
+					face.neighbors[face.IndexOfFreeVertex(thirdFace)] = newFace;
+					gamma = Point.orientation(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace));
+					if (gamma > 0.0) {
+						double beta = Point.inSphere(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace), u);
+						heap.insert(new HeapItemDelete(face, thirdFace, -beta/gamma));
+					}
+					face = f.neighbors[f.indexOf(d)];
+					newFace.neighbors[newFace.indexOf(c)] = face;
+					face.neighbors[face.IndexOfFreeVertex(f)] = newFace;
+					gamma = Point.orientation(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace));
+					if (gamma > 0.0) {
+						double beta = Point.inSphere(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace), u);
+						heap.insert(new HeapItemDelete(face, f, -beta/gamma));
 					}
 				}
 				else {
-					newTet = new Tet(a, b, c, d);
-					newTetU1 = new Tet(u, a, c, d);
-					newTetU2 = new Tet(u, b, c, d);
-					newTet.neighbors[newTet.indexOf(a)] = newTetU2;
-					newTet.neighbors[newTet.indexOf(b)] = newTetU1;
-					newTet.neighbors[newTet.indexOf(c)] = nTet.neighbors[nTet.indexOf(u)];
-					newTet.neighbors[newTet.indexOf(d)] = tet.neighbors[tet.indexOf(u)];
-					newTetU1.neighbors[newTetU1.indexOf(u)] = newTet;
-					newTetU1.neighbors[newTetU1.indexOf(a)] = newTetU2;
-					newTetU1.neighbors[newTetU1.indexOf(c)] = nTet.neighbors[nTet.indexOf(b)];
-					newTetU1.neighbors[newTetU1.indexOf(d)] = tet.neighbors[tet.indexOf(b)];
-					newTetU2.neighbors[newTetU2.indexOf(u)] = newTet;
-					newTetU2.neighbors[newTetU2.indexOf(b)] = newTetU1;
-					newTetU2.neighbors[newTetU2.indexOf(c)] = nTet.neighbors[nTet.indexOf(a)];
-					newTetU2.neighbors[newTetU2.indexOf(d)] = tet.neighbors[tet.indexOf(a)];
-				
+					a = f.getFreeVertex(oppFace);
+					d = oppFace.getFreeVertex(f);
+					b = f.vertices[0];
+					if (b == a) {
+						b = f.vertices[1];
+						c = f.vertices[2];
+					}
+					else {
+						c = f.vertices[1];
+						if (c == a) c = f.vertices[2];
+					}
+					hole.faces.remove(f);
+					f.processed = true;
+					hole.faces.remove(oppFace);
+					oppFace.processed = true;
+					if (testing) {
+						f.oppTet.fromSceneFace(scene, f.oppTet.indexOf(f.vertices[0], f.vertices[1], f.vertices[2]));
+						oppFace.oppTet.fromSceneFace(scene, oppFace.oppTet.indexOf(oppFace.vertices[0], oppFace.vertices[1], oppFace.vertices[2]));
+					}
+	
+					newTet = new Tet(f.vertices[0], f.vertices[1], f.vertices[2], d);
+					tets.add(newTet);
+					if (testing) newTet.toSceneEdges(scene, Color.blue, 0.001);
+					if (testing) if (!newTet.getCircumSphere().containsNoneButAtMostOne(u, vertices)) System.out.println("Not Delaunay");
+
+					// neighbor pointers are updated
+					newTet.neighbors[newTet.indexOf(a)] = oppFace.oppTet;
+					newTet.neighbors[newTet.indexOf(d)] = f.oppTet;
+					oppFace.oppTet.neighbors[oppFace.oppTet.indexOf(b, c, d)] = newTet;
+					f.oppTet.neighbors[f.oppTet.indexOf(a, b, c)] = newTet;
+					
+					// hole is updated, first new face is added
+					Face newFace1 = hole.new Face(a, b, d, c, null, newTet);
+					hole.faces.add(newFace1);
+					if (testing) newTet.toSceneFace(scene, newTet.indexOf(a, b, d), Color.red);
+	
+					// new face pairs are identified
+					face = oppFace.neighbors[oppFace.indexOf(c)];
+					newFace1.neighbors[newFace1.indexOf(a)] = face;
+					face.neighbors[face.IndexOfFreeVertex(oppFace)] = newFace1;
+					gamma = Point.orientation(newFace1.vertices[0], newFace1.vertices[1], newFace1.vertices[2], face.getFreeVertex(newFace1));
+					if (gamma > 0.0) {
+						double beta = Point.inSphere(newFace1.vertices[0], newFace1.vertices[1], newFace1.vertices[2], face.getFreeVertex(newFace1), u);
+						heap.insert(new HeapItemDelete(face, newFace1, -beta/gamma));
+					}
+	
+					face = f.neighbors[f.indexOf(c)];
+					newFace1.neighbors[newFace1.indexOf(d)] = face;
+					face.neighbors[face.IndexOfFreeVertex(f)] = newFace1;
+					gamma = Point.orientation(newFace1.vertices[0], newFace1.vertices[1], newFace1.vertices[2], face.getFreeVertex(newFace1));
+					if (gamma > 0.0) {
+						double beta = Point.inSphere(newFace1.vertices[0], newFace1.vertices[1], newFace1.vertices[2], face.getFreeVertex(newFace1), u);
+						heap.insert(new HeapItemDelete(face, newFace1, -beta/gamma));
+					}
+					
+					// hole is updated, second new face is added
+					Face newFace2 = hole.new Face(a, c, d, b, null, newTet);
+					hole.faces.add(newFace2);
+					if (testing) newTet.toSceneFace(scene, newTet.indexOf(a, c, d), Color.red);
+					
+					face = oppFace.neighbors[oppFace.indexOf(b)];
+					newFace2.neighbors[newFace2.indexOf(a)] = face;
+					face.neighbors[face.IndexOfFreeVertex(oppFace)] = newFace2;
+					gamma = Point.orientation(newFace2.vertices[0], newFace2.vertices[1], newFace2.vertices[2], face.getFreeVertex(newFace2));
+					if (gamma > 0.0) {
+						double beta = Point.inSphere(newFace2.vertices[0], newFace2.vertices[1], newFace2.vertices[2], face.getFreeVertex(newFace2), u);
+						heap.insert(new HeapItemDelete(face, newFace2, -beta/gamma));
+					}
+					
+					face = f.neighbors[f.indexOf(b)];
+					newFace2.neighbors[newFace2.indexOf(d)] = face;
+					face.neighbors[face.IndexOfFreeVertex(f)] = newFace2;
+					gamma = Point.orientation(newFace2.vertices[0], newFace2.vertices[1], newFace2.vertices[2], face.getFreeVertex(newFace2));
+					if (gamma > 0.0) {
+						double beta = Point.inSphere(newFace2.vertices[0], newFace2.vertices[1], newFace2.vertices[2], face.getFreeVertex(newFace2), u);
+						heap.insert(new HeapItemDelete(face, newFace2, -beta/gamma));
+					}
+					
+					newFace1.neighbors[newFace1.indexOf(b)] = newFace2;
+					newFace2.neighbors[newFace2.indexOf(c)] = newFace1;
 				}
-				// check if they are both adjacent to third tetrahedron with u as a corner 
 			}
-			tet.fromSceneFaces(scene);
-			nTet.fromSceneFaces(scene);
 		}
-	}
-/*		
-		TriangulationFace[] newFaces = new TriangulationFace[2];
-		while (sz != 3) {
-			HeapItem item = (HeapItem)heap.extract();
-			face1 = item.getFace();
-			face2 = item.getNextFace();
-			if (face1.isAlive() && face2.isAlive()) {
-			
-				// add new face to the triangulation
-				int indx1 = face1.getIndex(u);
-				int indx2 = face2.getIndex(u);
-				a = face1.corners[(indx1+1)%3];
-				b = face1.corners[(indx1+2)%3];
-				c = face2.corners[(indx2+2)%3];
-				oppFace1 = face1.getNeighbor(indx1);
-				oppFace2 = face2.getNeighbor(indx2);
-			
-				newFace1 = new TriangulationFace(a, b, c);
-				newFace2 = new TriangulationFace(a, c, u);
-
-				newFace1.setNeighbor(0, oppFace2);
-				if (oppFace2 != null) oppFace2.setNeighbor((oppFace2.getIndex(b)+1)%3, newFace1);
-				newFace1.setNeighbor(1, newFace2);
-				newFace1.setNeighbor(2, oppFace1);
-				if (oppFace1 != null) oppFace1.setNeighbor((oppFace1.getIndex(a)+1)%3, newFace1);
-				if (a.face == face1) a.face = newFace1;
-				if ((b.face == face1) || (b.face == face2)) b.face = newFace1;
-				if (c.face == face2) c.face = newFace1;
-			    triangulationFaces.add(newFace1);
-				if (testing) {
-					Circle cir = new Circle(a, b, c);
-					cir.toScene(scene, Color.blue);
-					scene.removeShape(cir);
-				}
-
-			    // update star of u
-				prevFace = u.getPrevFace(face1);
-				nextFace = u.getNextFace(face2);
-				
-			    newFace2.setNeighbor(0, nextFace);
-			    newFace2.setNeighbor(1, prevFace);
-			    newFace2.setNeighbor(2, newFace1);
-			    
-			    nextFace.setNeighbor((nextFace.getIndex(c)+1)%3, newFace2);
-			    prevFace.setNeighbor((prevFace.getIndex(a)+2)%3, newFace2);
-                if ((u.face == face1) || (u.face == face2)) u.face = newFace2;
-                triangulationFaces.add(newFace2);
-                
-			    power = getPower(prevFace.corners[(prevFace.getIndex(a)+2)%3], a, c, u);
-			    if (power < Constants.bigDouble) heap.insert(new HeapItem(prevFace, newFace2, power));
-			    power = getPower(a, c, nextFace.corners[(nextFace.getIndex(c)+1)%3], u);
-			    if (power < Constants.bigDouble) heap.insert(new HeapItem(newFace2, nextFace, power));
-			    
-			    face1.setAlive(false);
-				triangulationFaces.remove(face1);
-			    face2.setAlive(false);
-				triangulationFaces.remove(face2);
-			    sz--;
-       		}   
+		
+		heap.clear();
+		
+		Face face1 = hole.faces.remove(0);
+		Face face2 = hole.faces.remove(0);
+		Face face3 = hole.faces.remove(0);
+		Face face4 = hole.faces.remove(0);
+		if (testing) {
+			face1.oppTet.fromSceneFace(scene, face1.oppTet.indexOf(face1.vertices[0], face1.vertices[1], face1.vertices[2]));
+			face2.oppTet.fromSceneFace(scene, face2.oppTet.indexOf(face2.vertices[0], face2.vertices[1], face2.vertices[2]));
+			face3.oppTet.fromSceneFace(scene, face3.oppTet.indexOf(face3.vertices[0], face3.vertices[1], face3.vertices[2]));
+			face4.oppTet.fromSceneFace(scene, face4.oppTet.indexOf(face4.vertices[0], face4.vertices[1], face4.vertices[2]));
 		}		
-			
-       	// remove u and its 3 faces
-		face1 = u.getFace();
-		face2 = u.getNextFace(face1);
-		face3 = u.getNextFace(face2);
-		a = face1.corners[(face1.getIndex(u)+1)%3];
-		b = face2.corners[(face2.getIndex(u)+1)%3];
-		c = face3.corners[(face3.getIndex(u)+1)%3];
-		oppFace1 = face1.getNeighbor(face1.getIndex(u));
-		oppFace2 = face2.getNeighbor(face2.getIndex(u));
-		oppFace3 = face3.getNeighbor(face3.getIndex(u));
-		 
-		newFace = new TriangulationFace(a, b, c);
-		newFace.setNeighbor(0, oppFace2);
-		newFace.setNeighbor(1, oppFace3);
-		newFace.setNeighbor(2, oppFace1);
+		a = face1.vertices[0];
+		b = face1.vertices[1];
+		c = face1.vertices[2];
+		d = face2.getFreeVertex(face1);
+		newTet = new Tet(a, b, c, d);
+		tets.add(newTet);
+		if (testing) newTet.toSceneEdges(scene, Color.blue, 0.001);
 		
-		if (oppFace1 != null) oppFace1.setNeighbor((oppFace1.getIndex(a)+1)%3, newFace);
-		if (oppFace2 != null) oppFace2.setNeighbor((oppFace2.getIndex(b)+1)%3, newFace);
-		if (oppFace3 != null) oppFace3.setNeighbor((oppFace3.getIndex(c)+1)%3, newFace);
+		// looking for face that does not contain a
+		face = face1;
+		if (face.containsVertex(a)) {
+			face = face2;
+			if (face.containsVertex(a)) {
+				face = face3;
+				if (face.containsVertex(a)) face = face4;
+			}
+		}
+		newTet.neighbors[newTet.indexOf(a)] = face.oppTet;
+		face.oppTet.neighbors[face.oppTet.indexOf(b, c, d)] = newTet;
 
-		face1.setAlive(false);
-		triangulationFaces.remove(face1);
-		face2.setAlive(false);
-		triangulationFaces.remove(face2);
-		face3.setAlive(false);
-		triangulationFaces.remove(face3);
-		if ((a.face == face1) || (a.face == face2)) a.face = newFace;
-		if ((b.face == face2) || (b.face == face3)) b.face = newFace;
-		if ((c.face == face3) || (c.face == face1)) c.face = newFace;
-		u.face = null;
+		// looking for face that does not contain b
+		face = face1;
+		if (face.containsVertex(b)) {
+			face = face2;
+			if (face.containsVertex(b)) {
+				face = face3;
+				if (face.containsVertex(b)) face = face4;
+			}
+		}
+		newTet.neighbors[newTet.indexOf(b)] = face.oppTet;
+		face.oppTet.neighbors[face.oppTet.indexOf(a, c, d)] = newTet;
+		if (testing) {
+			System.out.println("Neighbor of " + newTet.toString() + " facing " + b + " is " + face.oppTet.toString() );
+			System.out.println("Neighbor of " + face.oppTet.toString() + " facing " + face.oppTet.getCorner(face.oppTet.indexOf(a,c,d)) + " is " + newTet.toString() );
+		}
 		
-       	triangulationFaces.add(newFace);
-       	if (testing) {
-       		scene.removeAllShapes();
-       		draw(scene);
-       	}
+		// looking for face that does not contain c
+		face = face1;
+		if (face.containsVertex(c)) {
+			face = face2;
+			if (face.containsVertex(c)) {
+				face = face3;
+				if (face.containsVertex(c)) face = face4;
+			}
+		}
+		newTet.neighbors[newTet.indexOf(c)] = face.oppTet;
+		face.oppTet.neighbors[face.oppTet.indexOf(a, b, d)] = newTet;
+		
+		// looking for face that does not contain d
+		face = face1;
+		if (face.containsVertex(d)) {
+			face = face2;
+			if (face.containsVertex(d)) {
+				face = face3;
+				if (face.containsVertex(d)) face = face4;
+			}
+		}
+		newTet.neighbors[newTet.indexOf(d)] = face.oppTet;
+		face.oppTet.neighbors[face.oppTet.indexOf(a, b, c)] = newTet;
 	}
-*/
+
+	
+	/** Returns the rotation direction (clockwise or counterclockwise */
+	public Direction getDirection() { return rotDir; }
+
+	/** Reads or creates a problem instance */
+	private List<Point> getInstance(ProblemInstanceType instanceType) {
+		if (instanceType == ProblemInstanceType.pdbNCC) {
+			// reads a pdb-file - at the moment reads the backbone atoms only
+			PDBFile f = new PDBFile("/Users/pawel/Downloads/1X0O.pdb");
+			return f.getAtomCoords("N,Ca,C");	
+		}
+		if (instanceType == ProblemInstanceType.random) {
+		// Generates a set of uniformly distributed points inside a unit cube
+			Randomization.seed(3);
+			return PointList.generatePointsInCube(10, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
+		}
+		if (instanceType == ProblemInstanceType.toy) {
+		// Generates a toy example
+			List<Point> points = new java.util.LinkedList<Point>();
+			points.add(new Point(0,0,0));
+			points.add(new Point(1,0,0));
+			points.add(new Point(0,1,0));
+			points.add(new Point(0,0,1));
+			points.add(new Point(1.1,1.1,1.1));
+			return points;
+		}
+		return null;
+	}
+	
+	/** Returns the number of vertices in the DT (without 4 big points*/
+	public int getNrVertices() { return vertices.size() - 4; }
+	
+	/** Used when deleting vertices from static DT */
+	private double getPower(Point a, Point b, Point c, Point d, Point p) {
+		double delta;
+		double gamma = Point.orientation(a, b, c, p);
+		if (gamma > 0.0) delta = Point.orientation(a, b, c, d); 
+		else delta = Point.orientation(a, c, b, d);		
+		if (delta <= 0.0) return Constants.bigDouble;
+		return Point.inSphere(a, b, c, d, p)/delta;
+	}
+
+	/** Returns the direction vector of the rotation axis */
+	public Vector getRotationAxis() { return rotationAxis; }
+
+	/** Returns the rotation point */
+	public Point getRotationPoint() { return rotationPoint; }
 	
 	
+	/** Returns tetrahedra sharing a face and a vertex */
+	public Tet[] getTetrahedra(Vertex v, Tet tet) {
+		int indxV = tet.indexOf(v);
+		Tet[] nTet = new Tet[3]; 
+		for (int i = 0; i < 3; i++) {
+			nTet[i] = tet.neighbors[(indxV+i+1)/3];
+		}
+		return nTet;
+	}
 	
+	/** Returns a tetrahedron containing vertex v */
+	public Tet getTetrahedron(Vertex v) {
+		for (Tet tet : tets) if (tet.hasVertex(v)) return tet;
+		return null;
+	}
 	
+	/** Returns the list of tetrahedra */
+	public List<Tet> getTets() { return tets; }
+
+	/** Returns i-th vertex */
+	public Vertex getVertex(int i) { return vertices.get(i); }
 	
+	/** Returns the list of vertices */
+	public List<Vertex> getVertices() { return vertices; }
+	
+	/** Inserts new point into DT */
 	public void insertPoint(Point p){
 		Vertex v = new Vertex(p);
-		System.out.println("Inserting "+v);
 		vertices.add(v);
 		Tet c = walk(p);
 		
@@ -410,7 +575,7 @@ public class KineticDelaunayTessellation {
 					//Create new cell
 					Vertex[] corners = new Vertex[4];
 					corners[3] = v;
-					for(int i=1;i<4;i++) corners[i-1] = c.corners[(f+i)%4];
+					for(int i=1;i<4;i++) corners[i-1] = c.getCorner((f+i)%4);
 					Tet newTet = new Tet(corners);
 					newTet.neighbors[3] = neigh;
 					if(neigh!=null) neigh.neighbors[neigh.apex(c)] = newTet;
@@ -428,6 +593,11 @@ public class KineticDelaunayTessellation {
 		tets.addAll(newTets);
 	}
 
+	
+	/** Removes a tetrahedron from the list of tetrahedra */
+	public void removeTetrahedron(Tet tet) { tets.remove(tet); }
+
+	/** Restore neighborhood information after insertion and flips */
 	private void restoreNeighborhood(List<Tet> newCells){
 		for(Tet c1: newCells){
 			cellLoop: for(Tet c2: newCells){
@@ -438,23 +608,39 @@ public class KineticDelaunayTessellation {
 				//i and j run over the arrays, I and J record the location of differences
 				int i=0,j=0, I=-1, J=-1;
 				while(i<=3&&j<=3){
-					if(c1.corners[i]==c2.corners[j]){
+					if(c1.getCorner(i)==c2.getCorner(j)) {
 						i++;j++;
-					}else if(i<3 && c1.corners[i+1]==c2.corners[j]){
-						if(I>=0) continue cellLoop;
-						I=i;i++;
-					}else {
-						if(J>=0) continue cellLoop;
-						J=j;j++;
 					}
+					else 
+						if(i<3 && c1.getCorner(i+1)==c2.getCorner(j)) {
+							if(I>=0) continue cellLoop;
+							I=i;i++;
+						}
+						else {
+							if(J>=0) continue cellLoop;
+							J=j;j++;
+						}
 				}
 				c1.neighbors[I] = c2;
 				c2.neighbors[J] = c1;
 			}
 		}
 	}
-	
 
+	/** Sets the direction of the rotation (clockwise or counterclockwise) */
+	public void setDirection(Direction rotDir) { this.rotDir = rotDir; }
+
+	/** Sets the direction vector of the rotation axis */
+	public void setRotationAxis(Vector v)  { rotationAxis = v; }
+
+	/** Sets the rotation point and translates all vertices so that the rotation point is in the origo.  */
+	public void setRotationPoint(Point rotationPoint) { 
+		if (this.rotationPoint != null) for (Vertex v : vertices) v.addThis(this.rotationPoint);
+		this.rotationPoint = rotationPoint; 
+		for (Vertex v : vertices) v.subtractThis(rotationPoint);	
+	}
+
+	// Identifies tetrahedron into which new point has to be inserted */
 	private Tet walk(Point p){
 		Tet t = lastTet;
 		mainWalk: while(true){
@@ -469,19 +655,6 @@ public class KineticDelaunayTessellation {
 		}
 	}
 	
-	public void animate(J3DScene scene, double alpha) {
-		int steps = 10;
-		double angleStep = alpha/steps;
-		for (int k = 0; k < steps; k++) {
-			for (int i = 0; i < rotIndx.size(); i++) {
-				Vertex v = vertices.get(rotIndx.get(i));
-				v.rotation(rotationAxis, angleStep);
-			}
-			try { Thread.sleep(5); } catch (InterruptedException e) {}
-			if (sphereAnimation) animateSpheres();			
-			scene.repaint();
-		}
-	}
 
 	public void animateSpheres() {
 		Sphere d;
@@ -489,7 +662,7 @@ public class KineticDelaunayTessellation {
 			if (!t.isFlat()) {
 				Sphere c = t.getCircumSphere();
 				if (c != null) {
-					d = new Sphere(t.corners[0], t.corners[1], t.corners[2], t.corners[3]);
+					d = new Sphere(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3));
 					c.setCenter(d.getCenter());
 					c.setRadius(d.getRadius()); 
 				}
@@ -540,11 +713,14 @@ public class KineticDelaunayTessellation {
 	    double eSin = E.getSinAngle();
 	    double eCos = E.getCosAngle();
 	    
-	    double M12 = A.z()*(bb-cc)                   + C.z()*(aa-bb)                   + B.z()*(cc-aa);
-	    double M13 = A.y()*(bb-cc)                   + C.y()*(aa-bb)                   + B.y()*(cc-aa);
+	    double aa_bb = aa - bb;
+	    double bb_cc = bb - cc;
+	    double cc_aa = cc - aa;
+	    double M12 = A.z()*bb_cc                     + C.z()*aa_bb                     + B.z()*cc_aa;
+	    double M13 = A.y()*bb_cc                     + C.y()*aa_bb                     + B.y()*cc_aa;
 	    double M14 = A.y()*(B.z()-C.z())             + C.y()*(A.z()-B.z())             + B.y()*(C.z()-A.z());
 	    double M15 = A.y()*(B.z()*cc-C.z()*bb)       + C.y()*(A.z()*bb-B.z()*aa)       + B.y()*(C.z()*aa-A.z()*cc);
-	    double M23 = A.x()*(bb-cc)                   + C.x()*(aa-bb)                   + B.x()*(cc-aa);
+	    double M23 = A.x()*bb_cc                     + C.x()*aa_bb                     + B.x()*cc_aa;
 	    double M24 = A.x()*(B.z()-C.z())             + C.x()*(A.z()-B.z())             + B.x()*(C.z()-A.z());
 	    double M25 = A.x()*(B.z()*cc-C.z()*bb)       + C.x()*(A.z()*bb-B.z()*aa)       + B.x()*(C.z()*aa-A.z()*cc);																																		;
 	    double M34 = A.x()*(B.y()-C.y())             + C.x()*(A.y()-B.y())             + B.x()*(C.y()-A.y());
@@ -560,7 +736,7 @@ public class KineticDelaunayTessellation {
 
 	
 	public Double[] getRotAngle(Double[] angles, int dir) {
-		if ((angles == null) || (angles[1] == null)) return null;
+		if (angles == null || angles[1] == null) return null;
 		if (dir == 1) { 
 			angles[0] = Constants.TAU - angles[0] + angleTotal;
 			if (angles[0] > Constants.TAU) angles[0] = angles[0] - Constants.TAU;
@@ -596,77 +772,77 @@ public class KineticDelaunayTessellation {
 
 	public Double[] getRoot(Tet t, Tet oppT) {
 		int count = t.getCount();
-		Vertex oppV = oppT.corners[oppT.apex(t)];
+		Vertex oppV = oppT.getCorner(oppT.apex(t));
 		if (oppV.getType() == Vertex.VertexType.R) count = count + 16;
 		return getRoot(t, oppV, count);
 	}
 	
 	public Double[] getRoot(Tet t, Vertex oppV, int count) {		
-		if ((count == 0) || (count == 31)) return null;
+		if (count == 0 || count == 31) return null;
 		if (count <= 15) {	
 			if (count <= 7) {
 				if (count <= 3) {
-					if (count == 1) return getRootSSSSR(t.corners[1], t.corners[2], t.corners[3], oppV, t.corners[0], 0);
-					if (count == 2) return getRootSSSSR(t.corners[0], t.corners[2], t.corners[3], oppV, t.corners[1], 0);
-					return getRootSSSRR(t.corners[2], t.corners[3], oppV, t.corners[0], t.corners[1], 0);
+					if (count == 1) return getRootSSSSR(t.getCorner(1), t.getCorner(2), t.getCorner(3), oppV, t.getCorner(0), 0);
+					if (count == 2) return getRootSSSSR(t.getCorner(0), t.getCorner(2), t.getCorner(3), oppV, t.getCorner(1), 0);
+					return getRootSSSRR(t.getCorner(2), t.getCorner(3), oppV, t.getCorner(0), t.getCorner(1), 0);
 				}
 				if (count <= 5) {
-					if (count == 4) return getRootSSSSR(t.corners[0], t.corners[1], t.corners[3], oppV, t.corners[2], 0);
-					return getRootSSSRR(t.corners[1], t.corners[3], oppV, t.corners[0], t.corners[2], 0);
+					if (count == 4) return getRootSSSSR(t.getCorner(0), t.getCorner(1), t.getCorner(3), oppV, t.getCorner(2), 0);
+					return getRootSSSRR(t.getCorner(1), t.getCorner(3), oppV, t.getCorner(0), t.getCorner(2), 0);
 				}
-				if (count == 6) return getRootSSSRR(t.corners[0], t.corners[3], oppV, t.corners[1], t.corners[2], 0);					
-				return getRootSSSRR(t.corners[0], t.corners[1], t.corners[2], t.corners[3], oppV, 1);
+				if (count == 6) return getRootSSSRR(t.getCorner(0), t.getCorner(3), oppV, t.getCorner(1), t.getCorner(2), 0);					
+				return getRootSSSRR(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3), oppV, 1);
 			}
 			if (count <= 11) {
 				if (count <= 9) {
-					if (count == 8) return getRootSSSSR(t.corners[0], t.corners[1], t.corners[2], oppV, t.corners[3], 0);
-					return getRootSSSRR(t.corners[1], t.corners[2], oppV, t.corners[0], t.corners[3], 0);
+					if (count == 8) return getRootSSSSR(t.getCorner(0), t.getCorner(1), t.getCorner(2), oppV, t.getCorner(3), 0);
+					return getRootSSSRR(t.getCorner(1), t.getCorner(2), oppV, t.getCorner(0), t.getCorner(3), 0);
 				}
-				if (count == 10) return getRootSSSRR(t.corners[0], t.corners[2], oppV, t.corners[1], t.corners[3], 0);
-				return getRootSSSRR(t.corners[0], t.corners[1], t.corners[3], t.corners[2], oppV, 1);
+				if (count == 10) return getRootSSSRR(t.getCorner(0), t.getCorner(2), oppV, t.getCorner(1), t.getCorner(3), 0);
+				return getRootSSSRR(t.getCorner(0), t.getCorner(1), t.getCorner(3), t.getCorner(2), oppV, 1);
 			}
 			if (count <= 13) {
-				if (count == 12) return getRootSSSRR(t.corners[0], t.corners[1], oppV, t.corners[2], t.corners[3], 0);
-				return getRootSSSRR(t.corners[0], t.corners[2], t.corners[3], t.corners[1], oppV, 1);
+				if (count == 12) return getRootSSSRR(t.getCorner(0), t.getCorner(1), oppV, t.getCorner(2), t.getCorner(3), 0);
+				return getRootSSSRR(t.getCorner(0), t.getCorner(2), t.getCorner(3), t.getCorner(1), oppV, 1);
 			}
-			if (count == 14) return getRootSSSRR(t.corners[1], t.corners[2], t.corners[3], t.corners[0], oppV, 1);
-			return getRootSSSSR(t.corners[0], t.corners[1], t.corners[2], t.corners[3], oppV, 1);
+			if (count == 14) return getRootSSSRR(t.getCorner(1), t.getCorner(2), t.getCorner(3), t.getCorner(0), oppV, 1);
+			return getRootSSSSR(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3), oppV, 1);
 		}
 		if (count <= 23) {
 			if (count <= 19) {
 				if (count <= 17) {
-					if (count == 16) return getRootSSSSR(t.corners[0], t.corners[1], t.corners[2], t.corners[3], oppV, 0);
-					return getRootSSSRR(t.corners[1], t.corners[2], t.corners[3], t.corners[0], oppV, 0);
+					if (count == 16) return getRootSSSSR(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3), oppV, 0);
+					return getRootSSSRR(t.getCorner(1), t.getCorner(2), t.getCorner(3), t.getCorner(0), oppV, 0);
 				}
-				if (count == 18) return getRootSSSRR(t.corners[0], t.corners[2], t.corners[3], t.corners[1], oppV, 0);
-				return getRootSSSRR(t.corners[0], t.corners[1], oppV, t.corners[2], t.corners[3], 1);
+				if (count == 18) return getRootSSSRR(t.getCorner(0), t.getCorner(2), t.getCorner(3), t.getCorner(1), oppV, 0);
+				return getRootSSSRR(t.getCorner(0), t.getCorner(1), oppV, t.getCorner(2), t.getCorner(3), 1);
 			}
 			if (count <= 21) {
-				if (count == 20) return getRootSSSRR(t.corners[0], t.corners[1], t.corners[3], t.corners[2], oppV, 0);
-				return getRootSSSRR(t.corners[1], t.corners[3], oppV, t.corners[0], t.corners[2], 0);
+				if (count == 20) return getRootSSSRR(t.getCorner(0), t.getCorner(1), t.getCorner(3), t.getCorner(2), oppV, 0);
+				return getRootSSSRR(t.getCorner(1), t.getCorner(3), oppV, t.getCorner(0), t.getCorner(2), 0);
 			}
-			if (count == 22) return getRootSSSRR(t.corners[1], t.corners[2], oppV, t.corners[0], t.corners[3], 1);					
-			return getRootSSSSR(t.corners[0], t.corners[1], t.corners[2], oppV, t.corners[3], 1);
+			if (count == 22) return getRootSSSRR(t.getCorner(1), t.getCorner(2), oppV, t.getCorner(0), t.getCorner(3), 1);					
+			return getRootSSSSR(t.getCorner(0), t.getCorner(1), t.getCorner(2), oppV, t.getCorner(3), 1);
 		}
 		if (count <= 27) {
 			if (count <= 25) {
-				if (count == 24) return getRootSSSRR(t.corners[0], t.corners[1], t.corners[2], t.corners[3], oppV, 0);
-				return getRootSSSRR(t.corners[0], t.corners[3], oppV, t.corners[1], t.corners[2], 1);
+				if (count == 24) return getRootSSSRR(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3), oppV, 0);
+				return getRootSSSRR(t.getCorner(0), t.getCorner(3), oppV, t.getCorner(1), t.getCorner(2), 1);
 			}
-			if (count == 26) return getRootSSSRR(t.corners[1], t.corners[3], oppV, t.corners[0], t.corners[2], 1);
-			return getRootSSSSR(t.corners[0], t.corners[1], t.corners[3], oppV, t.corners[2], 1);
+			if (count == 26) return getRootSSSRR(t.getCorner(1), t.getCorner(3), oppV, t.getCorner(0), t.getCorner(2), 1);
+			return getRootSSSSR(t.getCorner(0), t.getCorner(1), t.getCorner(3), oppV, t.getCorner(2), 1);
 		}
 		if (count <= 29) {
-			if (count == 28) return getRootSSSRR(t.corners[2], t.corners[3], oppV, t.corners[0], t.corners[1], 1);
-			return getRootSSSSR(t.corners[0], t.corners[2], t.corners[3], oppV, t.corners[1], 1);
+			if (count == 28) return getRootSSSRR(t.getCorner(2), t.getCorner(3), oppV, t.getCorner(0), t.getCorner(1), 1);
+			return getRootSSSSR(t.getCorner(0), t.getCorner(2), t.getCorner(3), oppV, t.getCorner(1), 1);
 		}
-		return getRootSSSSR(t.corners[1], t.corners[2], t.corners[3], oppV, t.corners[0], 1);
+		return getRootSSSSR(t.getCorner(1), t.getCorner(2), t.getCorner(3), oppV, t.getCorner(0), 1);
 	}
 	
 	private void testInfo(Tet t, Color clr, boolean second) {
 		if (second) System.out.print(" ");
 		System.out.println(t.toString()); 
-		t.circumSphere = new Sphere(t.corners[0], t.corners[1], t.corners[2], t.corners[3]);
+		t.circumSphere = new Sphere(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3));
 		scene.addShape(t.circumSphere, new Color(255, 255, 0, 100), 32);
 	}
 
@@ -675,12 +851,12 @@ public class KineticDelaunayTessellation {
 		heap.clear();
 		// set constants associated with vertices - does not include vertices of big points
 		for (Vertex v : vertices) {
-			if (testing) System.out.print(v.getId() + ": " + v.toString(2));
+			if (testingPrint) System.out.print(v.getId() + ": " + v.toString(2));
 			if (v.distanceSquared() < Constants.EPSILON) { //takes care of the special case when the rotation center overlaps with one of the given points
 				v.setSquaredPolarRadius(0.0);                            
 				v.setPolarRadius(0.0);                        
 				v.setPolarAngle(0.0);			
-				if (testing) System.out.println(", polar angle: 0.0"); 
+				if (testingPrint) System.out.println(", polar angle: 0.0"); 
 				v.setCosAngle(1.0);
 				v.setSinAngle(0.0);
 				v.setType(Vertex.VertexType.S);
@@ -690,7 +866,7 @@ public class KineticDelaunayTessellation {
 				v.setSquaredPolarRadius(v.distanceSquared());       // remains unchanged when rotating around the same point
 				v.setPolarRadius(v.distance());                     // remains unchanged when rotating around the same point
 				v.setPolarAngle(v.polarAngleXY());     			
-				if (testing) System.out.println(", initial polar angle: " + Functions.toDeg(v.getPolarAngle())); 
+				if (testingPrint) System.out.println(", initial polar angle: " + Functions.toDeg(v.getPolarAngle())); 
 				v.setCosAngle(v.polarAngleCosXY());
 				v.setSinAngle(v.polarAngleSinXY());
 			}
@@ -704,14 +880,14 @@ public class KineticDelaunayTessellation {
 			for (int i = 0; i < 4; i++) {
 				nt = t.neighbors[i];
 				if (nt != null) { 
-					oppV = nt.corners[nt.apex(t)];  
-					if (t.corners[t.apex(nt)].getId() < oppV.getId()) {
+					oppV = nt.getCorner(nt.apex(t));  
+					if (t.getCorner(t.apex(nt)).getId() < oppV.getId()) {
 						count = count4;
 						if (oppV.getType() == Vertex.VertexType.R) count = count + 16;	
 						angles = getRoot(t, oppV, count);
 						if ((angles != null) && (angles[0] < angleLimit)) {
 							addToHeap(angles, t, nt);
-							if (testing) System.out.println(t + " " + nt + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
+							if (testingPrint) System.out.println(t + " " + nt + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 						}
 					}
 				}
@@ -730,34 +906,34 @@ public class KineticDelaunayTessellation {
 	 */
 	private Tet[] flip23(Tet t0, Tet t1){
 
-		// identify 2 not shared vertices
-		int a0 = t0.apex(t1);
-		int a1 = t1.apex(t0);
-		Vertex[] vns = new Vertex[2];
-		vns[0] = t0.corners[a0];
-		vns[1] = t1.corners[a1];
+		Vertex vns0 = t0.getCorner(t0.apex(t1));
+		Vertex vns1 = t1.getCorner(t1.apex(t0));
 		
 		// identify three shared vertices
 		Vertex[] vs = new Vertex[3];
 		int k = 0;
-		for (int i = 0; i < 4; i++) if (t0.corners[i] != t0.corners[a0]) vs[k++] = t0.corners[i];
+		for (int i = 0; i < 4; i++) if (t0.getCorner(i) != vns0) vs[k++] = t0.getCorner(i);
 		
-		Tet nt0 = new Tet(vns[0], vns[1], vs[0], vs[1]);
-		Tet nt1 = new Tet(vns[0], vns[1], vs[1], vs[2]);
-		Tet nt2 = new Tet(vns[0], vns[1], vs[2], vs[0]);
-		nt0.sortCorners();
-		nt1.sortCorners();
-		nt2.sortCorners();
+		Tet nt0 = new Tet(vns0, vns1, vs[0], vs[1]);
+		Tet nt1 = new Tet(vns0, vns1, vs[1], vs[2]);
+		Tet nt2 = new Tet(vns0, vns1, vs[2], vs[0]);
+		
+		// vertices get new tetrahedron pointers
+		vns0.setTet(nt0);
+		vns1.setTet(nt0);
+		vs[0].setTet(nt0);
+		vs[1].setTet(nt0);
+		vs[2].setTet(nt1);
 		
 		// nt0 contain vs[0]Êand vs[1]
 		
 		if (!nt1.hasVertex(vs[0])) nt0.neighbors[nt0.indexOf(vs[0])] = nt1; else nt0.neighbors[nt0.indexOf(vs[0])] = nt2;
 		if (!nt1.hasVertex(vs[1])) nt0.neighbors[nt0.indexOf(vs[1])] = nt1; else nt0.neighbors[nt0.indexOf(vs[1])] = nt2;
 		Tet t = t1.neighbors[t1.indexOf(vs[2])];
-		nt0.neighbors[nt0.indexOf(vns[0])] = t;
+		nt0.neighbors[nt0.indexOf(vns0)] = t;
 		if (t != null) t.neighbors[t.apex(t1)] = nt0;
 		t = t0.neighbors[t0.indexOf(vs[2])];
-		nt0.neighbors[nt0.indexOf(vns[1])] = t;
+		nt0.neighbors[nt0.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt0;
 		
 		// nt1 contains vs[1] and vs[2]
@@ -765,10 +941,10 @@ public class KineticDelaunayTessellation {
 		if (!nt0.hasVertex(vs[1])) nt1.neighbors[nt1.indexOf(vs[1])] = nt0; else nt1.neighbors[nt1.indexOf(vs[1])] = nt2;
 		if (!nt0.hasVertex(vs[2])) nt1.neighbors[nt1.indexOf(vs[2])] = nt0; else nt1.neighbors[nt1.indexOf(vs[2])] = nt2;
 		t = t1.neighbors[t1.indexOf(vs[0])];
-		nt1.neighbors[nt1.indexOf(vns[0])] = t;
+		nt1.neighbors[nt1.indexOf(vns0)] = t;
 		if (t != null) t.neighbors[t.apex(t1)] = nt1;
 		t = t0.neighbors[t0.indexOf(vs[0])];
-		nt1.neighbors[nt1.indexOf(vns[1])] = t;
+		nt1.neighbors[nt1.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt1;
 		
 		// nt2 contains vs[2] and vs[0]
@@ -776,44 +952,41 @@ public class KineticDelaunayTessellation {
 		if (!nt0.hasVertex(vs[2])) nt2.neighbors[nt2.indexOf(vs[2])] = nt0; else nt2.neighbors[nt2.indexOf(vs[2])] = nt1;
 		if (!nt0.hasVertex(vs[0])) nt2.neighbors[nt2.indexOf(vs[0])] = nt0; else nt2.neighbors[nt2.indexOf(vs[0])] = nt1;
 		t = t1.neighbors[t1.indexOf(vs[1])];
-		nt2.neighbors[nt2.indexOf(vns[0])] = t;
+		nt2.neighbors[nt2.indexOf(vns0)] = t;
 		if (t != null) t.neighbors[t.apex(t1)] = nt2;
 		t = t0.neighbors[t0.indexOf(vs[1])];
-		nt2.neighbors[nt2.indexOf(vns[1])] = t;
+		nt2.neighbors[nt2.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt2;
 		
 		tets.remove(t0);
 		t0.setAlive(false);
-		if (testing) t0.fromSceneEdges(scene);
+		if (testingScreen) t0.fromSceneEdges(scene);
 		tets.remove(t1);
 		t1.setAlive(false);		
-		if (testing) t1.fromSceneEdges(scene);
+		if (testingScreen) t1.fromSceneEdges(scene);
 		Tet[] newTets = new Tet[3];
 		newTets[0] = nt0;
 		newTets[1] = nt1;
 		newTets[2] = nt2;
-		if (testing) {
-			newTets[0].toSceneEdges(scene, Color.black, 0.001, 0.0001);
-			newTets[1].toSceneEdges(scene, Color.black, 0.001, 0.0001);
-			newTets[2].toSceneEdges(scene, Color.black, 0.001, 0.0001);
-		}
+		if (testingScreen) 
+			for (int i = 0; i < 3; i++) newTets[i].toSceneEdges(scene, Color.black, 0.001, 0.0001);
 		tets.add(nt0);
 		tets.add(nt1);
 		tets.add(nt2);
 		angles = getRoot(nt0, nt1);
 		if (angles[0] < angleLimit) {
 			addToHeap(angles, nt0, nt1);
-			if (testing) System.out.println(nt0 + " " + nt1 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
+			if (testingPrint) System.out.println(nt0 + " " + nt1 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
 		angles = getRoot(nt0, nt2);
 		if (angles[0] < angleLimit) {
 			addToHeap(angles, nt0, nt2);
-			if (testing) System.out.println(nt0 + " " + nt2 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
+			if (testingPrint) System.out.println(nt0 + " " + nt2 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
 		angles = getRoot(nt1, nt2);
 		if (angles[0] < angleLimit) {
 			addToHeap(angles, nt1, nt2);
-			if (testing) System.out.println(nt1 + " " + nt2 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
+			if (testingPrint) System.out.println(nt1 + " " + nt2 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
 		
 		// check for new events
@@ -824,7 +997,7 @@ public class KineticDelaunayTessellation {
 				angles = getRoot(nt0, nti);
 				if ((angles != null) && (angles[0] < angleLimit)) {
 					addToHeap(angles, nt0, nti);
-					if (testing) System.out.println(nt0 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
+					if (testingPrint) System.out.println(nt0 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
 			}
 		}
@@ -835,18 +1008,18 @@ public class KineticDelaunayTessellation {
 				angles = getRoot(nt1, nti);
 				if ((angles != null) && (angles[0] < angleLimit)) {
 					addToHeap(angles, nt1, nti);
-					if (testing) System.out.println(nt1 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
+					if (testingPrint) System.out.println(nt1 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
 			}
 		}
 
 		for (int i = 0; i < 4; i++) {
 			nti = nt2.neighbors[i];
-			if ((nti != null) && (nti != nt0) && (nti != nt1)) {
+			if (nti != null && nti != nt0 && nti != nt1) {
 				angles = getRoot(nt2, nti);
-				if ((angles != null) && (angles[0] < angleLimit)) {
+				if (angles != null && angles[0] < angleLimit) {
 					addToHeap(angles, nt2, nti);
-					if (testing) System.out.println(nt2 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
+					if (testingPrint) System.out.println(nt2 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
 			}
 		}
@@ -867,23 +1040,30 @@ public class KineticDelaunayTessellation {
 
 		//Locate three non-shared vertices
 		Vertex[] vns = new Vertex[3];
-		vns[0] = t0.corners[t0.apex(t1)];
-		vns[1] = t1.corners[t1.apex(t2)];
-		vns[2] = t2.corners[t2.apex(t0)];
+		vns[0] = t0.getCorner(t0.apex(t1));
+		vns[1] = t1.getCorner(t1.apex(t2));
+		vns[2] = t2.getCorner(t2.apex(t0));
 
 		//Locate two shared vertices
 		Vertex[] vs = new Vertex[2];
 		int nrSharedFound = 0;
 		for (int i = 0; (i < 4) && (nrSharedFound < 2); i++) {
-			Vertex v = t0.corners[i];
+			Vertex v = t0.getCorner(i);
 			if (t1.hasVertex(v) && t2.hasVertex(v)) vs[nrSharedFound++] = v;
 		}
 		
 		Tet nt0 = new Tet(vns[0], vns[1], vns[2], vs[0]);
 		Tet nt1 = new Tet(vns[0], vns[1], vns[2], vs[1]);
-		nt0.sortCorners();
-		nt1.sortCorners();
 
+		// vertices get new tetrahedron pointers
+		vs[0].setTet(nt0);
+		vs[1].setTet(nt1);
+		vns[0].setTet(nt0);
+		vns[1].setTet(nt0);
+		vns[2].setTet(nt0);
+		
+
+		
 		// update neighbor information
 		
 		nt0.neighbors[nt0.indexOf_slow(vs[0])] = nt1;      
@@ -940,24 +1120,28 @@ public class KineticDelaunayTessellation {
 		
 		tets.remove(t0);
 		t0.setAlive(false);
-		if (testing) t0.fromSceneEdges(scene);
 		tets.remove(t1);
 		t1.setAlive(false);		
-		if (testing) t1.fromSceneEdges(scene);
 		tets.remove(t2);
 		t2.setAlive(false);
-		if (testing) t2.fromSceneEdges(scene);
+		if (testingScreen) {
+			t0.fromSceneEdges(scene);
+			t1.fromSceneEdges(scene);
+			t2.fromSceneEdges(scene);
+		}
 		Tet[] newTets = new Tet[2];
 		newTets[0] = nt0;
 		newTets[1] = nt1;
-		newTets[0].toSceneEdges(scene, Color.black, 0.001, 0.0001);
-		newTets[1].toSceneEdges(scene, Color.black, 0.001, 0.0001);
+		if (testingScreen) {
+			newTets[0].toSceneEdges(scene, Color.black, 0.001, 0.0001);
+			newTets[1].toSceneEdges(scene, Color.black, 0.001, 0.0001);
+		}
 		tets.add(nt0);
 		tets.add(nt1);
 		angles = getRoot(nt0, nt1);
 		if (angles[0] < angleLimit) {
 			addToHeap(angles, nt0, nt1);
-			if (testing) System.out.println(nt0 + " " + nt1 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
+			if (testingPrint) System.out.println(nt0 + " " + nt1 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
 
 		// check for new events
@@ -969,7 +1153,7 @@ public class KineticDelaunayTessellation {
 				angles = getRoot(nt0, nti);
 				if ((angles != null) && (angles[0] < angleLimit)) {
 					addToHeap(angles, nt0, nti);
-					if (testing) System.out.println(nt0 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
+					if (testingPrint) System.out.println(nt0 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
 			}
 		}
@@ -980,13 +1164,14 @@ public class KineticDelaunayTessellation {
 				angles = getRoot(nt1, nti);
 				if ((angles != null) && (angles[0] < angleLimit)) {
 					addToHeap(angles, nt1, nti);
-					if (testing) System.out.println(nt1 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
+					if (testingPrint) System.out.println(nt1 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
 			}
 		}	
 		return newTets;
 	}
 	
+	/** Returns TRUE id the tetrahedron is Delaunay (circumscribing sphere contains no point) */
 	public boolean isDelaunay() {
 		boolean cont = true;
 		for (Tet t : tets) {
@@ -999,7 +1184,7 @@ public class KineticDelaunayTessellation {
 		}
 		return cont;
 	}
-
+	
 	public void showPair(Tet t, Tet nt, Tet tt) {
 		commonTriangle = t.commonFace(nt);
 		commonTriangleShape = commonTriangle.toScene(scene, Color.blue);
@@ -1009,7 +1194,7 @@ public class KineticDelaunayTessellation {
 			commonTriangle12 = nt.commonFace(tt);
 			commonTriangleShape12 =commonTriangle12.toScene(scene, Color.green);
 		}
-		apexSegment = new LineSegment(t.corners[t.apex(nt)], nt.corners[nt.apex(t)]);
+		apexSegment = new LineSegment(t.getCorner(t.apex(nt)), nt.getCorner(nt.apex(t)));
 		apexLSS = new LSS(apexSegment, 0.02);
 		scene.addShape(apexLSS, Color.magenta);
 		scene.repaint();
@@ -1041,47 +1226,43 @@ public class KineticDelaunayTessellation {
 			heapItem = (HeapItem) heap.extract();
 			t = heapItem.getT();   
 			nt = heapItem.getNT(); 
-			if (testing) {
+			if (testingPrint) {
 				System.out.print(t.toString());  if (!t.isAlive())  System.out.print(" ");
 				System.out.print(nt.toString()); if (!nt.isAlive()) System.out.print(" ");
 			}
 			angles = heapItem.getAngles();
 			rotAngle = angles[0];
 			if (t.isAlive() && nt.isAlive() && (rotAngle < Constants.TAU)) {
-				if (testing) {
-					animate(scene, rotAngle-angleTotal);
-//					isDelaunay();
-//					animate(scene, (rotAngle-angleTotal)/2.0);	
-				}
+				animate(scene, rotAngle-angleTotal);
+//				isDelaunay();
+//				animate(scene, (rotAngle-angleTotal)/2.0);	
 				angleTotal = rotAngle;
 				
 				if (!t.isConvex(nt)) {
 					tt = KineticToolbox.getThirdTet(t, nt);
 					if (tt != null) {
-						if (testing) {
+						if (testingPrint) {
 							System.out.print(tt.toString()); 
 							if (!tt.isAlive())  System.out.print(" ");
 							System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngles()[0]));						
 							System.out.println();
 						}
 						newTets = flip32(t, nt, tt);
-						if (testing) System.out.println(++nrFlips + ". flip.");
+						if (testingPrint) System.out.println(++nrFlips + ". flip.");
 					}
 					else { System.out.println(" not convex but tt = null"); break; }
 				}
 				else {
-					if (testing) {
+					if (testingPrint) {
 						System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngles()[0]));
 						System.out.println();
 					}
-					if (testing) {
+					if (testingScreen) {
 						t.fromSceneFaces(scene);
 						nt.fromSceneFaces(scene);
 					}
 					newTets = flip23(t, nt);
-					if (testing) {
-					}
-					if (testing) System.out.println(++nrFlips + ". flip.");
+					if (testingPrint) System.out.println(++nrFlips + ". flip.");
 				}
 			}
 			else System.out.println();
@@ -1103,98 +1284,153 @@ public class KineticDelaunayTessellation {
 		for (int i : rotIndx) vertices.get(i).setType(Vertex.VertexType.R);
 	}
 
+	/** returns the scene of this kDT */
+	public J3DScene getScene() { return scene; }
 	
+	/** returns the list of tetrahedra in this kinetic Dalaunay tessellation */
 	public List<Tet> getTetrahedra(){ return tets; }
 	
+	/** Displays Delaunay tesselation */
 	public void toScene(J3DScene scene) { toScene(scene, Constants.bigDouble); }
 	
+	// Displays the backbone of the protein
+	public void toSceneBackbone(J3DScene scene, double width, Color clr) {
+		int sz = vertices.size();
+		for (int i = 4; i < sz-2; i++)
+			new LineSegment(vertices.get(i), vertices.get(i+1)).toScene(scene, width, clr);
+	}
+	
+	// Displays triangles with exactly one tetrahedron in the alpha complex 
+	public void toSceneSurface(J3DScene scene) {
+		Tet nTet;
+		for (Tet tet : tets) {
+			tet.getCircumSphere();
+			if (tet.circumRadius() <= getAlpha()) {
+				for (int i = 0; i < 4; i++) {
+					nTet = tet.neighbors[i];
+					nTet.getCircumSphere();
+					if (nTet.circumRadius() > getAlpha()) tet.toSceneFace(scene, i, Color.red);
+				}	
+			}
+		}
+	}
+	
+	/** Displays alpha complex for given alpha */
 	public void toScene(J3DScene scene, double alpha) {
 		scene.removeAllShapes();
+		Color blue_tr = new Color(0,0,255,50);
+		Color green_tr = Color.green;
+//		Color green_tr = new Color(0,128,0,50);
+		Color red_tr = new Color(255,0,0,50);
 		Vector tr = new Vector (0.02, 0.02, 0.02);
+		int nrTetrahedra = 0;
 		for (Tet tet : tets) { 
-			tet.setCircumSphere();
-			if (tet.circumRadius() <= alpha) tet.toSceneEdges(scene, Color.black, 0.001, 0.0001); 
-			}
+			nrTetrahedra++;
+			System.out.println(nrTetrahedra);
+			tet.getCircumSphere();
+			if (tet.circumRadius() <= alpha) tet.toSceneFaces(scene, Color.red);
+			else {
+/*				Circle c;
+				c = new Circle(tet.corners[0], tet.corners[1], tet.corners[2]);
+				if ((c.getRadius() <= alpha) && (tet.neighbors[3].getCircumSphereRadius() > alpha)) tet.toSceneFace(scene, 3, green_tr);
+				c = new Circle(tet.corners[0], tet.corners[1], tet.corners[3]);
+				if ((c.getRadius() <= alpha) && (tet.neighbors[2].getCircumSphereRadius() > alpha)) tet.toSceneFace(scene, 2, green_tr);
+				c = new Circle(tet.corners[0], tet.corners[2], tet.corners[3]);
+				if ((c.getRadius() <= alpha) && (tet.neighbors[1].getCircumSphereRadius() > alpha)) tet.toSceneFace(scene, 1, green_tr);
+				c = new Circle(tet.corners[1], tet.corners[2], tet.corners[3]);
+				if ((c.getRadius() <= alpha) && (tet.neighbors[3].getCircumSphereRadius() > alpha)) tet.toSceneFace(scene, 0, green_tr);
+				double alpha2 = 2*alpha;
+				if (tet.corners[0].distance(tet.corners[1]) <= alpha2) new LineSegment(tet.corners[0], tet.corners[1]).toScene(scene, 0.003, Color.black, 1);
+				if (tet.corners[0].distance(tet.corners[2]) <= alpha2) new LineSegment(tet.corners[0], tet.corners[2]).toScene(scene, 0.003, Color.black, 1);
+				if (tet.corners[0].distance(tet.corners[3]) <= alpha2) new LineSegment(tet.corners[0], tet.corners[3]).toScene(scene, 0.003, Color.black, 1);
+				if (tet.corners[1].distance(tet.corners[2]) <= alpha2) new LineSegment(tet.corners[1], tet.corners[2]).toScene(scene, 0.003, Color.black, 1);
+				if (tet.corners[1].distance(tet.corners[3]) <= alpha2) new LineSegment(tet.corners[1], tet.corners[3]).toScene(scene, 0.003, Color.black, 1);
+				if (tet.corners[2].distance(tet.corners[3]) <= alpha2) new LineSegment(tet.corners[2], tet.corners[3]).toScene(scene, 0.003, Color.black, 1);
+*/			}
+		}
 		for (Vertex v : vertices) {
 			if (v.getType() == VertexType.S) v.toScene(scene, 0.01, Color.red);
 			else {
-				v.toScene(scene, 0.01, Color.blue);
+				v.toScene(scene, 0.01, Color.blue, 1);
 				Circle c = new Circle(new Point(0, 0, v.z()), v, getRotationAxis());
-				c.toScene(scene, 0.002, 32);
 			}
 			if (this.vertices.size() < 20) scene.addText(String.valueOf(v.getId()), v);
 		}
 	}
 	
 	public static void main(String[] args){
-//		List<Point> points = new java.util.LinkedList<Point>();
-//		points.add(new Point(0,0,0));
-//		points.add(new Point(1,0,0));
-//		points.add(new Point(0,1,0));
-//		points.add(new Point(0,0,1));
-//		points.add(new Point(1.1,1.1,1.1));
-
-//		Vertex v0 = new Vertex(new Point(0,0,0));
-//		Vertex v1 = new Vertex(new Point(1,0,0));
-//		Vertex v2 = new Vertex(new Point(0,1,0));
-//		Vertex v3 = new Vertex(new Point(0,0,1));
-//		Tet t = new Tet(new Vertex[]{v0,v1,v2,v3});
-//		System.out.println(t.inSphere(new Point(0,0,0)));
-//		System.out.println();
-//		System.out.println(t.inSphere(new Point(-0.1,0,0)));
-//		System.out.println();
-//		System.out.println(t.inSphere(new Point(0.1,0,0)));
+		System.out.println(java.lang.Runtime.getRuntime().maxMemory());
+		KineticDelaunayTessellation kDT = new KineticDelaunayTessellation(1000000, ProblemInstanceType.random);
 		
-		Randomization.seed(3);
-		List<Point> points = PointList.generatePointsInCube(10, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
-		KineticDelaunayTessellation kDT = new KineticDelaunayTessellation(points);
-		kDT.setRotationPoint(new Point(0.5,0.5,0.5));
-		kDT.setRotationAxis(new Vector(0, 0, 1));
-		kDT.setDirection(KineticDelaunayTessellation.Direction.CCW);
-		kDT.setRotVertices();
-		kDT.toScene(kDT.scene);
-//		kDT.delete(kDT.vertices.get(5), kDT.scene);
-//		kDT.scene.removeAllShapes();
-//		kDT.toScene(kDT.scene);
-
-		for(Tet t: kDT.getTetrahedra()) System.out.println(t);
-		
-		
-		kDT.alpha = 0.000001;
-		
-		kDT.toScene(kDT.scene);
-		for (Vertex v : kDT.vertices) {
-			if (v.getType() == VertexType.S) v.toScene(kDT.scene, 0.01, Color.red);
-			else {
-				v.toScene(kDT.scene, 0.01, Color.blue);
-				Circle c = new Circle(new Point(0, 0, v.z()), v, kDT.getRotationAxis());
-				c.toScene(kDT.scene, 0.005, 32);
+/*		if (kDT.getInstanceType() == ProblemInstanceType.pdbNCC) {
+			if (kDT.testingScreen) {
+				kDT.toSceneBackbone(kDT.scene, 0.1, Color.blue);
+//				kDT.toSceneSurface(kDT.scene);
 			}
 		}
-	
+		if (kDT.getInstanceType() == ProblemInstanceType.random) {
+			if (kDT.testingScreen) {
+				for (Vertex v : kDT.vertices) {
+					if (v.getType() == VertexType.S) v.toScene(kDT.scene, 0.01, Color.red);
+					else {
+						v.toScene(kDT.scene, 0.01, Color.blue);
+//						Circle c = new Circle(new Point(0, 0, v.z()), v, kDT.getRotationAxis());
+					}
+				}
+			}
+		}	
+		HashSet<Tet> alphaTets = new HashSet<Tet>();
+		HashSet<Tet> processedTets = new HashSet<Tet>();
+		HashSet<Vertex> processedVers = new HashSet<Vertex>();
+		long start = System.nanoTime();
+		Vertex a = kDT.getVertex(40);
+		a.getTet().getVertexSharingTetrahedra(a, kDT.alpha, alphaTets, processedTets, processedVers);
+		long totalTime = System.nanoTime() - start;
+		a.toScene(kDT.scene, 0.05, Color.yellow, 32);
+		for (Tet nTet : processedTets) {
+			if (nTet.isAlpha(kDT.alpha)) {
+				nTet.toSceneEdges(kDT.scene, Color.black, 0.003);
+				nTet.toSceneFaces(kDT.scene, Color.red); //new Color(255,0,0,50));
+			}
+		}
+		
+		start = System.nanoTime();
+		HashSet<Tet> processed = (HashSet<Tet>)processedTets.clone();
+		HashSet<Vertex> processedVersB = new HashSet<Vertex>();
+		for (Vertex b : processedVers) {
+			b.getTet().getVertexSharingTetrahedra(b, kDT.alpha, alphaTets, processedTets, processedVersB);
+		}
+		totalTime += System.nanoTime() - start;
+		System.out.printf(" time in miliseconds %.2f\n", totalTime/1000000.0);
+		for (Tet nTet : processedTets) {
+			if (!processed.contains(nTet) && alphaTets.contains(nTet)) {
+				nTet.toSceneEdges(kDT.scene, Color.black, 0.003);
+				nTet.toSceneFaces(kDT.scene, Color.green); //new Color(255,0,0,50));
+			}
+		}
+		
+		
+*/		
+		long start = System.nanoTime();
+
 		kDT.rotate();
-/*		Vector u = new Vector(1, 0, 0);	
-		Vector v = new Vector(0, 1, 0);
-		Vector c = u.cross(v).normalize();
-		u.toScene(scene, Color.yellow, 0.05);
-		v.toScene(scene, Color.pink, 0.05);
-		c.toScene(scene, Color.green, 0.05);
-		double alpha = Vector.getAngle(u, v);
-		System.out.println("alpha = " + Functions.toDeg(alpha));
-		for (Vertex p : kDT.vertices) { 
-			Vector pOld = new Vector(p.x(), p.y(), p.z());
-			p.rotation(c, alpha);
-			Vector pNew = new Vector(p.x(), p.y(), p.z());
-			System.out.println(Functions.toDeg(Vector.getAngle(pOld, pNew)));
-			pOld.toScene(scene, Color.yellow, 0.02);
-			pNew.toScene(scene, Color.pink, 0.02);
-		}
-		System.out.println(kDT.getTetrahedra().size());
-		for(Tet t: kDT.getTetrahedra()){
-			System.out.println(t);
-			t.toScene(scene, Color.red);
-		}
-*/
+		System.out.printf(" time in miliseconds %.2f\n", (System.nanoTime() - start)/1000000.0);
+	}
+
+	public ProblemInstanceType getInstanceType() {
+		return instanceType;
+	}
+
+	public void setInstanceType(ProblemInstanceType instanceType) {
+		this.instanceType = instanceType;
+	}
+
+	public double getAlpha() {
+		return alpha;
+	}
+
+	public void setAlpha(double alpha) {
+		this.alpha = alpha;
 	}
 	
 }
