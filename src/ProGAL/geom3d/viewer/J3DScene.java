@@ -155,7 +155,7 @@ public class J3DScene {
 
 	/** Add a volume object with a specified color */
 	public void addShape(Shape v, Color c){	
-		addShape(v,c,32);
+		addShape(v,c,3);
 	}
 
 	/** Add a volume object with a specified color and detail-level */
@@ -171,14 +171,18 @@ public class J3DScene {
 	}
 
 	/** Add a text-object at the specified position. */
-	public void addText(String t, Point pos){ 
-		addShape(new TextShape(t,pos), Color.GRAY); 
+	public TextShape addText(String t, Point pos){ 
+		TextShape text = new TextShape(t,pos);
+		addShape(text, Color.GRAY); 
+		return text;
 	}
 	public void addText(String t, Point pos, double height){ 
 		addShape(new TextShape(t,pos,height), Color.GRAY); 
 	}
-	public void addText(String t, Point pos, double height, Color c){
-		addShape(new TextShape(t,pos,height), c);
+	public TextShape addText(String t, Point pos, double height, Color c){
+		TextShape text = new TextShape(t,pos,height);
+		addShape(text, c);
+		return text;
 	}
 
 

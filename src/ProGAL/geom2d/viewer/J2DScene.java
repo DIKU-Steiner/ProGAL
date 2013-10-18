@@ -283,7 +283,8 @@ public class J2DScene {
 			this.borderWidth = bw;
 			this.fill = f;
 		}
-
+		
+		
 		java.awt.Point transformPoint(Point p){
 			int w = canvasPanel.getWidth();
 			int h = canvasPanel.getHeight();

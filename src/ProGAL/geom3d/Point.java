@@ -165,6 +165,8 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 		this.coords[1] += dy;
 		this.coords[2] += dz;
 	}
+	/** Translates this point by p. */
+	public void translateThis(Point p) { translateThis(-p.x(), -p.y(), -p.z()); }
 	
 	/** Scale this point by a factor s */
 	public void scaleThis(double s){
@@ -178,8 +180,12 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 
 	public Point addThis(Point p) { translateThis(p.x(), p.y(), p.z()); return this; }
 	
-	/** Returns p added to this (without changing this object). */
+	/** Returns a point translated from this one by p (without changing this object). */
 	public Point add(Vector p) { return new Point(coords[0]+p.x(), coords[1]+p.y(), coords[2]+p.z()); }
+
+	/** Returns a point translated from this one by (x,y,z) */
+	public Point add(double x, double y, double z) { return new Point(coords[0]+x, coords[1]+y, coords[2]+z); }
+
 	
 	/** Returns p subtracted from this (changing this object). */
 	public Point subtractThis(Vector p) { coords[0] -= p.x(); coords[1] -= p.y(); coords[2] -= p.z(); return this; }
@@ -187,6 +193,7 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 
 	/** Returns p subtracted from this (without changing this object). */
 	public Point subtract(Vector p) {return new Point(coords[0]-p.x(),coords[1]-p.y(),coords[2]-p.z());	}
+	public Point subtract(Point p) {return new Point(coords[0]-p.x(),coords[1]-p.y(),coords[2]-p.z());	}
 	
 	/** Reflects this point through origo. */
 	public Point reflectThroughOrigoThis() { coords[0]*=-1; coords[1]*=-1; coords[2]*=-1; return this; }
@@ -381,6 +388,13 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	/** Return a new object that equals this object. */
 	public Point clone(){ return new Point(coords[0], coords[1], coords[2]); }
 	
+	/** Swaps points a and b */
+	public static void swap(Point a, Point b) {
+		Point temp = a;
+		a = b;
+		b = temp;
+	}
+	
 	/** Returns the vector from origo to this point. Converts this point to a vector. */
 	public Vector toVector() { return new Vector(coords[0], coords[1], coords[2]); }
 
@@ -392,7 +406,18 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 		return String.format("Point[%."+dec+"f,%."+dec+"f,%."+dec+"f]", coords[0], coords[1], coords[2]); 
 	}	
 	
-	public void toScene(J3DScene scene, double r, Color clr) { scene.addShape(new Sphere(this, r), clr);}
+	public Sphere toScene(J3DScene scene, double r, Color clr) { 
+		Sphere sph = new Sphere(this, r);
+		scene.addShape(sph, clr);
+		return sph;
+	}
+
+	public Sphere toScene(J3DScene scene, double r, Color clr, int divisions) { 
+		Sphere sph = new Sphere(this, r);
+		scene.addShape(sph, clr, divisions);
+		return sph;
+	}
+
 //	public void draw(J3DScene scene, double r) { draw(scene, r, Color.BLUE); }
 //	public void draw(J3DScene scene) { draw(scene,0.1f, Color.BLUE); }
 
@@ -404,17 +429,26 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 
 	public static void main(String[] args) {
-		Point a = new Point(0, 0, 0);
+		J3DScene scene  = J3DScene.createJ3DSceneInFrame();
+		final Color transp1 = new Color(255,0,0,50);
+
+		Point a = new Point(-1, 0, 0);
 		Point b = new Point(1, 0, 0);
 		Point c = new Point(0, 1, 0);
 		Point d = new Point(0, 0, -1);
+		a.toScene(scene, 0.03, Color.blue);
+		b.toScene(scene, 0.03, Color.blue);
+		c.toScene(scene, 0.03, Color.blue);
+		d.toScene(scene, 0.03, Color.magenta);
 		Sphere sphere = new Sphere(a,b,d,c);
-		Point e = new Point(0.5, 0.5, 0.5);
+		sphere.toScene(scene, transp1);
+		Point e = new Point(0,-1,0);
+		e.toScene(scene, 0.03, Color.red);
 		if (sphere.contains(e)) System.out.println("e is inside");
 		double w = Point.inSphere(a, b, c, d, e);
 		System.out.println(w);
 		double o = Point.orientation(a, c, b, d);
-		System.out.println(o);
+		System.out.println("orientation of plane through a,b c w.r.t. point d " + o);
 	}
 }
 

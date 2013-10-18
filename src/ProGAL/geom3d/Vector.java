@@ -29,6 +29,8 @@ public class Vector extends ProGAL.geomNd.Vector{
 	/** Constructs a vector between two points p1 and p2 - added by pawel 12-11-2011 */
 	public Vector(Point p1, Point p2) { super(p1, p2); }
 
+	/** Construct a vector that is a clone of v. */
+	public Vector(Vector v) {	this(v.get(0), v.get(1), v.get(2)); }	
 	
 	/** Construct a vector that is a clone of v. */
 	public Vector(ProGAL.geomNd.Vector v) {	this(v.get(0), v.get(1), v.get(2)); }	
@@ -61,6 +63,10 @@ public class Vector extends ProGAL.geomNd.Vector{
 	/** Get the dot-product of this vector and v. */
 	public double dot(Vector v){ 
 		return coords[0]*v.coords[0]+coords[1]*v.coords[1]+coords[2]*v.coords[2]; 
+	}
+	/** Get the dot-product of this vector and position vector to point p. */
+	public double dot(Point p){ 
+		return coords[0]*p.x()+coords[1]*p.y()+coords[2]*p.z(); 
 	}
 
 	/** Get the angle between this vector and v. */
@@ -190,10 +196,19 @@ public class Vector extends ProGAL.geomNd.Vector{
 	/** Writes this vector to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 
-	
-	public void toScene(J3DScene scene, Color clr, double width) {
-		scene.addShape(new LSS(new Point(0,0,0), toPoint(), width), clr, 3);
+	/** Draws a vector starting at the origin */
+	public LSS toScene(J3DScene scene, Color clr, double width) {
+		LSS lss = new LSS(new Point(0,0,0), toPoint(), width);
+		scene.addShape(lss, clr, 3);
+		return lss;
 	}
+	/** Draws a vector starting at point p */
+	public LSS toScene(J3DScene scene, Point p, Color clr, double width) {
+		LSS lss = new LSS(p, p.add(this), width);
+		scene.addShape(lss, clr, 3);
+		return lss;
+	}
+
 	
 	/** Create a clone of this vector. */
 	public Vector clone(){ return new Vector(coords[0], coords[1], coords[2]); }
@@ -211,17 +226,21 @@ public class Vector extends ProGAL.geomNd.Vector{
 		return Math.atan2(y,x);
 	}
 	
-	/** Get a vector (one of many possible) orthonormal to vector v. */
+	/** Get a vector (one of many possible) orthonormal to vector v (v is assumed to be unit a vector). */
 	public Vector getOrthonormal() {
 		if (Math.abs(z()) > Constants.EPSILON) { 
-			Vector a = new Vector(1, 0, -x()/z());
-			return a.normalizeThis();
+			double ratio = x()/z();
+			double length = Math.sqrt(1 + ratio*ratio);
+			return new Vector(1/length, 0, -ratio/length);
 		}
-		else {
-			return new Vector(0, 0, 1);
-		}
-
+		else return new Vector(0, 0, 1);
 	}
+
+	/** Get a vector (one of many possible) orthogonal (i.e.,  having arbitrary length) to vector v. */
+	public Vector getOrthogonal() {
+		if (Math.abs(z()) > Constants.EPSILON) return new Vector(1, 0, -x()/z());
+		else return new Vector(0, 0, 1); }
+
 	
 	/*
 	 * added by pawel 12-11-2011
@@ -275,6 +294,12 @@ public class Vector extends ProGAL.geomNd.Vector{
 		public Vector normalizeThis(){ return multiply(1/length()); }
 		public Vector scaleToLengthThis(double length) { return multiply(length/length()); }
 		public Vector crossThis(Vector v){ return cross(v); }
+	}
+	public static void main(String[] args) {
+		Vector n = new Vector(0, 0, 1);
+		Vector u = new Vector(0.3, 0.4, 0.0).normalize(); 
+		Vector v = n.cross(u);
+		System.out.println(u.x() + " " + v.y());
 	}
 
 	

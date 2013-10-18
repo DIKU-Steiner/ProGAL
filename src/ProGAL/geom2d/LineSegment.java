@@ -52,7 +52,8 @@ public class LineSegment implements Shape{
 	public void toConsole() { System.out.println("[" + a.toString() + b.toString() + "]"); }
 	
 	public void toScene(J2DScene scene) { scene.addShape(this, Color.black); }
-
+	public void toScene(J2DScene scene, Color clr) { scene.addShape(this, clr); }
+	
 
 	
 	public double distance(Point p){

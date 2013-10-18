@@ -1,13 +1,20 @@
 package ProGAL.geom3d.kineticDelaunay;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
+import ProGAL.dataStructures.Queue;
 import ProGAL.geom2d.TriangulationVertex;
+import ProGAL.geom3d.Plane;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Shape;
 import ProGAL.geom3d.Triangle;
 import ProGAL.geom3d.Vector;
+import ProGAL.geom3d.kineticDelaunay.Hole.Face;
+import ProGAL.geom3d.kineticDelaunay.KineticDelaunayTessellation.ProblemInstanceType;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.LSS;
 import ProGAL.geom3d.volumes.Sphere;
@@ -16,7 +23,7 @@ import ProGAL.math.Constants;
 import ProGAL.math.Matrix;
 
 public class Tet {
-	Vertex[] corners = new Vertex[4];
+	private Vertex[] corners = new Vertex[4];
 	Tet[] neighbors = new Tet[4];
 	Sphere circumSphere = null;
 	Integer count = null;
@@ -24,6 +31,14 @@ public class Tet {
 	boolean cAlive = true;
 	Shape[] LSSs = new Shape[6];
 	Shape[] faces = new Shape[4];
+	Shape faceShape = null;
+	boolean onStack = false;   // used when creating holes
+	Face selectedFace = null;  // used when creating holes
+	boolean[] oppositeInside = new boolean[4];
+	boolean centerInside;
+	boolean flag = false;
+	Integer depth = null;
+	boolean inAlphaComplex = false;
 	
 	public Tet(Vertex[] corners){
 		this.corners = corners;
@@ -41,10 +56,7 @@ public class Tet {
 	}
 	 
 	public Tet(Tetrahedron tetra) {
-		for (int i = 0; i < 4; i++) {
-			Vertex p = new Vertex(tetra.getCorner(i));
-			corners[i] = p;
-		}
+		for (int i = 0; i < 4; i++) corners[i] = new Vertex(tetra.getCorner(i));
 		this.sortCorners();		
 		normalizePredicates();
 	}
@@ -59,10 +71,37 @@ public class Tet {
 		return new Tetrahedron(corners[0], corners[1], corners[2], corners[3]);
 	}
 	
-	boolean[] oppositeInside = new boolean[4];
-	boolean centerInside;
+	public Vertex getCorner(int i) { return corners[i]; }
+	
+	
+	public boolean getFlag() { return flag; }
+	
+	public void setFlag(boolean flag) { this.flag = flag; }
+	
+	/** Returns the pair of vertices of this tetrahedron other than a and b*/
+	public Vertex[] getCornerPair(Vertex a, Vertex b) {
+		Vertex[] pair = new Vertex[2];
+		int k;
+		for (k = 0; k < 4; k++) {	
+			pair[0] = corners[k];
+			if ((pair[0] != a) && (pair[0] != b)) break;
+		}
+		for (int l = k+1; l < 4; l++) {
+			pair[1] = corners[l];
+			if ((pair[1] != a) && (pair[1] != b)) break;
+		}
+		return pair;
+	}
+	
 
-	public Sphere getCircumSphere() { return circumSphere; }
+	/** Returns the sphere circumscribing this tetrahedron */
+	public Sphere getCircumSphere() { 
+		if (circumSphere == null) setCircumSphere();
+		return circumSphere;
+	}
+	
+	/** Returns the radius of the sphere circumscribing this tetrahedron */
+	public double getCircumSphereRadius() { return getCircumSphere().getRadius(); }
 	
 	public void setCircumSphere() {
 		Tetrahedron tetra = makeTetrahedron();
@@ -97,9 +136,14 @@ public class Tet {
 	public boolean isAlive() { return dAlive; }
 	public void setAlive(boolean dAlive) {this.dAlive = dAlive; }
 	
+	/** Returns TRUE if one of the corners is a big point - there are 4 big points with id's 0, 1, 2 , 3*/
+	public boolean isBig() {
+		return ((corners[0].getId() < 4) || (corners[1].getId() < 4) || (corners[2].getId() < 4) || (corners[3].getId() < 4));
+	}
+	
 	public boolean isFlat() { return Point.coplanar(corners[0], corners[1], corners[2], corners[3]); }
 	
-	/* returns true if this tetrahedron and its neighbor tet form a convex set. */
+	/** returns true if this tetrahedron and its neighbor tet form a convex set. */
 	public boolean isConvex(Tet tet) {
 		Triangle tr = commonFace(tet);
 		Point p = corners[apex(tet)];
@@ -107,12 +151,16 @@ public class Tet {
 		return tr.getIntersection(p, new Vector(p, q)) != null;
 	}
 	
+	/** returns TRUE if this terahedron is in the alpha complex */
+	public boolean isAlpha(double alpha) { return (getCircumSphereRadius() < alpha); }
+	
 	private void normalizePredicates(){
 		for(int i=0;i<4;i++){
 			oppositeInside[i] = orient(i, corners[i]);
 		}
 		centerInside = inSphere(Point.getMidpoint(corners[0], corners[1]));
 	}
+	
 	
 	public int getCount() { 
 		if (count != null) return count; 
@@ -122,7 +170,68 @@ public class Tet {
 			return count;
 		}
 	}
-
+	
+	/** Returns the vertex not in the facet-sharing tetrahedron tet */
+	public Vertex getOppVertex(Tet tet) {
+		for (int k = 0; k < 4; k++) {
+			if (!hasVertex(tet.corners[k])) return tet.corners[k];
+		}
+		return null;
+	}
+	
+	/** Returns face sharing tetrahedra */
+	public List<Tet> getFaceSharingTetrahedra() {
+		List<Tet> nList = new ArrayList<Tet>();
+		for (int k = 0; k < 4; k++) {
+			if (!neighbors[k].isBig())
+			nList.add(neighbors[k]);
+		}
+		return nList;
+	}
+	
+	/** Returns all tetrahedra sharing the edge of this tetrahedron between vertices a and b */
+	public void getEdgeSharingTetrahedra(Vertex a, Vertex b, HashSet<Tet> processedTets, HashSet<Vertex> processedVers) {
+		Vertex[] pair = getCornerPair(a, b);
+        getEdgeSharingTetrahedra(a, b, pair, processedTets, processedVers, this, this);
+	}
+	
+	private void getEdgeSharingTetrahedra(Vertex a, Vertex b, Vertex[] pair, HashSet<Tet> processedTets, HashSet<Vertex> processedVers, Tet prev, Tet first) {
+		if (!processedTets.contains(this) && !isBig()) processedTets.add(this);
+		if (!processedVers.contains(pair[0])) processedVers.add(pair[0]);
+		if (!processedVers.contains(pair[1])) processedVers.add(pair[1]);
+		Tet tet = neighbors[indexOf(pair[0])];
+		if ((tet != prev) && (tet != first)) tet.getEdgeSharingTetrahedra(a, b, tet.getCornerPair(a, b), processedTets, processedVers, this, first);
+		else {
+			tet = neighbors[indexOf(pair[1])];
+			if ((tet != prev) && (tet != first)) tet.getEdgeSharingTetrahedra(a, b, tet.getCornerPair(a, b), processedTets, processedVers, this, first);
+		}
+	}
+	
+	
+	/** Returns all tetrahedra sharing a vertex of this tetrahedron */
+/*	public void getVertexSharingTetrahedra(double alpha, HashSet<Tet> processedTets, HashSet<Vertex> processedVers) {
+		if (!processedTets.contains(this) && (getCircumSphereRadius() < alpha)) processedTets.add(this);
+		for (int k = 0; k < 4; k++) getVertexSharingTetrahedra(corners[k], alpha, processedTets, processedVers);
+	}
+*/
+	/** Returns all tetrahedra sharing a given vertex a of this tetrahedron */
+	public void getVertexSharingTetrahedra(Vertex a, double alpha, HashSet<Tet> alphaTets, HashSet<Tet> processedTets, HashSet<Vertex>processedVers) {
+		if (!processedTets.contains(this)) {
+			processedTets.add(this);
+			if (!isBig() && (getCircumSphereRadius() < alpha)) alphaTets.add(this);		
+			Vertex b;
+			int indxA = indexOf(a);
+			for (int k = 0; k < 4; k++) {
+				if (k != indxA) {
+					b = corners[k];
+				    if (!processedVers.contains(b) && !b.isBig() && (getCircumSphereRadius() < alpha) && (indxA < b.getId())) processedVers.add(b);
+				    if (neighbors[k] != null)
+				    	neighbors[k].getVertexSharingTetrahedra(a, alpha, alphaTets, processedTets, processedVers);
+				}
+			}
+		}
+	}
+	
 	
 	private boolean orient(int face, Point p){
 		Matrix m = new Matrix(4,4);
@@ -191,13 +300,21 @@ public class Tet {
 		return new Triangle(common);
 	}
 	
-	public int indexOf_slow(Vertex v){
-		for(int i=0;i<4;i++) if(corners[i]==v) return i;
-		return -1;
+	public int indexOf(Vertex v) {
+		for(int i = 0; i < 3; i++) if(corners[i]==v) return i;
+		return 3;
 	}
 
-	public int indexOf(Vertex v){
+	/* Returns index of vertex v */
+	public int indexOf_slow(Vertex v){
 		return Arrays.binarySearch(corners, v);
+	}
+	
+	/* Returns index of fourth vertex */
+	public int indexOf(Vertex a, Vertex b, Vertex c) {
+		for (int i = 0; i < 4; i++)
+			if ((corners[i] != a) && (corners[i] != b) && (corners[i] != c)) return i;
+		return -1;
 	}
 	
 
@@ -208,8 +325,9 @@ public class Tet {
 		neighbors[i] = neighbors[j];
 		corners[j] = tmpV;
 		neighbors[j] = tmpT;
-		
 	}
+	
+	
 	/** 
 	 * Sorts the corners while maintaining that corners[i] is not on the shared 
 	 * face between <code>this</code> and neighbors[i]. Uses 5 comparisons which is optimal. 
@@ -224,15 +342,11 @@ public class Tet {
 	
 	
 	public String toString(){
-//		StringBuilder sb = new StringBuilder();
-//		sb.append("[");
-//		for(Vertex v: corners){
-//			sb.append(v.index);
-//			sb.append(',');
-//		}
-//		sb.append("]");
-//		return sb.toString();
 		return Arrays.toString(corners);
+	}
+	
+	public void toConsole() {
+		System.out.println(toString());
 	}
 	
 	public void toConsoleNeighbors() {
@@ -247,7 +361,9 @@ public class Tet {
 	}
 	
 	public void fromSceneEdges(J3DScene scene) {
-		for (int i = 0; i < 6; i++) scene.removeShape(LSSs[i]);
+		for (int i = 0; i < 6; i++) {
+			scene.removeShape(LSSs[i]);
+		}
 		scene.repaint();
 	}
 	
@@ -281,23 +397,81 @@ public class Tet {
 		if (faces[1] == null) faces[1] = new Triangle(corners[0], corners[2], corners[3]);
 		if (faces[2] == null) faces[2] = new Triangle(corners[0], corners[1], corners[3]);
 		if (faces[3] == null) faces[3] = new Triangle(corners[0], corners[1], corners[2]);
-		for (int i = 0; i < 4; i++) scene.addShape(faces[i], clr);
-		scene.repaint();
+		for (int i = 0; i < 4; i++) scene.addShape(faces[i], clr, 1);
 	}
 	
-	public void toSceneFace(J3DScene scene, int i, Color clr) {
+	public Shape toSceneFace(J3DScene scene, int i, Color clr) {
 		if (faces[i] == null) faces[i] = new Triangle(corners[(i+1)%4], corners[(i+2)%4], corners[(i+3)%4]);
-		scene.addShape(faces[i], clr);
+		scene.addShape(faces[i], clr, 1);
+		return faces[i];
 	}
 	
 	public void fromSceneFaces(J3DScene scene) {
-		for (int i = 0; i < 4; i++) scene.removeShape(faces[i]);
+		for (int i = 0; i < 4; i++) {
+			scene.removeShape(faces[i]);
+		}
 		scene.repaint();
 	}
 	
-	public void fromSceneFaces(J3DScene scene, int i) {
+	public void fromSceneFace(J3DScene scene, int i) {
 		scene.removeShape(faces[i]);
 		scene.repaint();
+	}
+
+	public ArrayList<Tet> breadthFirstTetrahedra(int maxDepth) {
+		Queue queue = new Queue();
+		ArrayList<Tet> tets = new ArrayList<Tet>();
+		depth = 0;
+		queue.push(this);
+		
+		while (!queue.isEmpty()) {
+			Tet tet = (Tet)queue.pop();
+			tets.add(tet);
+			for (int k = 0; k < 4; k++) {
+				Tet nTet = tet.neighbors[k];
+				if (nTet.depth == null) {
+					nTet.depth = tet.depth + 1;
+					if (nTet.depth < maxDepth) queue.push(nTet);
+				}
+			}
+		}
+		for (Tet tet : tets) tet.depth = null;
+		return tets;
+	}
+	
+	public ArrayList<Vertex> breadthFirstVertices(int maxDepth) {
+		Queue queue = new Queue();
+		Queue queue2 = new Queue();
+		ArrayList<Tet> tets = new ArrayList<Tet>();
+		ArrayList<Vertex> vertices = new ArrayList<Vertex>();
+		Tet tet, nTet;
+		Vertex v;
+		depth = 0;
+		queue.push(this);
+		
+		while (!queue.isEmpty()) {
+			tet = (Tet)queue.pop();
+			tets.add(tet);
+			for (int k = 0; k < 4; k++) {
+				v = tet.corners[k];
+				if (!v.flag) {
+					v.flag = true;
+					vertices.add(v);
+				}
+				nTet = tet.neighbors[k];
+				if ((!nTet.isBig()) && (nTet.depth == null)) {
+					nTet.depth = tet.depth + 1;
+					if (nTet.depth < maxDepth) queue.push(nTet);
+				}
+			}
+		}
+		for (Tet t : tets) {
+			for (int k = 0; k < 4; k++) {
+				v = t.corners[k];
+			}
+		}
+		for (Tet t : tets) t.depth = null;
+		return vertices;
 	}
 
 }

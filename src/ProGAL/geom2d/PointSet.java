@@ -11,14 +11,26 @@ public class PointSet extends Set<Point>{
 	/** creates a point set consisting of n uniformly distributed points in the unit square */
 	public PointSet(int n) {
 		Random random = new Random(3);
-		for (int i = 0; i < n; i++) insert(new Point(new Double(random.nextDouble()), new Double(random.nextDouble())));
+		for (int i = 0; i < n; i++) insert(new Point(new Double(random.nextDouble())-0.5, new Double(random.nextDouble())-0.5));
 	}
 
+	/** creates a point set of 4 corners of a unit square (0,0), (1,0), (0,1), (1,1) */
+	public static PointSet createUnitSquareCorners() {
+		PointSet points = new PointSet();
+		points.insert(new Point(0, 0));
+		points.insert(new Point(1, 0));
+		points.insert(new Point(0, 1));
+		points.insert(new Point(1, 1));
+		return points;
+	}
+	
+	/** returns the centroid of the pointset */
 	public Point getCentroid() {
 		double x = 0.0; 
 		double y = 0.0;
+		int sz = getSize();
 		for (Point p : this) { x += p.x(); y += p.y(); }
-		return new Point(x/getSize(), y/getSize());
+		return new Point(x/sz, y/sz);
 	}
 
 	

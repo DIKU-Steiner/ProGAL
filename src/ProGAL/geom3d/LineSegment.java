@@ -117,7 +117,16 @@ public class LineSegment implements Simplex{
 	/** Writes this segment to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec){ System.out.println(toString(dec)); }
 
-	public void toScene(J3DScene scene, double r, Color clr) { scene.addShape(new Cylinder(this, r), clr);}
+	public Cylinder toScene(J3DScene scene, double r, Color clr) { 
+		Cylinder cyl = new Cylinder(this, r);
+		scene.addShape(cyl, clr);
+		return cyl;
+	}
+	public Cylinder toScene(J3DScene scene, double r, Color clr, int detail) { 
+		Cylinder cyl = new Cylinder(this, r);
+		scene.addShape(cyl, clr, detail);
+		return cyl;
+	}
 
 
 }

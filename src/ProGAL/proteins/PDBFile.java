@@ -253,6 +253,7 @@ public class PDBFile extends File{
 	public List<AtomRecord> getAtomRecords(int modelNum, int chainNum){
 		List<AtomRecord> ret = new ArrayList<AtomRecord>();
 		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
+			if(!ar.isOnBackbone()) continue;       // to be removed if all atoms are to be included
 			if(!includeHydrogens && ar.isHydrogen()) continue;
 			if(!includeHetAtms && ar instanceof HetatmRecord) continue;
 			
@@ -781,7 +782,7 @@ public class PDBFile extends File{
 	}
 
 	public static void main(String[] args) {
-		PDBFile f = new PDBFile("/Users/pawel/Downloads/3ZVO.pdb");
+		PDBFile f = new PDBFile("/Users/pawel/Downloads/1X0O.pdb");
 		List<Point> points = f.getAtomCoords();
 //		points.addAll(f.getAtomCoords(0, 1));
 		

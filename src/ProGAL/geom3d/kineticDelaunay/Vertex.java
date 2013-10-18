@@ -1,10 +1,10 @@
 package ProGAL.geom3d.kineticDelaunay;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Stack;
 
-import ProGAL.geom2d.TriangulationFace;
 import ProGAL.geom3d.Point;
 
 public class Vertex extends Point implements Comparable<Vertex>{
@@ -16,8 +16,14 @@ public class Vertex extends Point implements Comparable<Vertex>{
 	private double sinAngle;
 	private double polarRadius;
 	private double squaredPolarRadius;
-
-
+	private Tet tet;
+	private Integer depth = null;
+	public boolean flag = false;
+	
+	public HashSet<Vertex> adjacentVertices = null; 
+	private ArrayList<Vertex> adjacentVerticesFast = new ArrayList<Vertex>();
+	private ArrayList<Tet> processedTetsFast = new ArrayList<Tet>(); 
+	
 	private int index;
 	private static int indexCounter = 0;
 	
@@ -41,35 +47,59 @@ public class Vertex extends Point implements Comparable<Vertex>{
     public void setCosAngle(double cosAngle)         { this.cosAngle = cosAngle; }
     public double getSinAngle()                      { return sinAngle; }
     public void setSinAngle(double sinAngle)         { this.sinAngle = sinAngle; }
-
+    public Integer getDepth() { return depth; } 
+    public void setDepth(Integer depth) { this.depth = depth; }
+  /*  public HashSet<Vertex> getAdjacentVertices(double alpha2) {
+    	if (adjacentVertices == null) computeAdjacentVertices(alpha2); 
+    	return adjacentVertices;
+    }
+  */  public ArrayList<Vertex> getAdjacentVerticesFast() { return adjacentVerticesFast; }
     
+    /** Returns a tetrahedron incident with this vertex */
+    public Tet getTet() { return tet; }
     
-    public List<Tet> getTets() {
-    	Tet tet = getFirstTetrahedron();
-    	return getTets(tet);
+    public void setTet(Tet tet) { this.tet = tet; }
+    
+    /** Returns a tetrahedron incident with this vertex */
+    public Tet getTetrahedron(KineticDelaunayTessellation kDT) {
+		for (Tet tet : kDT.getTetrahedra()) if (tet.hasVertex(this)) return tet;
+		return null;
+	}
+    
+ 
+    public void computeAdjacentVerticesFast(double alpha2) {
+    	processedTetsFast.clear();
+    	computeAdjacentVerticesFast(tet, alpha2);
+    	for (Tet tet : processedTetsFast) tet.setFlag(false);
+    	for (Vertex v : adjacentVerticesFast) v.setDepth(null);
     }
     
-    /* returns list of tetrahedra having this vertex as a corner given one tetrahedron with this vertex */
-    public List<Tet> getTets(Tet tet) {
-    	List<Tet> incidentTetrahedra = new ArrayList<Tet>();
+    public void computeAdjacentVerticesFast(Tet tet, double alpha2) {
+       	Vertex b;
+    	Tet nTet, nnTet;
     	Stack<Tet> stack = new Stack<Tet>();
-    	incidentTetrahedra.add(tet);
-    	stack.push(tet);
-    	Tet cTet, nTet;
+    	stack.push(tet); tet.setFlag(true);
     	while (!stack.isEmpty()) {
-    		cTet = stack.pop();
-    		for (int i = 0; i < 4; i++) {
-    			if (cTet.corners[i] != this) {
-    				nTet = cTet.neighbors[i];
-    				if (!incidentTetrahedra.contains(nTet)) {
-    					incidentTetrahedra.add(nTet);
-    					stack.push(nTet);
+    		nTet = stack.pop();
+    		processedTetsFast.add(nTet);
+    		for (int k = 0; k < 4; k++) {
+    			b = nTet.getCorner(k);
+    			if (b != this) {
+    				if (b.getDepth() == null) {
+    					if (distanceSquared(b) < alpha2) {
+    						adjacentVerticesFast.add(b);
+    						b.setDepth(1);
+    					}
     				}
+    				nnTet = nTet.neighbors[k];
+    				if (!nnTet.getFlag()) { stack.push(nnTet); nnTet.setFlag(true); }
     			}
     		}
     	}
-    	return incidentTetrahedra;
     }
+
+      
+	public boolean isBig() { return index < 4; }
     
 	public int compareTo(Vertex arg0) {
 		return index-arg0.index;

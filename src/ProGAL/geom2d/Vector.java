@@ -3,10 +3,14 @@ package ProGAL.geom2d;
 public class Vector extends ProGAL.geomNd.Vector{
 //	private double x,y;
 		
+	/** Creates a vector with the given coordinates */
 	public Vector(double x, double y) { super(new double[]{x,y}); }
+	/** Creates a vector with the given coordinates given in an array */
 	public Vector(double[] coords) { super(coords); }
-		
+	/** Creates a vector from point p to point q */
 	public Vector(Point p, Point q) { this(q.x()-p.x(), q.y() - p.y()); }
+	/** Creates a position vector (from origo to p) */
+	public Vector(Point p) { this(p.x(), p.y()); }
 	
 	public double x() { return coords[0]; }
 	public double y() { return coords[1]; }

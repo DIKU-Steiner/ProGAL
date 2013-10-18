@@ -5,7 +5,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import ProGAL.geom2d.Triangulation.TriangulationAlgorithm;
+import ProGAL.geom2d.delaunay.Vertex;
 import ProGAL.geom2d.viewer.J2DScene;
+//import ProGAL.geom3d.Point;
+//import ProGAL.geom3d.kineticDelaunay.Vertex;
 import ProGAL.math.Constants;
 import ProGAL.math.Functions;
 import ProGAL.math.Trigonometry;
@@ -172,15 +175,26 @@ public class Circle implements Shape{
 	}
 	
 	
-	/* returns 0-2 intersections of this circle with another circle 
-	 * */
+	/** returns 0-2 intersections of this circle with another circle  */
 	public Point[] intersections(Circle c){
-		Point[] ret = null;
-		double centerDist =center.distance(c.center); 
-		if(centerDist<c.radius+radius){
-			ret = new Point[2];
-			
-			//From http://mathworld.wolfram.com/Circle-CircleIntersection.html
+		Point[] ret = new Point[2];
+		double centerDist = center.distance(c.center); 
+		if (centerDist < c.radius+radius) {
+			// nested circles, no intersection
+			if ((centerDist + radius < c.radius) || (centerDist + c.radius < radius)) return null;
+			// nested circles, touch point from inside: this cricle is inside c
+			if (centerDist + radius == c.radius) {
+				ret[0] = c.center.add(c.center.vectorTo(center).scaleToLength(c.radius));
+				ret[1] = null;
+				return ret;
+			}
+			// nested circles, touch point from inside: c is inside this circle
+			if (centerDist + c.radius == radius) {
+				ret[0] = center.add(center.vectorTo(c.center).scaleToLength(radius));
+				ret[1] = null;
+				return ret;
+			}
+			// two intersections
 			double dSq = c.center.distanceSquared(center); 
 			double d = Math.sqrt(dSq);
 			double RSq = radius*radius;
@@ -196,24 +210,28 @@ public class Circle implements Shape{
 			y.multiplyThis(a/2);
 			ret[0] = center.add(x).addThis(y);
 			ret[1] = center.add(x).subtractThis(y);
-			
-		}else if(centerDist==c.radius+radius){
-			ret = new Point[1];
-			Vector x = center.vectorTo(c.center).normalizeThis();
-			x.multiplyThis(radius);
-			ret[0] = center.add(x);
+			return ret;
 		}
-		return ret;
+		// touch point from outside
+		if (centerDist == c.radius+radius){
+			ret[0] = center.add(center.vectorTo(c.center).scaleToLength(radius));
+			ret[1] = null;
+			return ret;
+		}
+		// circles are disjoint
+		return null;
 	}
 	
-	/* returns 0-2 intersections of this circle with a line, source: http://mathworld.wolfram.com/Circle-LineIntersection.html*/
+	/** returns 0-2 intersections of this circle with a line, 
+	 * source: http://mathworld.wolfram.com/Circle-LineIntersection.html
+	 * some odd errors corrected 01-09-2013 - PW */
 	public Point[] intersections(Line l) {
+		double dx = l.n.y();
+		double dy = -l.n.x();
 		double x1 = l.p.x() - center.x();
 		double y1 = l.p.y() - center.y();
-		double x2 = l.p.x() + l.n.y() - center.x();
-		double y2 = l.p.y() - l.n.x() - center.y();
-		double dx = x2 - x1;
-		double dy = y2 - y1;
+		double x2 = x1 - dx;
+		double y2 = y1 - dy;
 		double dr2 = dx*dx + dy*dy;
 		double D = x1*y2 - x2*y1;
 		double delta = radius*radius*dr2 - D*D;
@@ -226,8 +244,8 @@ public class Circle implements Shape{
 		Point[] ret = new Point[2];
 		double deltaRoot = Math.sqrt(delta);
 		if (dy < 0.0) {
-			ret[0] = new Point(center.x() + (D*dy - dx*deltaRoot)/dr2, center.y() - (D*dx - dy*deltaRoot)/dr2);
-			ret[1] = new Point(center.x() + (D*dy + dx*deltaRoot)/dr2, center.y() - (D*dx + dy*deltaRoot)/dr2);
+			ret[0] = new Point(center.x() + (D*dy - dx*deltaRoot)/dr2, center.y() - (D*dx + dy*deltaRoot)/dr2);
+			ret[1] = new Point(center.x() + (D*dy + dx*deltaRoot)/dr2, center.y() - (D*dx - dy*deltaRoot)/dr2);
 		}
 		else {
 			ret[0] = new Point(center.x() + (D*dy + dx*deltaRoot)/dr2, center.y() - (D*dx - dy*deltaRoot)/dr2);
@@ -235,6 +253,7 @@ public class Circle implements Shape{
 		}
 		return ret;
 	}
+
 	
 	public static Circle minimumEnclosingCircle_Welzl(List<Point> points){
 		Point[] b = new Point[3];
@@ -264,6 +283,13 @@ public class Circle implements Shape{
 	double getPowerDistance(Point p) { return center.distanceSquared(p) - radius*radius; }
 	
 	double getPowerDistance(Circle c) { return getPowerDistance(c.center) -c.radius*c.radius; }
+	
+	/** returns TRUE if the interior of the circle (for a given eps reduction of the radius) is empty */
+	public boolean isEmpty(List<Point> points, double eps) {
+		for (Point p : points) if (contains(p, eps)) return false;
+		return true;
+	}
+
 	
 	boolean isOrthogonal(Circle c) { return getPowerDistance(c) == 0.0; }
 
@@ -327,6 +353,9 @@ public class Circle implements Shape{
 	public boolean contains(Point p) {
 //		return center.distance(p)<=(radius+0.0001);
 		return center.distanceSquared(p) < radius*radius;
+	}
+	public boolean contains(Point p, double eps) {
+		return center.distanceSquared(p) < radius*radius - eps;
 	}
 	
 	public boolean contains(Circle c){
@@ -591,5 +620,6 @@ public class Circle implements Shape{
 //		oneoneMove(new Point(3, 1), new Point(2, 6), new Point(1, 6), new Point(2, 2) );
 //		twozeroMove(new Point(1.35, 2.2), new Point(-0.1, 4.8), new Point(1.5, 1.8), new Point(0.7, 0.6) );
 	}
+
 
 }

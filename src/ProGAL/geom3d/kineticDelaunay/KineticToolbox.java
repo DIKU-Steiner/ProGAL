@@ -339,17 +339,17 @@ public class KineticToolbox {
 		
 		//Locate three non-shared vertices
 		Vertex[] vs = new Vertex[3];
-		vs[0] = t0.corners[t0.apex(t1)];
-		vs[1] = t1.corners[t1.apex(t2)];
-		vs[2] = t2.corners[t2.apex(t0)];
+		vs[0] = t0.getCorners()[t0.apex(t1)];
+		vs[1] = t1.getCorners()[t1.apex(t2)];
+		vs[2] = t2.getCorners()[t2.apex(t0)];
 
 		//Locate two shared vertices
-		Vertex v0 = t0.corners[0];
+		Vertex v0 = t0.getCorners()[0];
 		for(int i=0;i<4&&(vs[0]==v0 || vs[1]==v0);i++)
-			v0 = t0.corners[i];
-		Vertex v1 = t0.corners[0];
+			v0 = t0.getCorners()[i];
+		Vertex v1 = t0.getCorners()[0];
 		for(int i=0;i<4&&(vs[0]==v1 || vs[1]==v1 || v0==v1);i++)
-			v1 = t0.corners[i];
+			v1 = t0.getCorners()[i];
 		
 		int a0 = t0.indexOf(v0); 
 		int b0 = t0.indexOf(v1);
@@ -364,8 +364,8 @@ public class KineticToolbox {
 		};
 		
 		//Change corners of t0 and t1
-		t0.corners[b0] = vs[2];
-		t1.corners[b1] = vs[0];
+		t0.getCorners()[b0] = vs[2];
+		t1.getCorners()[b1] = vs[0];
 		
 		//Change neighbors
 		t0.neighbors[a0] = t1; 							
@@ -374,7 +374,7 @@ public class KineticToolbox {
 		t0.neighbors[t0.indexOf_slow(vs[0])] = ns[1][1]; 	
 		if(ns[1][1]!=null) {
 			ns[1][1].neighbors[ns[1][1].apex(t1)] = t0;
-			Vertex oppV = ns[1][1].corners[ns[1][1].apex(t0)];
+			Vertex oppV = ns[1][1].getCorners()[ns[1][1].apex(t0)];
 			int count = t0.getCount();
 			if (oppV.getType() == Vertex.VertexType.R) count = count + 16;
 			angles = getRoot(t0, oppV, count);
@@ -418,17 +418,17 @@ public class KineticToolbox {
 		for(int i=0;i<3;i++){
 			faceIds[0][i] = i+(i<a0?0:1);
 			faceIds[1][i] = i+(i<a1?0:1);
-			vs[i] = t0.corners[faceIds[0][i]];
+			vs[i] = t0.getCorners()[faceIds[0][i]];
 			ns[0][i] = t0.neighbors[faceIds[0][i]];
 			ns[1][i] = t1.neighbors[faceIds[1][i]];
 		}
-		Vertex v0 = t0.corners[a0];
-		Vertex v1 = t1.corners[a1];
+		Vertex v0 = t0.getCorners()[a0];
+		Vertex v1 = t1.getCorners()[a1];
 		
 		//Change corners
 		Tet t2 = new Tet(new Vertex[]{ v0, vs[0], vs[1], v1 });
-		t0.corners[faceIds[0][0]] = v1;
-		t1.corners[faceIds[1][1]] = v0;
+		t0.getCorners()[faceIds[0][0]] = v1;
+		t1.getCorners()[faceIds[1][1]] = v0;
 
 		//Change neighbors
 		t0.neighbors[     a0      ] = ns[1][0];		if(ns[1][0]!=null) ns[1][0].neighbors[ns[1][0].apex(t1)] = t0; 

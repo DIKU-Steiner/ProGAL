@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ProGAL.dataStructures.DLCyclicList;
+import ProGAL.geom3d.volumes.Sphere;
 
 public class TriangulationVertex extends Point {
 	private static final long serialVersionUID = 1L;
 	public static enum VertexType { S, R };
-
-	
 	protected int id;
 	protected TriangulationFace face;
 	protected Circle orbit = null;
@@ -19,15 +18,30 @@ public class TriangulationVertex extends Point {
 	private double polarRadius;
 	private double squaredPolarRadius;
 	private VertexType type;
-	
+	protected boolean burried = false; // used in connection with deletion
+	protected ProGAL.geom3d.Point liftedPoint;
+	protected ProGAL.geom3d.Point groundPoint;
+	protected Sphere liftedSphere;
+	protected Sphere groundSphere;
+	protected boolean bigPoint;
+
 	public TriangulationVertex(double x, double y) {
 		super(x, y);
+		bigPoint = false;
+	}
+	
+	public TriangulationVertex(Point p) {
+		super(p.x(), p.y());
+		bigPoint = false;
 	}
 	
 	public TriangulationFace getFace() { return face; }
 	
 	public void setFace(TriangulationFace face) { this.face = face; }
 
+	public boolean isBigPoint() { return bigPoint; }
+	public void setBigPoint(boolean bigPoint) { this.bigPoint = bigPoint; }
+	
 	public TriangulationFace getNextFace(TriangulationFace f) {
 		int indx = f.getIndex(this);
 		return f.getNeighbor((indx+1)%3);
@@ -77,8 +91,8 @@ public class TriangulationVertex extends Point {
 		return vertices;
 	}
 	
-	public Circle getOrbit(Point p) { 
-		if (orbit == null) orbit = new Circle(p, distance(p)); 
+	public Circle getOrbit() { 
+		if (orbit == null) orbit = new Circle(Point.origo, distance()); 
 		return orbit;
 	}
 

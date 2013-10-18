@@ -3,6 +3,7 @@ package ProGAL.geom3d;
 import java.awt.Color;
 
 import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.geom3d.volumes.Cylinder;
 import ProGAL.math.Constants;
 
 /**
@@ -27,22 +28,22 @@ public class Line {
 	/** Constructs a line through origo with direction d. */
 	public Line(Vector d) {
 		p = new Point(0, 0, 0);
-		dir = d;
+		dir = d.normalize();
 	}
 	
 	/** Constructs a line through p with direction d.*/
 	public Line(Point p, Vector d) {
 		this.p = p;
-		dir = d;
+		dir = d.normalize();
 	}
-	
+		
 	/** 
 	 * Constructs a line through the segment s. The point will be s.getA() and the direction 
 	 * will be s.getAToB(). Subsequent changes to the line segment should not change this line.
 	 */
 	public Line(LineSegment s) {
 		p = s.getA().clone();
-		dir = s.getAToB();
+		dir = s.getAToB().normalize();
 	}
 	
 	/** Constructs a line through the two specified points. */
@@ -50,6 +51,18 @@ public class Line {
 		this(p1, p1.vectorTo(p2));
 	}
 	
+	/** Constructs a line trisecting three points */
+	public Line(Point a, Point b, Point c) {
+		Circle circle = new Circle(a,b,c);
+		p = circle.getCenter();
+		dir = new Vector(a,b).cross(new Vector(a,c)).normalizeThis();
+	}
+	
+	/** Construct a line that is a clone of L. */
+	public Line clone() { 
+		return new Line(new Point(p), new Vector(dir));
+	}
+
 	/** Returns the point defining this line. */
 	public Point getP()   { return p; }
 
@@ -247,8 +260,8 @@ public class Line {
 		return String.format("Line3d[p:%s,dir:%s]", p.toString(dec), dir.toString(dec));
 	}
 	
-	public void toScene(J3DScene scene, double rad, Color clr) {
-		LineSegment seg = new LineSegment(this.p.add(dir.multiply(10)), p.add(dir.multiply(-10)));
-		seg.toScene(scene, rad, clr);
+	public Cylinder toScene(J3DScene scene, double rad, Color clr) {
+		LineSegment seg = new LineSegment(this.p.add(dir.multiply(1000)), p.add(dir.multiply(-1000)));
+		return seg.toScene(scene, rad, clr);
 	}
 }

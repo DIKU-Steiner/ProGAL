@@ -31,6 +31,12 @@ public class Sphere implements Volume{
 		this.center = center;
 		this.radius = radius;
 	}
+
+	public Sphere(double x, double y, double z, double radius) {
+		center = new Point(x, y, z);
+		this.radius = radius;
+	}
+
 	
 	public Sphere(Point[] points) {
 		computeSphere(points);
@@ -143,6 +149,7 @@ public class Sphere implements Volume{
 		for (int i = 0; i < points.length; i++) if (isInside(points[i], eps)) return false;
 		return true;
 	}
+	/** returns TRUE if the interior of the sphere (for a given eps reduction of the radius) is empty */
 	public boolean isEmpty(List<Vertex> points, double eps) {
 		for (Point p : points) if (isInside(p, eps)) return false;
 		return true;
@@ -235,6 +242,25 @@ public class Sphere implements Volume{
 		return true;
 	}
 
+	/** Returns number of points inside the sphere */
+	public int containsNumber(List<Vertex> points) {
+		int count = 0;
+		double rr = radius*radius-0.000000001;
+		for(Point p: points)
+			if(p.distanceSquared(center)<rr) count++;
+		return count;
+	}
+	
+	public boolean containsNoneButAtMostOne(Vertex v, List<Vertex> points) {
+		double rr = radius*radius-0.000000001;
+		for(Vertex p: points)
+			if ((p.distanceSquared(center) < rr) && (p != v)) {
+				System.out.println("Contains vertex " + p.getId());
+				return false;
+			}
+		return true;
+	}
+	
 	/** Returns true if the given point is in the sphere. */
 	public boolean contains(Point p) {
 		double rr = radius*radius-0.000000001;

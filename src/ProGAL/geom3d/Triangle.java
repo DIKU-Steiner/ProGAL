@@ -3,6 +3,7 @@ package ProGAL.geom3d;
 import java.awt.Color;
 
 import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.geom3d.volumes.LSS;
 import ProGAL.geom3d.volumes.Tetrahedron;
 import ProGAL.math.Constants;
 
@@ -11,6 +12,9 @@ import ProGAL.math.Constants;
  */
 public class Triangle implements Simplex{
 	protected Point p1, p2, p3;
+	protected Shape[] LSSs = new Shape[3];
+	protected Shape face;
+
 
 	/** Construct a triangle using the three specified points as corners */
 	public Triangle(Point p1, Point p2, Point p3) {
@@ -171,6 +175,28 @@ public class Triangle implements Simplex{
 		scene.addShape(t, clr);
 		return t;
 	}
+	
+	private boolean isBig(Point p) {
+		return ((Math.abs(p.x()) > 1000) || (Math.abs(p.y()) > 1000) || (Math.abs(p.z()) > 1000));
+	}
+
+	
+	/* draws edges of the triangle.*/
+	public void toSceneEdges(J3DScene scene, Color clr, double width) {
+		if (LSSs[0] == null) 
+			if (!isBig(p1) && !isBig(p2)) LSSs[0] = new LSS(p1, p2, width);
+		if (LSSs[1] == null) 
+			if (!isBig(p2) && !isBig(p3)) LSSs[1] = new LSS(p2, p3, width);
+		if (LSSs[2] == null)
+			if (!isBig(p3) && !isBig(p1)) LSSs[2] = new LSS(p3, p1, width);
+		for (int k = 0; k < 3; k++) if (LSSs[k] != null) scene.addShape(LSSs[k], clr, 3);
+	}
+
+	/* deletes edges of the triangle.*/
+	public void fromSceneEdges(J3DScene scene) {
+		for (int k = 0; k < 3; k++) scene.removeShape(LSSs[k]);
+	}
+
 	public Triangle clone(){
 		return new Triangle(p1.clone(), p2.clone(), p3.clone());
 	}

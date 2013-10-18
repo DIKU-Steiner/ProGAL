@@ -1,6 +1,7 @@
 
 package ProGAL.geom2d;
 
+import ProGAL.geom2d.viewer.J2DScene;
 import ProGAL.math.Constants;
 
 public class Line implements Shape {
@@ -34,6 +35,14 @@ public class Line implements Shape {
 		if (b != 0.0) p = new Point(0.0,-c/b); else p = new Point(-c/a,0.0);
 	}
 
+	/** Creates a bisector line between points p and q */
+	public static Line getBisectorLine(Point p, Point q) {
+		if (!p.equals(q)) return new Line(Point.midPoint(p,q), p.vectorTo(q)); 
+		return null;
+	}
+	
+	public Point getPoint() { return p; }
+	
 	public Vector getDirection() { return new Vector(n.y(),-n.x()); }
 	
 	public double getSlope() { if (!isVertical()) return n.x()/n.y(); else return Double.MAX_VALUE;
@@ -82,6 +91,13 @@ public class Line implements Shape {
 	
 	public void toConsole(String name) { System.out.println(toString(name)); }
 	public void toConsole() { System.out.println(toString("")); }
+	
+	/** draws the line on a scene */
+	public void toScene(J2DScene scene, double length) {
+		Vector dir = getDirection();
+		LineSegment seg = new LineSegment(p.add(dir.scaleToLength(length/2)), p.subtract(dir.scaleToLength(length/2)));
+		seg.toScene(scene);
+	}
 
 	/** returns the point on the line at distance d from the line-defining point p */
 	public Point getPoint(double d) {

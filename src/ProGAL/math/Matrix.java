@@ -269,8 +269,7 @@ public class Matrix {
 	/** Add the components of two matrices. The result is stored in a new matrix and then returned. */
 	public Matrix add(Matrix m){
 		Matrix ret = new Matrix(M, N);
-		for(int i=0;i<M;i++) for(int j=0;j<N;j++) 
-			ret.set(i, j, coords[i][j]+m.coords[i][j]);
+		for(int i=0;i<M;i++) for(int j=0;j<N;j++) ret.set(i, j, coords[i][j]+m.coords[i][j]);
 		return ret;
 	}
 
@@ -283,8 +282,7 @@ public class Matrix {
 	/** Subtract the components of two matrices. The result is stored in a new matrix and then returned. */
 	public Matrix subtract(Matrix m){
 		Matrix ret = new Matrix(M, N);
-		for(int i=0;i<M;i++) for(int j=0;j<N;j++) 
-			ret.set(i, j, coords[i][j] - m.coords[i][j]);
+		for(int i=0;i<M;i++) for(int j=0;j<N;j++) ret.set(i, j, coords[i][j] - m.coords[i][j]);
 		return ret;
 	}
 
@@ -297,8 +295,7 @@ public class Matrix {
 	/** Multiply the components of this matrix by a scalar. The result is stored in a new matrix which is returned. */
 	public Matrix multiply(double scalar){
 		Matrix ret = new Matrix(M, N);
-		for(int i=0;i<M;i++) for(int j=0;j<N;j++) 
-			ret.set(i,j,coords[i][j]*scalar);
+		for(int i=0;i<M;i++) for(int j=0;j<N;j++) ret.set(i,j,coords[i][j]*scalar);
 		return ret;
 	}
 
@@ -327,14 +324,12 @@ public class Matrix {
 
 	/** Return the minor, i.e. the matrix that results from removing row r and column c from this matrix. */
 	public Matrix minor(int r, int c){
-		if(M<2 || N<2) 
+		if (M<2 || N<2) 
 			throw new Error("The minor matrix is undefined for "+M+"x"+N+" matrices");
 
-		Matrix ret = (M==4&&N==4)?new Matrix3x3():new Matrix(M-1, N-1);
+		Matrix ret = new Matrix(M-1, N-1);
 		for(int i=0;i<M-1;i++){
-			for(int j=0;j<N-1;j++){
-				ret.set(i, j, coords[i>=r?i+1:i][j>=c?j+1:j]);
-			}
+			for(int j=0; j<N-1; j++) ret.set(i, j, coords[i >=r? i+1 : i][j >= c? j+1 : j]);
 		}
 		return ret;
 	}
@@ -392,17 +387,13 @@ public class Matrix {
 			throw new Error("Cant invert non-square matrix ("+M+"x"+N+")");
 		Matrix tmp = new Matrix(M,2*N);
 		for(int r=0;r<M;r++){
-			for(int c=0;c<N;c++){
-				tmp.set(r, c, get(r,c));
-			}
+			for(int c=0;c<N;c++) tmp.set(r, c, get(r,c));
 			tmp.set(r,N+r, 1);
 		}
 		tmp.reduceThis();
 
 		for(int r=0;r<M;r++){
-			for(int c=0;c<N;c++){
-				set(r, c, tmp.get(r,c+N));
-			}
+			for(int c=0;c<N;c++) set(r, c, tmp.get(r,c+N));
 		}
 		return this;
 	}

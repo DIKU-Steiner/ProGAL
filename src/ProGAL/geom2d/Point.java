@@ -107,8 +107,7 @@ public class Point extends ProGAL.geomNd.Point {
 	/** Returns polar angle of this point */
 	public double polarAngle() {
 		double angle = Math.acos(polarAngleCos());
-//		if ((coords[1] < 0) || ((coords[1] == 0.0) && (coords[0] < 0.0))) angle = angle + Math.PI;
-		if (coords[1] < 0) angle = 2*Math.PI - angle;
+		if ((coords[1] < 0) || ((coords[1] == 0.0) && (coords[0] < 0.0))) angle = Constants.TAU - angle;
 		return angle;
 	}
 	
@@ -128,10 +127,9 @@ public class Point extends ProGAL.geomNd.Point {
 	/** Returns the midpoint of two points. */
 	public static Point midPoint(Point p, Point q) { return new Point((p.coords[0] + q.coords[0])/2, (p.coords[1] + q.coords[1])/2); }
 	
-	/** Creates a bisector between points p and q */
+	/** Creates a bisector line between points p and q */
 	public static Line getBisector(Point p, Point q) {
-		if (!p.equals(q)) 
-			return new Line(midPoint(p,q), p.vectorTo(q)); 
+		if (!p.equals(q)) return new Line(midPoint(p,q), p.vectorTo(q)); 
 		return null;
 	}
 		
@@ -151,8 +149,9 @@ public class Point extends ProGAL.geomNd.Point {
 	public void rotation(double alpha) {
 		double cosA = Math.cos(alpha);
 		double sinA = Math.sin(alpha);
-		set(0, cosA*x() - sinA*y());
+		double x = cosA*x() - sinA*y();
 		set(1, cosA*y() + sinA*x());
+		set(0, x);
 	}
 	
 	public Point rotationClone(double alpha) {
@@ -177,7 +176,10 @@ public class Point extends ProGAL.geomNd.Point {
 	public void toScene(J2DScene scene, double rad, Color col) { scene.addShape(new Circle(this, rad), col); }
 
 	public static void main(String[] args) {
-		Point p = new Point(3,-4);
+		Point rotationPoint = new Point(0.0, 0.0);
+		Point p = new Point(3.38, 6.79);
+		rotationPoint.rotation(p, Math.PI/2);
+		System.out.println(p);
 //		double dist2 = p.x()*p.x() + p.y()*p.y();
 //		double dist = Math.sqrt(dist2);
 //		double angle = Math.atan2(p.y()/dist, p.x()/dist);

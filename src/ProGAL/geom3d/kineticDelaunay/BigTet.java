@@ -14,7 +14,7 @@ public class BigTet extends Tet{
 	
 	public BigTet(Tetrahedron tetra, List<Vertex> vertices) {
 		super(tetra);
-		for (int i = 0; i < 4; i++) vertices.add(this.corners[i]);
+		for (int i = 0; i < 4; i++) vertices.add(getCorner(i));
 	}
 
 	private static Vertex[] createCorners(List<Point> points){
