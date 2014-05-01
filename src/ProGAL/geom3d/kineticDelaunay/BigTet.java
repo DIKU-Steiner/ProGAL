@@ -12,9 +12,9 @@ public class BigTet extends Tet{
 		super(createCorners(points));		
 	}
 	
-	public BigTet(Tetrahedron tetra, List<Vertex> vertices) {
+	public BigTet(Tetrahedron tetra) {
 		super(tetra);
-		for (int i = 0; i < 4; i++) vertices.add(getCorner(i));
+		
 	}
 
 	private static Vertex[] createCorners(List<Point> points){
@@ -56,7 +56,7 @@ public class BigTet extends Tet{
 		return ret;
 	}
 	
-	public static class BigVertex extends Vertex{
+	private static class BigVertex extends Vertex{
 		private static final long serialVersionUID = 1L;
 
 		public BigVertex(Point p) {

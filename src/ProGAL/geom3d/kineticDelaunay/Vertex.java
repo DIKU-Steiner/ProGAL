@@ -75,7 +75,7 @@ public class Vertex extends Point implements Comparable<Vertex>{
     public void setTet(Tet tet) { this.tet = tet; }
     
     /** Returns a tetrahedron incident with this vertex */
-    public Tet getTetrahedron(KineticDelaunayTessellation kDT) {
+    public Tet getTetrahedron(KineticAlphaComplex kDT) {
 		for (Tet tet : kDT.getTetrahedra()) if (tet.hasVertex(this)) return tet;
 		return null;
 	}

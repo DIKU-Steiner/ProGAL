@@ -12,8 +12,8 @@ import jxl.write.*;
 import jxl.write.Number;
 
 import ProGAL.dataStructures.Graph;
-import ProGAL.geom3d.kineticDelaunay.KineticDelaunayTessellation;
-import ProGAL.geom3d.kineticDelaunay.KineticDelaunayTessellation.ProblemInstanceType;
+import ProGAL.geom3d.kineticDelaunay.KineticAlphaComplex;
+import ProGAL.geom3d.kineticDelaunay.KineticAlphaComplex.ProblemInstanceType;
 import ProGAL.geom3d.kineticDelaunay.Vertex;
 import ProGAL.geom3d.kineticDelaunay.Tet;
 import ProGAL.geom3d.viewer.J3DScene;
@@ -115,7 +115,7 @@ double eSH = Math.sqrt(eS*eH);
 
 	Vertex u, v;
 	
-	private void setUpCharges(KineticDelaunayTessellation kDT) {
+	private void setUpCharges(KineticAlphaComplex kDT) {
 		int i = 4; 
 		while (i < kDT.getNrVertices()) {
 			System.out.println(i + ": " + kDT.getVertex(i).atomName);
@@ -825,11 +825,11 @@ double eSH = Math.sqrt(eS*eH);
 	
 	
 	
-	public double getNonBondedEnergy(KineticDelaunayTessellation kDT) { return getNonBondedEnergy(kDT, 10000000.0, 10000000.0);}
+	public double getNonBondedEnergy(KineticAlphaComplex kDT) { return getNonBondedEnergy(kDT, 10000000.0, 10000000.0);}
 
 	static StringBuilder interactionLog = new StringBuilder();
 	
-	public double[] areToClose(KineticDelaunayTessellation kDT) {
+	public double[] areToClose(KineticAlphaComplex kDT) {
 		double[] energy = new double[2];
 		energy[0] = 0.0;
 		energy[1] = 0.0;
@@ -878,7 +878,7 @@ double eSH = Math.sqrt(eS*eH);
 	}
 	
 	/** returns non-bonded potential between all atom within specified cutoff distances */
-	public double[] getNBP(KineticDelaunayTessellation kDT, double cutoffVdW, double cutoffElS) {
+	public double[] getNBP(KineticAlphaComplex kDT, double cutoffVdW, double cutoffElS) {
 		double[] energy = new double[2];
 		double energyVdW = 0.0;
 		double energyElS = 0.0;
@@ -910,7 +910,7 @@ double eSH = Math.sqrt(eS*eH);
 	}
 
 	/** return non-bonded potential between all atoms using alpha complexes */
-	public double[] getNBP(KineticDelaunayTessellation kDT, int depth) {
+	public double[] getNBP(KineticAlphaComplex kDT, int depth) {
 		double[] energy = new double[2];
 		double energyVdW = 0.0;
 		double energyElS = 0.0;
@@ -940,7 +940,7 @@ double eSH = Math.sqrt(eS*eH);
 	}
 	
 	
-	public double getNonBondedEnergy(KineticDelaunayTessellation kDT, double cutoffVdW, double cutoffElS) {
+	public double getNonBondedEnergy(KineticAlphaComplex kDT, double cutoffVdW, double cutoffElS) {
 		double cutoffVdW2 = cutoffVdW*cutoffVdW;
 		double cutoffElS2 = cutoffElS*cutoffElS;
 		double sqDist;
@@ -1064,7 +1064,7 @@ double eSH = Math.sqrt(eS*eH);
 	}
 */
 	
-	public double getVdWPotentialDTVeryFast(KineticDelaunayTessellation kDT, int maxDepth) {
+	public double getVdWPotentialDTVeryFast(KineticAlphaComplex kDT, int maxDepth) {
 		int n = kDT.getNrVertices();
 		double rmj2, rmj6;
 		int m, j, mType, jType;
@@ -1104,7 +1104,7 @@ double eSH = Math.sqrt(eS*eH);
 		return energy;
 	}
 		
-	public double getVdWPotentialDTFast(KineticDelaunayTessellation kDT) {
+	public double getVdWPotentialDTFast(KineticAlphaComplex kDT) {
 		double energyVdW = 0.0;
 		double energyElS = 0.0;
 				
@@ -1171,7 +1171,7 @@ double eSH = Math.sqrt(eS*eH);
 		DecimalFormat df = new DecimalFormat("#.00");
 
 		VanDerWaals vDW = new VanDerWaals();
-		KineticDelaunayTessellation kDT = new KineticDelaunayTessellation(1.5, ProblemInstanceType.pdb);
+		KineticAlphaComplex kDT = new KineticAlphaComplex(1.5, ProblemInstanceType.pdb);
 		vDW.setUpCharges(kDT);
 
 		double energyCorrection[] = areToClose(kDT);
@@ -1224,7 +1224,7 @@ double eSH = Math.sqrt(eS*eH);
 		for (int i = 0; i < 50; i++) {
 			System.out.println("alpha = " + (1.0+0.1*i));
 			start = System.nanoTime();
-			kDT = new KineticDelaunayTessellation(1.0+ 0.1*i, ProblemInstanceType.pdb);
+			kDT = new KineticAlphaComplex(1.0+ 0.1*i, ProblemInstanceType.pdb);
 			vDW.setUpCharges(kDT);
 			long slut = System.nanoTime();
 			kDTTime[i] = (slut-start)/1000000.0;
@@ -1359,7 +1359,7 @@ double eSH = Math.sqrt(eS*eH);
 		DecimalFormat df = new DecimalFormat("#.00");
 
 		VanDerWaals vDW = new VanDerWaals();
-		KineticDelaunayTessellation kDT = new KineticDelaunayTessellation(1.5, ProblemInstanceType.pdb);
+		KineticAlphaComplex kDT = new KineticAlphaComplex(1.5, ProblemInstanceType.pdb);
 		vDW.setUpCharges(kDT);
 
 		double energyCorrection[] = areToClose(kDT);
@@ -1375,7 +1375,7 @@ double eSH = Math.sqrt(eS*eH);
 		for (int i = 0; i < 10; i++) {
 			System.out.println("alpha = " + (1.0+0.1*i));
 			long start = System.nanoTime();
-			kDT = new KineticDelaunayTessellation(1.0+ 0.1*i, ProblemInstanceType.pdb);
+			kDT = new KineticAlphaComplex(1.0+ 0.1*i, ProblemInstanceType.pdb);
 			vDW.setUpCharges(kDT);
 			long slut = System.nanoTime();
 			kDTTime[i] = (slut-start)/1000000.0;
@@ -1440,7 +1440,7 @@ double eSH = Math.sqrt(eS*eH);
 		DecimalFormat df = new DecimalFormat("#.00");
 
 		VanDerWaals vDW = new VanDerWaals();
-		KineticDelaunayTessellation kDT = new KineticDelaunayTessellation(1.5, ProblemInstanceType.pdb);
+		KineticAlphaComplex kDT = new KineticAlphaComplex(1.5, ProblemInstanceType.pdb);
 		vDW.setUpCharges(kDT);
 
 		double energyCorrection[] = areToClose(kDT);
@@ -1456,7 +1456,7 @@ double eSH = Math.sqrt(eS*eH);
 		for (int i = 0; i < 50; i++) {
 			System.out.println("alpha = " + (1+0.01*i));
 			long start = System.nanoTime();
-			kDT = new KineticDelaunayTessellation(1+ 0.01*i, ProblemInstanceType.pdb);
+			kDT = new KineticAlphaComplex(1+ 0.01*i, ProblemInstanceType.pdb);
 			vDW.setUpCharges(kDT);
 			long slut = System.nanoTime();
 			kDTTime[i] = (slut-start)/1000000.0;
@@ -1515,7 +1515,7 @@ double eSH = Math.sqrt(eS*eH);
 	
 
 	private void testingKinetic(String name) throws IOException {
-		KineticDelaunayTessellation kDT;
+		KineticAlphaComplex kDT;
 		ArrayList<Integer> qVertices = new ArrayList<Integer>();
 		ArrayList<Integer> nVertices = new ArrayList<Integer>();
 		double [][] average = new double[50][5];
@@ -1525,7 +1525,7 @@ double eSH = Math.sqrt(eS*eH);
 		for (int i = 0; i < 50; i++) {
 			System.out.println("alpha = " + (1+0.1*i));
 			long start = System.nanoTime();
-			kDT = new KineticDelaunayTessellation(1+ 0.1*i, ProblemInstanceType.pdb);
+			kDT = new KineticAlphaComplex(1+ 0.1*i, ProblemInstanceType.pdb);
 			long slut = System.nanoTime();
 			kDTTime[i] = (slut-start)/1000000.0;
 			

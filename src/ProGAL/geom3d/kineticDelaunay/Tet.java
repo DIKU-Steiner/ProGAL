@@ -9,14 +9,11 @@ import java.util.List;
 import java.util.Set;
 
 import ProGAL.dataStructures.Queue;
-import ProGAL.geom2d.TriangulationVertex;
-import ProGAL.geom3d.Plane;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Shape;
 import ProGAL.geom3d.Triangle;
 import ProGAL.geom3d.Vector;
 import ProGAL.geom3d.kineticDelaunay.Hole.Face;
-import ProGAL.geom3d.kineticDelaunay.KineticDelaunayTessellation.ProblemInstanceType;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.LSS;
 import ProGAL.geom3d.volumes.Sphere;
@@ -535,7 +532,7 @@ public class Tet {
 	
 	public ArrayList<Vertex> breadthFirstVertices(int maxDepth) {
 		Queue queue = new Queue();
-		Queue queue2 = new Queue();
+//		Queue queue2 = new Queue();
 		ArrayList<Tet> tets = new ArrayList<Tet>();
 		ArrayList<Vertex> vertices = new ArrayList<Vertex>();
 		Tet tet, nTet;

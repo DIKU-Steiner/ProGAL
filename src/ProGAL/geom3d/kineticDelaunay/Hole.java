@@ -99,7 +99,7 @@ public class Hole {
 
 
 	
-	public Hole(KineticDelaunayTessellation  triangulation, Vertex u, J3DScene scene, boolean testing) {
+	public Hole(KineticAlphaComplex  triangulation, Vertex u, J3DScene scene, boolean testing) {
 		// processes tetrahedra incident with u
 		this.scene = scene;
 		Stack<Tet> stack = new Stack<Tet>();
@@ -145,9 +145,12 @@ public class Hole {
 		for (Face f : faces) {
 			nTet = f.tet.neighbors[f.tet.indexOf(u)];
 			for (int i = 0; i < 4; i++) if (nTet.neighbors[i] == f.tet) nTet.neighbors[i] = null;
-			triangulation.removeTetrahedron(f.tet);
+//			triangulation.removeTetrahedron(f.tet);
+			
 			if (testing) 
 				for (int i = 0; i < 6; i++) scene.removeShape(f.tet.LSSs[i]);
+			
+			throw new RuntimeException("Sorry .. we removed the removeTetrahedron method");
 		}
 	}
 }

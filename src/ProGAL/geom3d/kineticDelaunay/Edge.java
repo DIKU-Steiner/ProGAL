@@ -78,7 +78,7 @@ public class Edge {
 		return ((corners[0].getId() < 4) || (corners[1].getId() < 4));
 	}
 	
-	/** returns TRUE if this terahedron is in the alpha complex for the given alpha*/
+	/** returns TRUE if this tetrahedron is in the alpha complex for the given alpha*/
 	public boolean isAlpha(double alpha) { return (getCircumRadius() < (alpha+ProGAL.math.Constants.EPSILON)); }
 	
 	public int getCount() { 
