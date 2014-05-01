@@ -35,7 +35,7 @@ public class BettiDebugger {
 			CTetrahedron s1 = uf.find(n1);
 			if(  s0!=s1  ){
 				uf.union(n0, n1);
-				if(Math.min(t.getAdjacentTetrahedron(0).circumradius(), t.getAdjacentTetrahedron(1).circumradius())<5)
+				if(Math.min(t.getAdjacentTetrahedron(0).circumRadius(), t.getAdjacentTetrahedron(1).circumRadius())<5)
 				scene.addShape(new LSS(t.getAdjacentTetrahedron(0).incenter(), t.getAdjacentTetrahedron(1).incenter(), 0.05), Color.GRAY, 7);
 				System.out.print("MARKED : ");
 			}

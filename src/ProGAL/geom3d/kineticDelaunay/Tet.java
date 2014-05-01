@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import ProGAL.dataStructures.Queue;
 import ProGAL.geom2d.TriangulationVertex;
@@ -24,6 +26,8 @@ import ProGAL.math.Matrix;
 
 public class Tet {
 	private Vertex[] corners = new Vertex[4];
+	private Set<Edge> edges = new LinkedHashSet<Edge>(); // Daisy
+	private Tri[] tris = new Tri[4]; // Daisy
 	Tet[] neighbors = new Tet[4];
 	Sphere circumSphere = null;
 	Integer count = null;
@@ -38,7 +42,7 @@ public class Tet {
 	boolean centerInside;
 	boolean flag = false;
 	Integer depth = null;
-	boolean inAlphaComplex = false;
+	int alph = 0;
 	
 	public Tet(Vertex[] corners){
 		this.corners = corners;
@@ -65,6 +69,35 @@ public class Tet {
 		Tet nt = new Tet(corners);
 		for (int i = 0; i < 4; i++) nt.neighbors[i] = neighbors[i];
 		return nt;
+	}
+	//Daisy
+	public void setEdge(Edge e) {
+		edges.add(e); 
+	}
+	public void setEdges(Edge[] es) {
+		for (Edge e : es) {
+			edges.add(e);
+		}
+	}
+	public void removeEdge(Edge e) {
+		edges.remove(e);
+	}
+	public void setTri(Tri t, int i) {
+		tris[i] = t; 
+	}
+	public Tri getTri(int i) {
+		return tris[i];
+	}
+	public Tri getTri(Vertex v) {
+		for (int i = 0 ; i<4 ; i++) {
+			if (corners[i].equals(v)) {
+				return tris[i];
+			}
+		}
+		return null;
+	}
+	public Tri[] getTris() {
+		return tris;
 	}
 	
 	public Tetrahedron makeTetrahedron() {
@@ -96,8 +129,11 @@ public class Tet {
 
 	/** Returns the sphere circumscribing this tetrahedron */
 	public Sphere getCircumSphere() { 
-		if (circumSphere == null) setCircumSphere();
-		return circumSphere;
+//		if (circumSphere == null) {
+			setCircumSphere();
+			return circumSphere;
+//		}
+//		return circumSphere;
 	}
 	
 	/** Returns the radius of the sphere circumscribing this tetrahedron */
@@ -120,11 +156,34 @@ public class Tet {
 		return O.length();
 	}
 
+	// Daisy
+	public void setAlph(int i) {
+		alph = i;
+	}
+	public int getAlph() {
+		return alph;
+	}
 	
 	public boolean hasVertex(Vertex v) {
 		for (int i = 0; i < 4; i++) 
 			if (corners[i] == v) return true;
 		return false;
+	}
+	//Daisy :
+	public boolean hasEdge(Edge e) {
+		if (edges.contains(e)) return true;
+		return false;
+	}
+	public Edge[] getCommonEdges(Tet t) {
+		Edge[] es = new Edge[4];
+		int num = 0;
+		for (Edge e : edges) {
+			if (t.hasEdge(e)) {
+				es[num] = e;
+				num++;
+			}
+		}
+		return es;
 	}
 
 	public boolean hasNeighbor(Tet t) {
@@ -148,11 +207,11 @@ public class Tet {
 		Triangle tr = commonFace(tet);
 		Point p = corners[apex(tet)];
 		Point q = tet.corners[tet.apex(this)];
-		return tr.getIntersection(p, new Vector(p, q)) != null;
+		return tr.getIntersection(p, q) != null;
 	}
 	
 	/** returns TRUE if this terahedron is in the alpha complex */
-	public boolean isAlpha(double alpha) { return (getCircumSphereRadius() < alpha); }
+	public boolean isAlpha(double alpha) { return (getCircumSphereRadius() < (alpha+Constants.EPSILON)); }
 	
 	private void normalizePredicates(){
 		for(int i=0;i<4;i++){
@@ -171,6 +230,15 @@ public class Tet {
 		}
 	}
 	
+	//Daisy:
+	public int  nrRotating() {
+		int ret = 0;
+		for (Vertex v : corners){
+			if (v.getType()==Vertex.VertexType.R) ret += 1;
+		}
+		return ret;
+	}
+	
 	/** Returns the vertex not in the facet-sharing tetrahedron tet */
 	public Vertex getOppVertex(Tet tet) {
 		for (int k = 0; k < 4; k++) {
@@ -187,6 +255,11 @@ public class Tet {
 			nList.add(neighbors[k]);
 		}
 		return nList;
+	}
+	
+	//Daisy
+	public Tet getNeighbour(int i) {
+		return neighbors[i];
 	}
 	
 	/** Returns all tetrahedra sharing the edge of this tetrahedron between vertices a and b */
@@ -250,6 +323,19 @@ public class Tet {
 		return det<0;
 	}
 	
+	// Daisy
+	public Set<Edge> getEdges() { return edges; }
+	public void killEdges() {
+		for (Edge e : edges) {
+			e.setAlive(false);
+		}
+	}
+	public void reviveEdges() {
+		for (Edge e : edges) {
+			e.setAlive(true);
+		}
+	}
+	
 	private boolean inSphere(Point p){
 		Matrix m = new Matrix(5,5);
 		for(int r=0;r<4;r++){
@@ -280,7 +366,7 @@ public class Tet {
 	
 
 	public int apex(Tet c){
-		for(int i=0;i<4;i++) if(neighbors[i]==c) return i;
+		for(int i=0;i<4;i++) if(neighbors[i].equals(c)) return i;
 		return -1;
 	}
 	
@@ -301,7 +387,7 @@ public class Tet {
 	}
 	
 	public int indexOf(Vertex v) {
-		for(int i = 0; i < 3; i++) if(corners[i]==v) return i;
+		for(int i = 0; i < 3; i++) if(corners[i].equals(v)) return i;
 		return 3;
 	}
 
@@ -313,7 +399,7 @@ public class Tet {
 	/* Returns index of fourth vertex */
 	public int indexOf(Vertex a, Vertex b, Vertex c) {
 		for (int i = 0; i < 4; i++)
-			if ((corners[i] != a) && (corners[i] != b) && (corners[i] != c)) return i;
+			if ((!corners[i].equals(a)) && (!corners[i].equals(b)) && (!corners[i].equals(c))) return i;
 		return -1;
 	}
 	
@@ -439,6 +525,14 @@ public class Tet {
 		return tets;
 	}
 	
+	public List<Tri> getListOfTris() {
+		List<Tri> ts = new ArrayList<Tri>(4);
+		for (Tri t : tris) {
+			ts.add(t);
+		}
+		return ts;
+	}
+	
 	public ArrayList<Vertex> breadthFirstVertices(int maxDepth) {
 		Queue queue = new Queue();
 		Queue queue2 = new Queue();
@@ -474,4 +568,7 @@ public class Tet {
 		return vertices;
 	}
 
+	public int hashCode() {
+		return corners[0].getId()+corners[1].getId()*2+corners[2].getId()*4+corners[3].getId()*8;
+	}
 }

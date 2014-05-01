@@ -1,11 +1,15 @@
 package ProGAL.geom3d;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.LSS;
 import ProGAL.geom3d.volumes.Tetrahedron;
 import ProGAL.math.Constants;
+import ProGAL.math.Matrix;
 
 /**
  * A triangle in (x,y,z)-space represented by the three corner-points.
@@ -51,6 +55,22 @@ public class Triangle implements Simplex{
 	/** Return the 'dimension' of this object. Required by the interface Simplex. */
 	public int getDimension() { return 2; }
 
+	public boolean orient(Point p){
+		Matrix m = new Matrix(4,4);
+		for(int r=0;r<3;r++){
+			for(int c=0;c<3;c++){
+				m.set(r, c, getCorner(r).getCoord(c));
+			}
+			m.set(r, 3, 1);
+		}
+		for(int c=0;c<3;c++)
+			m.set(3, c, p.getCoord(c));
+		m.set(3,3,1);
+
+		double det = m.determinant();
+		if (Math.abs(det)<Constants.EPSILON) return true;
+		return det<0;
+	}
 	
 	/** Return the center of the triangle. Here average of the corners is used.*/
 	public Point getCenter() { 
@@ -116,27 +136,104 @@ public class Triangle implements Simplex{
 		return C.toPoint();
 	}
 	
-	public Point getIntersection(Point p, Vector dir) {
+	public Point getIntersection(Point p, Point q) {
+		Vector dir = new Vector(p, q);
+		//Daisy
+/*		Plane plane = new Plane(p1, p2, p3);
+		Line line = new Line(p, q);
+		Point intersectionPoint = plane.getIntersection(line);*/
+		//Rasmus
 		Vector u = new Vector(p1, p2);
 		Vector v = new Vector(p1, p3);
 		Vector n = u.cross(v);
-		if (n.isZeroVector()) return null;    // triangle is degenerated
+		if (n.isZeroVector())  { System.out.println("Normal is zero"); return null; }    // triangle is degenerated
 		Vector w0 = new Vector(p1, p);
 		double a = -n.dot(w0);
 		double b = n.dot(dir);
 		if (Math.abs(b) < Constants.EPSILON) {
-			if (a == 0) return null; // ray is in the triangle plane
-			else return null; // ray is not intersecting the plane
+			if (a == 0) { System.out.println("a is zero"); return null; } // ray is in the triangle plane
+			else { System.out.println("a is not zero"); return null; } // ray is not intersecting the plane
 		}
 		double r = a/b;
-		if (r < 0.0) return null; // ray goes away from the triangle plane, no intersection
+		if (r < 0.0) { System.out.println("r is less than zero"); return null; } // ray goes away from the triangle plane, no intersection
 		// for a segment, also test if r > 1.0. if so, no intersection
 		
 		Point intersection = new Point(p.x() + r*dir.x(), p.y() + r*dir.y(), p.z() + r*dir.z());
-		if (contains(intersection)) return intersection; else return null; 
+		if (contains(intersection)) return intersection; else { return null; } 
+	}
+	
+	//Daisy
+	public boolean containsPoint(Point p) {
+		return (p1.equals(p) || p2.equals(p) || p3.equals(p));
 	}
 	
 	public boolean contains(Point p) {
+		//Daisy
+/*		double[] r1 = {p1.getCoord(0), p2.getCoord(0), p3.getCoord(0)};
+		double[] r2 = {p1.getCoord(1), p2.getCoord(1), p3.getCoord(1)};
+		double[] r3 = {1, 1, 1};
+		double[][] rows = {r1, r2, r3};
+		Matrix orientation = new Matrix(rows);
+		if (orientation.determinant()<0) {
+			System.out.println("Wooh!");
+			System.out.println("Triangle = "+this.toString());
+			System.out.println("Point = "+p.toString());
+			double[] r1_12 = {p1.getCoord(0), p2.getCoord(0), p.getCoord(0)};
+			double[] r2_12 = {p1.getCoord(1), p2.getCoord(1), p.getCoord(1)};
+			double[] r3_12 = {1, 1, 1};
+			double[][] rows12 = {r1_12, r2_12, r3_12};
+			Matrix orientation12 = new Matrix(rows12);
+			if (orientation12.determinant()<0) {
+				System.out.println("Wooh!");
+				double[] r1_23 = {p2.getCoord(0), p3.getCoord(0), p.getCoord(0)};
+				double[] r2_23 = {p2.getCoord(1), p3.getCoord(1), p.getCoord(1)};
+				double[] r3_23 = {1, 1, 1};
+				double[][] rows23 = {r1_23, r2_23, r3_23};
+				Matrix orientation23 = new Matrix(rows23);
+				if (orientation23.determinant()<0) {
+					System.out.println("Wooh!");
+					double[] r1_31 = {p3.getCoord(0), p1.getCoord(0), p.getCoord(0)};
+					double[] r2_31 = {p3.getCoord(1), p1.getCoord(1), p.getCoord(1)};
+					double[] r3_31 = {1, 1, 1};
+					double[][] rows31 = {r1_31, r2_31, r3_31};
+					Matrix orientation31 = new Matrix(rows31);
+					if (orientation31.determinant()<0) { System.out.println("Wooh!"); return true; }
+				}
+			}
+		}
+		return false;*/
+/*		
+		List<Double> xs = new ArrayList<Double>();
+		xs.add(p1.get(0)); xs.add(p2.get(0)); xs.add(p3.get(0));
+		List<Double> ys = new ArrayList<Double>();
+		ys.add(p1.get(1)); ys.add(p2.get(1)); ys.add(p3.get(1));
+		List<Double> zs = new ArrayList<Double>();
+		zs.add(p1.get(2)); zs.add(p2.get(2)); zs.add(p3.get(2));
+		
+		double xMax = Collections.max(xs);
+		double xMin = Collections.min(xs);
+		double yMax = Collections.max(ys);
+		double yMin = Collections.min(ys);
+		double zMax = Collections.max(zs);
+		double zMin = Collections.min(zs);
+		if (xMax > p.get(0) && xMin < p.get(0) && yMax > p.get(1) && yMin < p.get(1) && zMax > p.get(2) && zMin < p.get(2)) return true;
+		else return false;*/
+		
+		/*double alpha = ((p2.getCoord(1) - p3.getCoord(1))*(p.getCoord(0) - p3.getCoord(0)) + (p3.getCoord(0) - p2.getCoord(0))*(p.getCoord(1) - p3.getCoord(1))) /
+		        ((p2.getCoord(1) - p3.getCoord(1))*(p1.getCoord(0) - p3.getCoord(0)) + (p3.getCoord(0) - p2.getCoord(0))*(p1.getCoord(1) - p3.getCoord(1)));
+		System.out.println("Alpha = "+alpha);
+		if (alpha>-Constants.EPSILON) {
+			double beta = ((p3.getCoord(1) - p1.getCoord(1))*(p.getCoord(0) - p3.getCoord(0)) + (p1.getCoord(0) - p3.getCoord(0))*(p.getCoord(1) - p3.getCoord(1))) /
+				       ((p2.getCoord(1) - p3.getCoord(1))*(p1.getCoord(0) - p3.getCoord(0)) + (p3.getCoord(0) - p2.getCoord(0))*(p1.getCoord(1) - p3.getCoord(1)));
+			System.out.println("Beta = "+beta);
+			if (beta>-Constants.EPSILON) {
+				double gamma = 1.0 - alpha - beta;
+				if (gamma>-Constants.EPSILON) return true;
+				System.out.println("Gamma = "+gamma);
+			}
+		}
+		return false;*/
+		//Rasmus
 		Vector u = new Vector(p1, p2);
 		Vector v = new Vector(p1, p3);
 		double uu = u.dot(u);

@@ -2,58 +2,90 @@ package ProGAL.geom3d.kineticDelaunay;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 import ProGAL.dataStructures.Heap;
 import ProGAL.dataStructures.SortTool;
+import ProGAL.geom3d.viewer.TextShape;
 import ProGAL.geom3d.Circle;
 import ProGAL.geom3d.LineSegment;
 
+import ProGAL.geom3d.Line;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.Triangle;
-import ProGAL.geom3d.kineticDelaunay.Hole;
-import ProGAL.geom3d.kineticDelaunay.Hole.Face;
 import ProGAL.geom3d.kineticDelaunay.Vertex.VertexType;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.LSS;
 import ProGAL.geom3d.volumes.Sphere;
 import ProGAL.geom3d.volumes.Tetrahedron;
+import ProGAL.geom3d.volumes.Torus; //
 import ProGAL.geom3d.Vector;
-import ProGAL.math.Constants;
+import ProGAL.math.Constants; //
 import ProGAL.math.Functions;
 import ProGAL.math.Matrix;
 import ProGAL.math.Randomization;
 import ProGAL.math.Trigonometry;
-import ProGAL.proteins.PDBFile;
+import ProGAL.proteins.PDBFile; //
+import ProGAL.proteins.PDBFile.AtomRecord;
 
 
 
 public class KineticDelaunayTessellation {
 	private static enum Direction { CW, CCW }
-	public static enum ProblemInstanceType { random, pdb, pdbNCC, toy }
+	public static enum ProblemInstanceType { random, pdb1, pdb1_AA, pdb2, chain, chain2, pdbNCC, toy }
 
 	private ProblemInstanceType instanceType;
 	private List<Vertex> vertices = new ArrayList<Vertex>();
-	private List<Tet> tets = new LinkedList<Tet>();
+	private Set<Tet> tets = new HashSet<Tet>();
+//	private Map<TetPoints,Tet> mapTets = new HashMap<TetPoints,Tet>();
+//	private List<Tri> tris = new LinkedList<Tri>();
+	private Map<TrianglePoints,Tri> mapTris = new HashMap<TrianglePoints,Tri>();
+//	private List<Edge> edges = new LinkedList<Edge>();
+	private Map<EdgePoints,Edge> mapEdges = new HashMap<EdgePoints,Edge>();
+	private Set<Edge> alphaEdges = new HashSet<Edge>();
+	private Set<Tri> alphaTris = new HashSet<Tri>();
+	private Set<Tet> alphaTets = new HashSet<Tet>();
+	private double alphaVal = Double.POSITIVE_INFINITY;
+	public int nrFlips = 0;
+	private PDBFile f;
+	boolean clashFirst = false;
+	boolean clash = false;
+	List<Double> clashes = new ArrayList<Double>();
+	double shortestEdge = Double.POSITIVE_INFINITY;
+	int tet4Rot = 0;
+	int tri3Rot = 0;
+	int edg2Rot = 0;
+	int tet2Rot = 0;
+	public double error = 0;
+	public double maxError = 0;
+	public int nrErrors = 0;
+	public double numericalTime = 0;
+	public double analyticalTime = 0;
+	public double flipTime = 0;
 	
 	private Tet lastTet;
-	private Double[] angles = new Double[2];
+	private Double[] angles = new Double[4]; // Daisy: changed from 2 to 4
 	private double angleTotal = 0.0;
 	private double angleLimit = Constants.TAU;        
 	
 	private Point rotationPoint;   // rotation center
 	private Vector rotationAxis; // rotation vector
 	private Direction rotDir;
-	private List<Integer> rotIndx = new ArrayList<Integer>();     // indicies of vertices that move
+	public List<Integer> rotIndx = new ArrayList<Integer>();     // indicies of vertices that move
 
 	private Heap heap = new Heap(this.vertices.size(), new SortToolHeapItems());
 //	private boolean testing = true;
 	private boolean testingPrint = false;
-	private boolean testingScreen = true;
+	private boolean testingScreen = false;
+	private boolean screenAlpha = true;
 	private boolean sphereAnimation = false;
 	J3DScene scene;
 
@@ -66,22 +98,28 @@ public class KineticDelaunayTessellation {
 	LineSegment apexSegment = null;
 	LSS apexLSS = null;
 
-	private double alpha;
+//	private double alpha;
 	
 	private class HeapItem {
 		private Double[] angles;
-		private Tet t;
-		private Tet nt;
+		private Tet t = null;
+		private Tet nt = null;
+		private Tri tri = null;
+		private Edge edg = null;
 		
-		private HeapItem(Double[] angles, Tet t, Tet nt) {
+		private HeapItem(Double[] angles, Tet t, Tet nt, Tri tri, Edge e) {
 			this.angles = angles;
 			this.t = t;
+			this.tri = tri;
 			this.nt = nt;
+			this.edg = e;
 		}
 				
 		private Double[] getAngles() { return angles;} 
 		private Tet getT()  { return t; }
 		private Tet getNT() { return nt; }
+		private Tri getTri() { return tri; }
+		private Edge getEdg() { return edg; }
 	}
 	
 	private class SortToolHeapItems implements SortTool {
@@ -95,46 +133,17 @@ public class KineticDelaunayTessellation {
 			else throw SortTool.err1;
 		}
 	}
-
-	private class HeapItemDelete<T> {
-		private double power;
-		private Face f;
-		private Face oppFace;
-		
-		private HeapItemDelete(Face f, Face oppFace, double power) {
-			this.power = power;
-			this.f = f;
-			this.oppFace = oppFace;
-		}
-				
-		private double getPower() { return power;} 
-		private Face getF() { return f; }
-		private Face getOppFace() { return oppFace; }
-	}
-	private class SortToolHeapItemsDelete implements SortTool {
-		public int compare(Object x1, Object x2) {
-			if ((x1 instanceof HeapItemDelete) && (x2 instanceof HeapItemDelete)) {
-				double d1 = ((HeapItemDelete)x1).getPower();
-				double d2 = ((HeapItemDelete)x2).getPower();
-				if (d1 < d2) return COMP_LESS;
-				else { if (d1 > d2) return COMP_GRTR; else return COMP_EQUAL; }
-			}
-			else throw SortTool.err1;
-		}
-	}
-
 	
-	public KineticDelaunayTessellation(double alpha, ProblemInstanceType type) {
+	public KineticDelaunayTessellation(double alpha, ProblemInstanceType type, int percentRot) {
 		setInstanceType(type);
-		List<Point> points = getInstance(getInstanceType());
-		if (testingScreen) scene  = J3DScene.createJ3DSceneInFrame();
+		List<Point> points = getInstance(getInstanceType(), percentRot);
+		if (testingScreen || screenAlpha) scene  = J3DScene.createJ3DSceneInFrame();
 
 		Tetrahedron bigT = Tetrahedron.regularTetrahedron();
 		bigT.blowUp(1000);
 		lastTet = new BigTet(bigT, vertices);
-		int j = 0;
+		
 		for (Point p: points) {
-//			if (j++ > 12) break;
 			insertPoint(p);	
 		}
 		this.setAlpha(alpha);
@@ -143,39 +152,88 @@ public class KineticDelaunayTessellation {
 		for (Tet tet : tets) {
 			for (int i = 0; i < 4; i++) tet.getCorner(i).setTet(tet);
 		}
-		
-		if (getInstanceType() == ProblemInstanceType.random) {
+		if (getInstanceType() == ProblemInstanceType.chain || getInstanceType() == ProblemInstanceType.chain2) {
+			setDirection(KineticDelaunayTessellation.Direction.CCW);
+			//List<AtomRecord> ars = f.getAtomRecords();
+			//System.out.println("a = "+ars.get(j).atomType+" b = "+ars.get(j+1).atomType);
+			//System.out.println("a = "+j+" b = "+(j+1));
+			setRotationAxis(vertices.get(81+3), vertices.get(84+3));
+			//Line l = new Line(vertices.get(81+3), vertices.get(84+3));
+			//l.toScene(scene, 0.1, Color.MAGENTA);
+			//setRotationAxis(new Vector(0,0,1));
+			List<Integer> rotIndices = new ArrayList<Integer>(Arrays.asList(85+3, 86+3, 87+3, 90+3, 91+3, 92+3, 93+3, 94+3, 95+3, 96+3, 97+3, 98+3));
+			setRotVertices(rotIndices);
+		} else if (getInstanceType() == ProblemInstanceType.pdb1_AA) {
+			setDirection(KineticDelaunayTessellation.Direction.CCW);
+			List<AtomRecord> ars = f.getAtomRecords();
+			int j = 0;
+			for (j=0 ; j<ars.size() ; j++) {
+				if (ars.get(j).residueNumber==percentRot ) break;
+			}
+			//System.out.println("a = "+ars.get(j).atomType+" b = "+ars.get(j+1).atomType);
+			//System.out.println("a = "+j+" b = "+(j+1));
+			setRotationAxis(points.get(j), points.get(j+1));
+			setRotVertices(j+2 ,vertices.size()-1);
+		} else if (getInstanceType() == ProblemInstanceType.pdb1 || getInstanceType() == ProblemInstanceType.pdb2) {
+			setDirection(KineticDelaunayTessellation.Direction.CCW);
+			List<AtomRecord> ars = f.getAtomRecords();
+			int maxAA = ars.get(ars.size()-1).residueNumber;
+			int indexAA = (int)Math.ceil(maxAA*((100-percentRot)/100.0));//+4;
+			
+			int j = 0;
+			for (j=0 ; j<ars.size() ; j++) {
+				if (ars.get(j).residueNumber==indexAA ) break;
+			}
+			//System.out.println("a = "+ars.get(j).atomType+" b = "+ars.get(j+1).atomType);
+			//System.out.println("a = "+j+" b = "+(j+1));
+			setRotationAxis(points.get(j), points.get(j+1));
+			setRotVertices(j+2 ,vertices.size()-1);
+//			setRotVertices(10, 30);
+		} else if (getInstanceType() == ProblemInstanceType.random) {
 			setRotationPoint(new Point(0.5,0.5,0.5));
 			setRotationAxis(new Vector(0, 0, 1));
+//			setRotationAxis(points.get(40), points.get(41));
 			setDirection(KineticDelaunayTessellation.Direction.CCW);
-			setRotVertices(vertices.size()/2,vertices.size()-1);
-		}
-		else {
-			Vector dir = new Vector(vertices.get(10), vertices.get(11));
+//			setRotVertices(vertices.size()/2,vertices.size()-1);
+			setRotVertices(10, 30);
+		} else { 
+			Vector dir = new Vector(vertices.get(4), vertices.get(5));
 			double scaleFactor = 1/dir.length();
 			this.setAlpha(alpha*scaleFactor);
 			dir.scaleToLengthThis(1);
 			Vector newDir = new Vector(0,0,1);
 			Vector cross = dir.cross(newDir).scaleToLength(1);
 			double angle = Vector.getAngle(dir, newDir);
-			Point vOld = vertices.get(10).clone();
+			Point vOld = vertices.get(4).clone();
 			Vertex v;
 			for (int i = 0; i < vertices.size(); i++) {
 				v = vertices.get(i);
 				v.translateThis(vOld);
 				v.scaleThis(scaleFactor);
-				v.rotation(cross, angle);
+				v.rotationCW(cross, angle);
 			}
-			setRotationPoint(vertices.get(10));
+			setRotationPoint(vertices.get(4));
 			setRotationAxis(newDir);
 			setDirection(KineticDelaunayTessellation.Direction.CCW);
-			setRotVertices(12, 13);
+			setRotVertices(5, 8);
 		}
+		
+		initializeRotation();
 	}
 	
 	/** Adds new event to the heap */
 	private void addToHeap(Double[] angles, Tet t, Tet nt) {
-		heap.insert(new HeapItem(angles, t, nt));
+		heap.insert(new HeapItem(angles, t, nt, null, null));
+	}
+	private void addToHeap(Double[] angles, Tet t) {
+		HeapItem newItem =  new HeapItem(angles, t, null, null, null);
+		heap.insert(newItem);
+	}
+	private void addToHeap(Double[] angles, Tri t) {
+		heap.insert(new HeapItem(angles, null, null, t, null));
+	}
+	private void addToHeap(Double[] angles, Edge e) {
+		heap.insert(new HeapItem(angles, null, null, null, e));
 	}
 	
 	/** Rotates and draws kinetic DT */
@@ -185,322 +243,113 @@ public class KineticDelaunayTessellation {
 		for (int k = 0; k < steps; k++) {
 			for (int i = 0; i < rotIndx.size(); i++) {
 				Vertex v = vertices.get(rotIndx.get(i));
-				v.rotation(rotationAxis, angleStep);
+				v.rotationCW(rotationAxis, angleStep);
+				if (screenAlpha) v.toScene(scene, Color.RED, 0.1);
 			}
-			try { Thread.sleep(1000); } catch (InterruptedException e) {}
-			if (testingScreen && sphereAnimation) animateSpheres();			
+			try { Thread.sleep(30); } catch (InterruptedException e) {}
+			if (testingScreen && sphereAnimation) animateSpheres();
+			//if (k==0) isAlpha(); 
+//			System.out.println("AlphaComplex? "+isAlpha()+" : "+alphaTets.toString()+" , "+alphaTris.toString()+", "+alphaEdges.toString());
+
 		}
 	}
-
 	
-	/** Deletes vertex v and all incident tetrahedra. Determines DT of the remaining vertices. */
-	public void delete(Vertex u, J3DScene scene) {
-		boolean testing = true;
-		Face f, oppFace, thirdFace;
-		Tet newTet, tet, faceOppTet, oppFaceOppTet;
-		Vertex a, b, c, d;
-		double gamma;
-		Color clr;
-		Sphere sphere = null;
-		
-		Hole hole = new Hole(this, u, scene, testing);
-		if (testing)
-			for (Face face : hole.faces) face.tet.fromSceneFace(scene, face.tet.indexOf(u));
-		
-		Heap heap = new Heap(vertices.size(), new SortToolHeapItemsDelete());
-
-		// heap containing pairs of faces surrounding vertex u is set up
-		for (Face face: hole.faces) {
-			if (testing) face.shape = face.tet.toSceneFace(scene, face.tet.indexOf(u), Color.pink);
-			for (int i = 0; i < 3; i++) {
-				oppFace = face.neighbors[i];
-				if (testing) {
-					oppFace.shape = oppFace.tet.toSceneFace(scene, oppFace.tet.indexOf(u), Color.yellow);
+	private boolean isAlpha() {
+		boolean ret = true;
+		Set<Tri> trisHandl = new HashSet<Tri>();
+		Set<Edge> edgHandl = new HashSet<Edge>();
+		for (Tet t : tets) {
+			if (!t.isAlive()) {
+				System.out.println("Tet "+t.toString()+" is not alive!");
+				break;
+			}
+			if ((t.isAlpha(alphaVal) && (!(alphaTets.contains(t)))) || ((!(t.isAlpha(alphaVal))) && alphaTets.contains(t))) {
+				if ((t.getCircumSphereRadius()<(alphaVal-Constants.EPSILON) || (t.getCircumSphereRadius()>(alphaVal+Constants.EPSILON)))) {
+					System.out.println("Wrong tet in alpha : "+t.toString()+" radius = "+t.getCircumSphereRadius()+" count = "+t.getCount()+" at angle "+angleTotal);
+					double e = Math.abs(t.getCircumSphereRadius()-alphaVal);
+					error += e;
+					if (e>maxError) maxError=e;
+					nrErrors++;
 				}
-				if (!oppFace.processed) {
-					gamma = Point.orientation(face.vertices[0], face.vertices[1], face.vertices[2], oppFace.getFreeVertex(face));
-					if (gamma > 0.0) {
-						double beta = Point.inSphere(face.vertices[0], face.vertices[1], face.vertices[2], oppFace.getFreeVertex(face), u);
-						heap.insert(new HeapItemDelete(face, oppFace, -beta/gamma));
-						if (testing) { 
-							System.out.println(face.toString() + oppFace.toString() + " " + (beta/gamma));
-							sphere = new Sphere(face.vertices[0], face.vertices[1], face.vertices[2], oppFace.getFreeVertex(face));
-							sphere.toScene(scene, new Color(255,0,0,50));
-						}
-					}
+				ret = false;
+			}
+			for (Tri tri : t.getTris()) {
+				if (trisHandl.contains(tri)) continue;
+				if (!tri.isAlive()) {
+					System.out.println("Tri "+tri.toString()+" is not alive!");
+					break;
 				}
-				if (testing) {
-					scene.removeShape(oppFace.shape);
-					scene.removeShape(sphere);
+				if ((tri.isAlpha(alphaVal) && (!(alphaTris.contains(tri)))) || ((!(tri.isAlpha(alphaVal))) && alphaTris.contains(tri))) {
+					if ((tri.getCircumRadius()<(alphaVal-Constants.EPSILON) || (tri.getCircumRadius()>(alphaVal+Constants.EPSILON)))) {
+						System.out.println("Wrong tri in alpha : "+tri.toString()+" radius = "+tri.getCircumRadius()+" count = "+tri.getCount()+" at angle "+angleTotal);
+					}
+					ret = false;
 				}
+				trisHandl.add(tri);
 			}
-			face.processed = true;
-			if (testing) scene.removeShape(face.shape);
-		}
-
-		if (testing)
-			for (Face face : hole.faces) {
-				face.oppTet.toSceneFace(scene, face.oppTet.indexOf(face.vertices[0], face.vertices[1], face.vertices[2]), Color.red);
-			}
-		
-		for (Face face: hole.faces) face.processed = false;
-		
-		Face face;
-		while (hole.faces.size() != 4) {
-			
-			HeapItemDelete item = null;
-			
-			item = (HeapItemDelete)heap.extract();
-			f = item.getF();
-			oppFace = item.getOppFace();
-			faceOppTet = f.oppTet;
-			if (!f.processed && !oppFace.processed) {
-				oppFaceOppTet = oppFace.oppTet;
-				thirdFace = f.commonNeighbor(oppFace);
-				if ((thirdFace != null) && !thirdFace.processed) {
-					a = f.getFreeVertex(oppFace);
-					b = oppFace.getFreeVertex(thirdFace);
-					c = thirdFace.getFreeVertex(f);
-					d = f.getCommonVertex(oppFace, thirdFace);
-					hole.vertices.remove(d);
-					hole.faces.remove(f); 
-					f.processed = true;
-					hole.faces.remove(oppFace);
-					oppFace.processed = true;
-					hole.faces.remove(thirdFace);
-					thirdFace.processed = true;
-					if (testing) {
-						f.oppTet.fromSceneFace(scene, f.oppTet.indexOf(f.vertices[0], f.vertices[1], f.vertices[2]));
-						oppFace.oppTet.fromSceneFace(scene, oppFace.oppTet.indexOf(oppFace.vertices[0], oppFace.vertices[1], oppFace.vertices[2]));
-						thirdFace.oppTet.fromSceneFace(scene, thirdFace.oppTet.indexOf(thirdFace.vertices[0], thirdFace.vertices[1], thirdFace.vertices[2]));
-					}
-					newTet = new Tet(a, b, c, d);
-					tets.add(newTet);
-					if (testing) newTet.toSceneEdges(scene, Color.blue, 0.001);
-					if (testing) if (!newTet.getCircumSphere().containsNoneButAtMostOne(u, vertices)) System.out.println("Not Delaunay");
-
-					// neighbor pointers are updated
-					newTet.neighbors[newTet.indexOf(a)] = oppFace.oppTet;
-					newTet.neighbors[newTet.indexOf(b)] = thirdFace.oppTet;
-					newTet.neighbors[newTet.indexOf(c)] = f.oppTet;
-					newTet.neighbors[newTet.indexOf(d)] = null;
-					oppFace.oppTet.neighbors[oppFace.oppTet.indexOf(b, c, d)] = newTet;
-					thirdFace.oppTet.neighbors[thirdFace.oppTet.indexOf(c, a, d)] = newTet;
-					f.oppTet.neighbors[f.oppTet.indexOf(a, b, d)] = newTet;
-					
-					// hole is updated
-					Face newFace = hole.new Face(a, b, c, d, null, newTet);
-					hole.faces.add(newFace);
-					if (testing) newTet.toSceneFace(scene, newTet.indexOf(a, b, c), Color.red);
-					face = oppFace.neighbors[oppFace.indexOf(d)];
-					newFace.neighbors[newFace.indexOf(a)] = face;
-					face.neighbors[face.IndexOfFreeVertex(oppFace)] = newFace;
-					
-					// new face pairs are identified
-					gamma = Point.orientation(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace));
-					if (gamma > 0.0) {
-						double beta = Point.inSphere(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace), u);
-						heap.insert(new HeapItemDelete(face, oppFace, -beta/gamma));
-					}
-					face = thirdFace.neighbors[thirdFace.indexOf(d)];
-					newFace.neighbors[newFace.indexOf(b)] = face;
-					face.neighbors[face.IndexOfFreeVertex(thirdFace)] = newFace;
-					gamma = Point.orientation(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace));
-					if (gamma > 0.0) {
-						double beta = Point.inSphere(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace), u);
-						heap.insert(new HeapItemDelete(face, thirdFace, -beta/gamma));
-					}
-					face = f.neighbors[f.indexOf(d)];
-					newFace.neighbors[newFace.indexOf(c)] = face;
-					face.neighbors[face.IndexOfFreeVertex(f)] = newFace;
-					gamma = Point.orientation(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace));
-					if (gamma > 0.0) {
-						double beta = Point.inSphere(newFace.vertices[0], newFace.vertices[1], newFace.vertices[2], face.getFreeVertex(newFace), u);
-						heap.insert(new HeapItemDelete(face, f, -beta/gamma));
-					}
+			for (Edge e : t.getEdges()) {
+				if (edgHandl.contains(e)) continue;
+				if (!e.isAlive()) {
+					System.out.println("Edge "+e.toString()+" is not alive!");
+					break;
 				}
-				else {
-					a = f.getFreeVertex(oppFace);
-					d = oppFace.getFreeVertex(f);
-					b = f.vertices[0];
-					if (b == a) {
-						b = f.vertices[1];
-						c = f.vertices[2];
+				if ((e.isAlpha(alphaVal) && (!(alphaEdges.contains(e)))) || ((!(e.isAlpha(alphaVal))) && alphaEdges.contains(e))) {
+					if ((e.getCircumRadius()<(alphaVal-Constants.EPSILON) || (e.getCircumRadius()>(alphaVal+Constants.EPSILON)))) {
+						System.out.println("Wrong edge in alpha : "+e.toString()+" radius = "+e.getCircumRadius()+" count = "+e.getCount()+" at angle "+angleTotal);
 					}
-					else {
-						c = f.vertices[1];
-						if (c == a) c = f.vertices[2];
-					}
-					hole.faces.remove(f);
-					f.processed = true;
-					hole.faces.remove(oppFace);
-					oppFace.processed = true;
-					if (testing) {
-						f.oppTet.fromSceneFace(scene, f.oppTet.indexOf(f.vertices[0], f.vertices[1], f.vertices[2]));
-						oppFace.oppTet.fromSceneFace(scene, oppFace.oppTet.indexOf(oppFace.vertices[0], oppFace.vertices[1], oppFace.vertices[2]));
-					}
-	
-					newTet = new Tet(f.vertices[0], f.vertices[1], f.vertices[2], d);
-					tets.add(newTet);
-					if (testing) newTet.toSceneEdges(scene, Color.blue, 0.001);
-					if (testing) if (!newTet.getCircumSphere().containsNoneButAtMostOne(u, vertices)) System.out.println("Not Delaunay");
-
-					// neighbor pointers are updated
-					newTet.neighbors[newTet.indexOf(a)] = oppFace.oppTet;
-					newTet.neighbors[newTet.indexOf(d)] = f.oppTet;
-					oppFace.oppTet.neighbors[oppFace.oppTet.indexOf(b, c, d)] = newTet;
-					f.oppTet.neighbors[f.oppTet.indexOf(a, b, c)] = newTet;
-					
-					// hole is updated, first new face is added
-					Face newFace1 = hole.new Face(a, b, d, c, null, newTet);
-					hole.faces.add(newFace1);
-					if (testing) newTet.toSceneFace(scene, newTet.indexOf(a, b, d), Color.red);
-	
-					// new face pairs are identified
-					face = oppFace.neighbors[oppFace.indexOf(c)];
-					newFace1.neighbors[newFace1.indexOf(a)] = face;
-					face.neighbors[face.IndexOfFreeVertex(oppFace)] = newFace1;
-					gamma = Point.orientation(newFace1.vertices[0], newFace1.vertices[1], newFace1.vertices[2], face.getFreeVertex(newFace1));
-					if (gamma > 0.0) {
-						double beta = Point.inSphere(newFace1.vertices[0], newFace1.vertices[1], newFace1.vertices[2], face.getFreeVertex(newFace1), u);
-						heap.insert(new HeapItemDelete(face, newFace1, -beta/gamma));
-					}
-	
-					face = f.neighbors[f.indexOf(c)];
-					newFace1.neighbors[newFace1.indexOf(d)] = face;
-					face.neighbors[face.IndexOfFreeVertex(f)] = newFace1;
-					gamma = Point.orientation(newFace1.vertices[0], newFace1.vertices[1], newFace1.vertices[2], face.getFreeVertex(newFace1));
-					if (gamma > 0.0) {
-						double beta = Point.inSphere(newFace1.vertices[0], newFace1.vertices[1], newFace1.vertices[2], face.getFreeVertex(newFace1), u);
-						heap.insert(new HeapItemDelete(face, newFace1, -beta/gamma));
-					}
-					
-					// hole is updated, second new face is added
-					Face newFace2 = hole.new Face(a, c, d, b, null, newTet);
-					hole.faces.add(newFace2);
-					if (testing) newTet.toSceneFace(scene, newTet.indexOf(a, c, d), Color.red);
-					
-					face = oppFace.neighbors[oppFace.indexOf(b)];
-					newFace2.neighbors[newFace2.indexOf(a)] = face;
-					face.neighbors[face.IndexOfFreeVertex(oppFace)] = newFace2;
-					gamma = Point.orientation(newFace2.vertices[0], newFace2.vertices[1], newFace2.vertices[2], face.getFreeVertex(newFace2));
-					if (gamma > 0.0) {
-						double beta = Point.inSphere(newFace2.vertices[0], newFace2.vertices[1], newFace2.vertices[2], face.getFreeVertex(newFace2), u);
-						heap.insert(new HeapItemDelete(face, newFace2, -beta/gamma));
-					}
-					
-					face = f.neighbors[f.indexOf(b)];
-					newFace2.neighbors[newFace2.indexOf(d)] = face;
-					face.neighbors[face.IndexOfFreeVertex(f)] = newFace2;
-					gamma = Point.orientation(newFace2.vertices[0], newFace2.vertices[1], newFace2.vertices[2], face.getFreeVertex(newFace2));
-					if (gamma > 0.0) {
-						double beta = Point.inSphere(newFace2.vertices[0], newFace2.vertices[1], newFace2.vertices[2], face.getFreeVertex(newFace2), u);
-						heap.insert(new HeapItemDelete(face, newFace2, -beta/gamma));
-					}
-					
-					newFace1.neighbors[newFace1.indexOf(b)] = newFace2;
-					newFace2.neighbors[newFace2.indexOf(c)] = newFace1;
+					return false;
 				}
+				edgHandl.add(e);
 			}
 		}
-		
-		heap.clear();
-		
-		Face face1 = hole.faces.remove(0);
-		Face face2 = hole.faces.remove(0);
-		Face face3 = hole.faces.remove(0);
-		Face face4 = hole.faces.remove(0);
-		if (testing) {
-			face1.oppTet.fromSceneFace(scene, face1.oppTet.indexOf(face1.vertices[0], face1.vertices[1], face1.vertices[2]));
-			face2.oppTet.fromSceneFace(scene, face2.oppTet.indexOf(face2.vertices[0], face2.vertices[1], face2.vertices[2]));
-			face3.oppTet.fromSceneFace(scene, face3.oppTet.indexOf(face3.vertices[0], face3.vertices[1], face3.vertices[2]));
-			face4.oppTet.fromSceneFace(scene, face4.oppTet.indexOf(face4.vertices[0], face4.vertices[1], face4.vertices[2]));
-		}		
-		a = face1.vertices[0];
-		b = face1.vertices[1];
-		c = face1.vertices[2];
-		d = face2.getFreeVertex(face1);
-		newTet = new Tet(a, b, c, d);
-		tets.add(newTet);
-		if (testing) newTet.toSceneEdges(scene, Color.blue, 0.001);
-		
-		// looking for face that does not contain a
-		face = face1;
-		if (face.containsVertex(a)) {
-			face = face2;
-			if (face.containsVertex(a)) {
-				face = face3;
-				if (face.containsVertex(a)) face = face4;
-			}
-		}
-		newTet.neighbors[newTet.indexOf(a)] = face.oppTet;
-		face.oppTet.neighbors[face.oppTet.indexOf(b, c, d)] = newTet;
-
-		// looking for face that does not contain b
-		face = face1;
-		if (face.containsVertex(b)) {
-			face = face2;
-			if (face.containsVertex(b)) {
-				face = face3;
-				if (face.containsVertex(b)) face = face4;
-			}
-		}
-		newTet.neighbors[newTet.indexOf(b)] = face.oppTet;
-		face.oppTet.neighbors[face.oppTet.indexOf(a, c, d)] = newTet;
-		if (testing) {
-			System.out.println("Neighbor of " + newTet.toString() + " facing " + b + " is " + face.oppTet.toString() );
-			System.out.println("Neighbor of " + face.oppTet.toString() + " facing " + face.oppTet.getCorner(face.oppTet.indexOf(a,c,d)) + " is " + newTet.toString() );
-		}
-		
-		// looking for face that does not contain c
-		face = face1;
-		if (face.containsVertex(c)) {
-			face = face2;
-			if (face.containsVertex(c)) {
-				face = face3;
-				if (face.containsVertex(c)) face = face4;
-			}
-		}
-		newTet.neighbors[newTet.indexOf(c)] = face.oppTet;
-		face.oppTet.neighbors[face.oppTet.indexOf(a, b, d)] = newTet;
-		
-		// looking for face that does not contain d
-		face = face1;
-		if (face.containsVertex(d)) {
-			face = face2;
-			if (face.containsVertex(d)) {
-				face = face3;
-				if (face.containsVertex(d)) face = face4;
-			}
-		}
-		newTet.neighbors[newTet.indexOf(d)] = face.oppTet;
-		face.oppTet.neighbors[face.oppTet.indexOf(a, b, c)] = newTet;
+		return ret;
 	}
-
 	
 	/** Returns the rotation direction (clockwise or counterclockwise */
 	public Direction getDirection() { return rotDir; }
 
 	/** Reads or creates a problem instance */
-	private List<Point> getInstance(ProblemInstanceType instanceType) {
+	private List<Point> getInstance(ProblemInstanceType instanceType, int size) {
+		
+		if ( getInstanceType() == ProblemInstanceType.chain2) {
+			f = new PDBFile("/home/daisy/Downloads/2oed_cs_244_samples/sample_000267200000_2_91.576430.pdb", true);
+			return f.getAtomCoords();
+		}
+		if ( getInstanceType() == ProblemInstanceType.chain) {
+			f = new PDBFile("/home/daisy/Downloads/2oed_cs_244_samples/sample_000000200000_2_284.178215.pdb", true);
+			return f.getAtomCoords();
+		}
+		if (instanceType == ProblemInstanceType.pdb2) {
+			f = new PDBFile("/home/daisy/Downloads/2oed_cs_244_samples/sample_000000200000_2_284.178215.pdb", false);
+			return f.getAtomCoords();
+		}
+		if (instanceType == ProblemInstanceType.pdb1 || instanceType == ProblemInstanceType.pdb1_AA) {
+			f = new PDBFile("/home/daisy/Downloads/1X0O.pdb", false);
+			return f.getAtomCoords();
+		}
 		if (instanceType == ProblemInstanceType.pdbNCC) {
 			// reads a pdb-file - at the moment reads the backbone atoms only
-			PDBFile f = new PDBFile("/Users/pawel/Downloads/1X0O.pdb");
+			PDBFile f = new PDBFile("/Users/pawel/Downloads/1X0O.pdb", false);
 			return f.getAtomCoords("N,Ca,C");	
 		}
 		if (instanceType == ProblemInstanceType.random) {
 		// Generates a set of uniformly distributed points inside a unit cube
-			Randomization.seed(3);
-			return PointList.generatePointsInCube(10, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
+			Randomization.seed(17);
+			return PointList.generatePointsInCube(size, -2.5, 2.5, -2.5, 2.5, -2.5, 2.5);
 		}
 		if (instanceType == ProblemInstanceType.toy) {
 		// Generates a toy example
 			List<Point> points = new java.util.LinkedList<Point>();
 			points.add(new Point(0,0,0));
-			points.add(new Point(1,0,0));
-			points.add(new Point(0,1,0));
-			points.add(new Point(0,0,1));
+			points.add(new Point(1.5,0.5,0));
+			points.add(new Point(0,1.5,0.5));
+			points.add(new Point(0,0.5,1.5));
 			points.add(new Point(1.1,1.1,1.1));
+			points.add(new Point(0.1,1.5,0.5));
+			points.add(new Point(1.1,1.5,0.5));
+			points.add(new Point(0.1,1.3,0.2));
+			points.add(new Point(0.4,0.5,1.5));
+			points.add(new Point(1.0,1.2,1.2));
 			return points;
 		}
 		return null;
@@ -543,7 +392,7 @@ public class KineticDelaunayTessellation {
 	}
 	
 	/** Returns the list of tetrahedra */
-	public List<Tet> getTets() { return tets; }
+//	public Set<Tet> getTets() { return tets; }
 
 	/** Returns i-th vertex */
 	public Vertex getVertex(int i) { return vertices.get(i); }
@@ -592,6 +441,518 @@ public class KineticDelaunayTessellation {
 		restoreNeighborhood(newTets);
 		tets.addAll(newTets);
 	}
+	
+	// Daisy
+/*	private Edge getEdge(Edge e) {
+		int idx = edges.indexOf(e);
+		if (idx > -1) return edges.get(idx);
+		return null;
+	}*/
+	private void initializeAlphaComplex() {
+		for (Tet t : tets) {
+			if (!t.isAlive()) continue;
+//			System.out.println("Tet = "+t.toString());
+			Double[] angles;
+			Vertex v0 = t.getCorner(0);
+			Vertex v1 = t.getCorner(1);
+			Vertex v2 = t.getCorner(2);
+			Vertex v3 = t.getCorner(3);
+			
+			//Test each tetrahedron
+			int count = t.getCount();
+			int idxR0 = -1;
+			int idxR1 = -1;
+			int idxS0 = -1;
+			int idxS1 = -1;
+			int idxS2 = -1;
+			int idxS3 = -1;
+			if (count==8 || count==7) {
+				idxR0 = 3;
+				idxS0 = 0;
+				idxS1 = 1;
+				idxS2 = 2;
+			} else if (count==4 || count==11) {
+				idxR0 = 2;
+				idxS0 = 0;
+				idxS1 = 1;
+				idxS2 = 3;
+			} else if (count==2 || count==13) {
+				idxR0 = 1;
+				idxS0 = 0;
+				idxS1 = 2;
+				idxS2 = 3;
+			} else if (count==1 || count==14) {
+				idxR0 = 0;
+				idxS0 = 1;
+				idxS1 = 2;
+				idxS2 = 3;
+			} else if (count==3) {
+				idxR0 = 0;
+				idxR1 = 1;
+				idxS0 = 2;
+				idxS1 = 3;
+			} else if (count==6) {
+				idxR0 = 1;
+				idxR1 = 2;
+				idxS0 = 0;
+				idxS1 = 3;
+			} else if (count==12) {
+				idxR0 = 2;
+				idxR1 = 3;
+				idxS0 = 0;
+				idxS1 = 1;
+			} else if (count==9) {
+				idxR0 = 0;
+				idxR1 = 3;
+				idxS0 = 1;
+				idxS1 = 2;
+			} else if (count==5) {
+				idxR0 = 0;
+				idxR1 = 2;
+				idxS0 = 1;
+				idxS1 = 3;
+			} else if (count==0 || count==15) {
+				if (t.getCount()==15) tet4Rot++;
+				idxS0 = 0;
+				idxS1 = 1;
+				idxS2 = 2;
+				idxS3 = 3;
+			} else if (count==10) {
+				idxR0 = 1;
+				idxR1 = 3;
+				idxS0 = 0;
+				idxS1 = 2;
+			}
+			if (count == 0 || count == 15) {
+				noRotate(t, t.getCorner(idxS0), t.getCorner(idxS1), t.getCorner(idxS2), t.getCorner(idxS3));
+			}
+			if (count == 1 || count == 2 || count == 4 || count == 8 || count == 7 || count == 11 || count == 13 || count == 14) {
+				oneRotate(t, t.getCorner(idxS0), t.getCorner(idxS1), t.getCorner(idxS2), t.getCorner(idxR0));
+				
+			}
+			if (count == 3 || count == 6 || count == 12 || count == 9 || count == 5 || count == 10) {
+				twoRotate(t, t.getCorner(idxS0), t.getCorner(idxS1), t.getCorner(idxR0), t.getCorner(idxR1));
+			}
+			//Test each edge
+			Edge tmp;
+			if (!mapEdges.containsKey(new EdgePoints(v0, v1))) {
+				tmp =  new Edge(v0, v1);
+				if (tmp.getCount()==3) edg2Rot++;
+				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
+				mapEdges.put(new EdgePoints(v0, v1), tmp);
+				//edges.add(tmp);
+				tmp.setTet(t);
+				t.setEdge(tmp);
+				if (tmp.isAlpha(alphaVal)) {
+					alphaEdges.add(tmp);
+					tmp.setAlph(true);
+				}
+				angles = getRoot(v0, v1, tmp.getCount());
+				if ((angles != null) && (angles[0] < angleLimit)) {
+					addToHeap(angles, tmp);
+				}
+			} else t.setEdge(mapEdges.get(new EdgePoints(v0, v1)));
+			
+			if (!mapEdges.containsKey(new EdgePoints(v0, v2))) {
+				tmp =  new Edge(v0, v2);
+				if (tmp.getCount()==3) edg2Rot++;
+				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
+				mapEdges.put(new EdgePoints(v0, v2), tmp);
+				//edges.add(tmp);
+				tmp.setTet(t);
+				t.setEdge(tmp);
+				if (tmp.isAlpha(alphaVal)) {
+					alphaEdges.add(tmp);
+					tmp.setAlph(true);
+				}
+				angles = getRoot(v0, v2, tmp.getCount());
+				if ((angles != null) && (angles[0] < angleLimit)) {
+					addToHeap(angles, tmp);// Requires simplex-interface
+				}
+			} else t.setEdge(mapEdges.get(new EdgePoints(v0, v2)));
+			
+			if (!mapEdges.containsKey(new EdgePoints(v0, v3))) {
+				tmp =  new Edge(v0, v3);
+				if (tmp.getCount()==3) edg2Rot++;
+				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
+				mapEdges.put(new EdgePoints(v0, v3), tmp);
+				//edges.add(tmp);
+				tmp.setTet(t);
+				t.setEdge(tmp);
+				if (tmp.isAlpha(alphaVal)) {
+					alphaEdges.add(tmp);
+					tmp.setAlph(true);
+				}
+				angles = getRoot(v0, v3, tmp.getCount());
+				if ((angles != null) && (angles[0] < angleLimit)) {
+					addToHeap(angles, tmp); // Requires simplex-interface
+				}
+			} else t.setEdge(mapEdges.get(new EdgePoints(v0, v3)));
+			
+			if (!mapEdges.containsKey(new EdgePoints(v1, v2))) {
+				tmp =  new Edge(v1, v2);
+				if (tmp.getCount()==3) edg2Rot++;
+				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
+				mapEdges.put(new EdgePoints(v1, v2), tmp);
+//				edges.add(tmp);
+				tmp.setTet(t);
+				t.setEdge(tmp);
+				if (tmp.isAlpha(alphaVal)) {
+					alphaEdges.add(tmp);
+					tmp.setAlph(true);
+				}
+				angles = getRoot(v1, v2, tmp.getCount());
+				if ((angles != null) && (angles[0] < angleLimit)) {
+					addToHeap(angles, tmp);// Requires simplex-interface
+				}
+			} else t.setEdge(mapEdges.get(new EdgePoints(v1, v2)));
+			
+			if (!mapEdges.containsKey(new EdgePoints(v1, v3))) {
+				tmp =  new Edge(v1, v3);
+				if (tmp.getCount()==3) edg2Rot++;
+				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
+				mapEdges.put(new EdgePoints(v1, v3), tmp);
+//				edges.add(tmp);
+				tmp.setTet(t);
+				t.setEdge(tmp);
+				if (tmp.isAlpha(alphaVal)) {
+					alphaEdges.add(tmp);
+					tmp.setAlph(true);
+				}
+				angles = getRoot(v1, v3, tmp.getCount());
+				if ((angles != null) && (angles[0] < angleLimit)) {
+					addToHeap(angles, tmp);// Requires simplex-interface
+				}
+			} else t.setEdge(mapEdges.get(new EdgePoints(v1, v3)));
+			
+			if (!mapEdges.containsKey(new EdgePoints(v2, v3))) {
+				tmp =  new Edge(v2, v3);
+				if (tmp.getCount()==3) edg2Rot++;
+				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
+				mapEdges.put(new EdgePoints(v2, v3), tmp);
+//				edges.add(tmp);
+				tmp.setTet(t);
+				t.setEdge(tmp);
+				if (tmp.isAlpha(alphaVal)) {
+					alphaEdges.add(tmp);
+					tmp.setAlph(true);
+				}
+				angles = getRoot(v2, v3, tmp.getCount());
+				if ((angles != null) && (angles[0] < angleLimit)) {
+					addToHeap(angles, tmp);// Requires simplex-interface
+				}
+			} else t.setEdge(mapEdges.get(new EdgePoints(v2, v3)));
+		}
+	}
+	
+	private void noRotate(Tet t, Vertex s0, Vertex s1, Vertex s2, Vertex s3) {
+		if (t.isAlpha(alphaVal)) {
+			alphaTets.add(t);
+			t.setAlph(1);
+		}
+		Tri tri;
+		if (!mapTris.containsKey(new TrianglePoints(s0, s1, s2))) {
+			tri = new Tri(s0, s1, s2);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s0, s1, s2), tri);
+			t.setTri(tri, t.indexOf(s3));
+//			tris.add(tri);
+			tri.setTet(t);
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s0, s1, s2));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s3));
+		}
+		if (!mapTris.containsKey(new TrianglePoints(s0, s1, s3))) {
+			tri = new Tri(s0, s1, s3);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s0, s1, s3), tri);
+			t.setTri(tri, t.indexOf(s2));
+//			tris.add(tri);
+			tri.setTet(t);
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s0, s1, s3));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s2));
+		}
+		if (!mapTris.containsKey(new TrianglePoints(s1, s2, s3))) {
+			tri = new Tri(s1, s2, s3);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s1, s2, s3), tri);
+			t.setTri(tri, t.indexOf(s0));
+//			tris.add(tri);
+			tri.setTet(t);
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s1, s2, s3));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s0));
+		}
+		if (!mapTris.containsKey(new TrianglePoints(s0, s2, s3))) {
+			tri = new Tri(s0, s2, s3);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s0, s2, s3), tri);
+			t.setTri(tri, t.indexOf(s1));
+//			tris.add(tri);
+			tri.setTet(t);
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s0, s2, s3));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s1));
+		}
+	}
+	private void oneRotate(Tet t, Vertex s0, Vertex s1, Vertex s2, Vertex r) {
+		double d0 = s0.distanceSquared(s1);
+		double d1 = s1.distanceSquared(s2);
+		double d2 = s2.distanceSquared(s0);
+		double a0 = r.distanceSquared(s0);
+		double a1 = r.distanceSquared(s1);
+		double a2 = r.distanceSquared(s2);
+		if (t.isAlpha(alphaVal)) {
+			alphaTets.add(t);
+			t.setAlph(1);
+		} else if (a0 < d0 && a1 < d0 && a1 < d1 && a2 < d2 && a2 < d2 && a0 < d2) {
+			t.setAlph(2);
+		} else t.setAlph(0);
+		angles = getRoot(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3), t.getCount());
+		if ((angles != null) && (angles[0] < angleLimit)) {
+			addToHeap(angles, t);
+		}
+		Tri tri;
+		if (!mapTris.containsKey(new TrianglePoints(s0, s1, s2))) {
+			tri = new Tri(s0, s1, s2);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s0, s1, s2), tri);
+//			tris.add(tri);
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf_slow(r));
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s0, s1, s2));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(r));
+		}
+		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r))) {
+			tri = new Tri(s0, s1, r);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s0, s1, r), tri);
+//			tris.add(tri);
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s2));
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			} else {
+				Point center = Point.getMidpoint(s0, s1);
+				Circle C = new Circle(center, alphaVal, center.vectorTo(s0));
+				double dist = C.getDistanceSquared(r);
+				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
+					tri.setAlph(2);
+				} else tri.setAlph(0);
+			}
+			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
+			if ((angles != null) && (angles[0] < angleLimit)) {
+				addToHeap(angles, tri);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s0, s1, r));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s2));
+		}
+		if (!mapTris.containsKey(new TrianglePoints(s0, s2, r))) {
+			tri = new Tri(s0, s2, r);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s0, s2, r), tri);
+//			tris.add(tri);
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s1));
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			} else {
+				Point center = Point.getMidpoint(s0, s2);
+				Circle C = new Circle(center, alphaVal, center.vectorTo(s0));
+				double dist = C.getDistanceSquared(r);
+				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
+					tri.setAlph(2);
+				} else tri.setAlph(0);
+			}
+			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
+			if ((angles != null) && (angles[0] < angleLimit)) {
+				addToHeap(angles, tri);
+				
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s0, s2, r));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s1));
+		}
+		if (!mapTris.containsKey(new TrianglePoints(s1, s2, r))) {
+			tri = new Tri(s1, s2, r);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s1, s2, r), tri);
+//			tris.add(tri);
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s0));
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			} else {
+				Point center = Point.getMidpoint(s1, s2);
+				Circle C = new Circle(center, alphaVal, center.vectorTo(s1));
+				double dist = C.getDistanceSquared(r);
+				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
+					tri.setAlph(2);
+				} else tri.setAlph(0);
+			}
+			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
+			if ((angles != null) && (angles[0] < angleLimit)) {
+				addToHeap(angles, tri);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s1, s2, r));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s0));
+		}
+	}
+	private void twoRotate(Tet t, Vertex s0, Vertex s1, Vertex r0, Vertex r1) {
+//		System.out.println("Looking at tet "+t.toString());
+		if (t.isAlpha(alphaVal)) {
+			alphaTets.add(t);
+			t.setAlph(1);
+		}
+		angles = getRoot(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3), t.getCount());
+		if ((angles != null) && (angles[0] < angleLimit)) {
+			addToHeap(angles, t);
+		}
+		Tri tri;
+		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r0))) {
+			tri = new Tri(s0, s1, r0);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s0, s1, r0), tri);
+//			tris.add(tri);
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf_slow(r1));
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			} else {
+				Point center = Point.getMidpoint(s0, s1);
+				Circle C = new Circle(center, alphaVal, center.vectorTo(s0));
+				double dist = C.getDistanceSquared(r0);
+				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
+					tri.setAlph(2);
+				} else tri.setAlph(0);
+			}
+			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
+			if ((angles != null) && (angles[0] < angleLimit)) {
+				addToHeap(angles, tri);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s0, s1, r0));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(r1));
+		}
+		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r1))) {
+			tri = new Tri(s0, s1, r1);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s0, s1, r1), tri);
+//			tris.add(tri);
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(r0));
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			} else {
+				Point center = Point.getMidpoint(s0, s1);
+				Circle C = new Circle(center, alphaVal, center.vectorTo(s0));
+				double dist = C.getDistanceSquared(r1);
+				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
+					tri.setAlph(2);
+				} else tri.setAlph(0);
+			}
+			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
+			if ((angles != null) && (angles[0] < angleLimit)) {
+				addToHeap(angles, tri);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s0, s1, r1));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(r0));
+		}
+		if (!mapTris.containsKey(new TrianglePoints(s0, r0, r1))) {
+			tri = new Tri(s0, r0, r1);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s0, r0, r1), tri);
+//			tris.add(tri);
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s1));
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			} else {
+				Point center = Point.getMidpoint(r0, r1);
+				Circle C = new Circle(center, alphaVal, center.vectorTo(r0));
+				double dist = C.getDistanceSquared(s0);
+				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
+					tri.setAlph(2);
+				} else tri.setAlph(0);
+			}
+			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
+			if ((angles != null) && (angles[0] < angleLimit)) {
+				addToHeap(angles, tri);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s0, r0, r1));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s1));
+		}
+		if (!mapTris.containsKey(new TrianglePoints(s1, r0, r1))) {
+			tri = new Tri(s1, r0, r1);
+			if (tri.getCount()==7) tri3Rot++;
+			mapTris.put(new TrianglePoints(s1, r0, r1), tri);
+//			tris.add(tri);
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s0));
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			} else {
+				Point center = Point.getMidpoint(r0, r1);
+				Circle C = new Circle(center, alphaVal, center.vectorTo(s1));
+				double dist = C.getDistanceSquared(s1);
+				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
+					tri.setAlph(2);
+				} else tri.setAlph(0);
+			}
+			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
+			if ((angles != null) && (angles[0] < angleLimit)) {
+				addToHeap(angles, tri);
+			}
+		} else {
+			tri = mapTris.get(new TrianglePoints(s1, r0, r1));
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(s0));
+		}
+	}
 
 	
 	/** Removes a tetrahedron from the list of tetrahedra */
@@ -631,7 +992,39 @@ public class KineticDelaunayTessellation {
 	public void setDirection(Direction rotDir) { this.rotDir = rotDir; }
 
 	/** Sets the direction vector of the rotation axis */
-	public void setRotationAxis(Vector v)  { rotationAxis = v; }
+	public void setRotationAxis(Vector v)  { rotationAxis = v.normalize(); }
+	
+	public void setRotationAxis(Point a, Point b)  {
+		Vector dir = a.vectorTo(b);
+		Vector e3 = new Vector(0,0,1);
+		Point rotPoint = a;
+		Point rotPoint1 = b;
+		if (!dir.isParallel(e3)) { //Rotate
+			Vector rotAxis = dir.cross(e3);
+			rotAxis.normalizeThis();
+			double angle = dir.angle(e3);
+			Matrix rotMatrix = Matrix.createRotationMatrix(angle, rotAxis);
+			for (Point v : vertices) {
+				v = (Point)rotMatrix.multiplyIn(v);
+			}
+			rotPoint = rotMatrix.multiply(a);
+			rotPoint1 = rotMatrix.multiply(b);
+		}
+		
+		//Translate
+		Line axis = new Line(dir);
+		Point linePoint = axis.orthogonalProjection(rotPoint);
+		Vector translate = rotPoint.vectorTo(linePoint);
+		for (Point v : vertices) {
+			v.addThis(translate);
+		}
+		rotPoint.addThis(translate);
+		rotPoint1.addThis(translate);
+		//Line l = new Line(rotPoint, rotPoint1);
+		//l.toScene(scene, 0.05, Color.BLUE);
+		//System.out.println("Rotation vector = "+rotPoint.vectorTo(rotPoint1).normalize());
+		rotationAxis = new Vector(0,0,1);
+	}
 
 	/** Sets the rotation point and translates all vertices so that the rotation point is in the origo.  */
 	public void setRotationPoint(Point rotationPoint) { 
@@ -671,6 +1064,233 @@ public class KineticDelaunayTessellation {
 		scene.repaint();
 	}
 
+	//Daisy
+	private double angleCW(Vector v1, Vector v2) {
+		double ret = Math.atan2(v1.y(), v1.x()) - Math.atan2(v2.y(), v2.x());
+		if (ret<0) { ret = Constants.TAU+ret; return ret; }
+		if (ret>0) { /*ret = (-1)*ret;*/ return ret; }
+		return ret;
+	}
+	private double angleCCW(Vector v1, Vector v2) {
+		double ret = Math.atan2(v1.y(), v1.x()) - Math.atan2(v2.y(), v2.x());
+		if (ret<0) { ret = (-1)*ret; return ret; }
+		if (ret>0) { ret = Constants.TAU-ret; return ret; }
+		return ret;
+	}
+	/** Create a sphere with center A and radius 2*alphaVal, check for intersection
+	 *  with the circle path of B 												  **/
+	private Double[] getRootSR(Vertex A, Vertex B, int dir) {
+//		if (A.distanceSquared(B) > 4*alphaVal*alphaVal) { System.out.println("Distance A to B is too big : "+A.distance(B)+" squared : "+A.distanceSquared(B)); return null; }
+		Double[] angles = new Double[4];
+		Sphere S = new Sphere(A, 2*alphaVal);
+		Circle C = new Circle(new Point(0.0,0.0,B.getCoord(2)), B.distanceXY(), rotationAxis);
+		Point[] intersectionPoints = S.getIntersections(C);
+		if (!(intersectionPoints==null) && intersectionPoints.length>1) {
+			int i = 0;
+			for (Point p : intersectionPoints) {
+				Point z = new Point(0.0, 0.0, B.getCoord(2));
+				if (dir == 1) {
+					angles[i] = (angleTotal+angleCCW(z.vectorTo(p), z.vectorTo((Point)B)));
+				} else	angles[i] = (angleTotal+angleCW(z.vectorTo(p), z.vectorTo((Point)B)));
+				i += 1;
+			}
+		}
+		
+		angles = getRotAngle(angles, 0);
+		return angles;
+	}
+	/** 
+	 * Create torus from static points and intersect it with the moving
+	 * @param A
+	 * @param B
+	 * @param C
+	 * @param dir
+	 * @return
+	 * @author Daisy
+	 */
+	private Double[] getRootSSR(Vertex A, Vertex B, Vertex C, int dir) {
+/*		if (A.getId()==118 && B.getId()==145 && C.getId()== 18) {
+			System.out.println("NOW!");
+		}*/
+		Double[] angles = new Double[4];
+		if (A.distanceSquared(B) >= 4*alphaVal*alphaVal) return null;
+		Point torusCenter = Point.getMidpoint(A, B);
+		//Find major radius using pythagoras:
+		double R = Math.pow(Math.abs(alphaVal*alphaVal-A.distanceSquared(torusCenter)), 0.5);
+		//Torus
+		Vector torusNormal = A.vectorTo(torusCenter).normalize();
+		Torus torus = new Torus(torusCenter, torusNormal, R, alphaVal);
+		//Circle
+		double circleRadius = C.distanceXY();
+		Circle circle = new Circle(new Point(0,0,C.getCoord(2)), circleRadius, rotationAxis);
+		
+		Point[] intersections = torus.getIntersectionCircle(circle);
+		int i = 0;
+		if (!(intersections==null)) {
+			for (Point p : intersections) {
+				if (p==null) break;
+				Point z = new Point(0.0, 0.0, C.getCoord(2));
+				if (dir==1) {
+					angles[i] = (angleTotal+angleCCW(z.vectorTo(p), z.vectorTo((Point)C)));
+				} else angles[i] = (angleTotal+angleCW(z.vectorTo(p), z.vectorTo((Point)C)));
+				i += 1;
+			}
+		}
+		return getRotAngle(angles, 0);
+	}
+	/** 
+	 * Create two spheres from three static points and radius alphaVal. Check for intersections between these and the rotation circle
+	 * @param A
+	 * @param B
+	 * @param C
+	 * @param D
+	 * @param dir
+	 * @return
+	 * @author Daisy
+	 */
+	private Double[] getRootSSSR(Vertex A, Vertex B, Vertex C, Vertex D, int dir) {
+		Double[] angles = new Double[4];
+		Circle c = new Circle(A, B, C);
+		Point midpoint = c.getCenter();
+		// Pythagoras
+		double cMinusa = alphaVal*alphaVal-A.distanceSquared(midpoint);
+		if (cMinusa<0) return null;
+		double distToCenter = Math.sqrt(Math.abs(cMinusa));
+		Vector vecToCenter = c.getNormal().clone();
+		vecToCenter.scaleToLengthThis(distToCenter);
+		
+		Point center0 = midpoint.clone().addThis(vecToCenter);
+		Point center1 = midpoint.clone().addThis(vecToCenter.multiply(-1.0));
+		Circle rotationC = new Circle(new Point(0.0, 0.0, D.getCoord(2)), D.distanceXY(), rotationAxis);
+//		rotationC.toScene(scene, 0.1, java.awt.Color.RED);
+		Sphere S0 = new Sphere(center0, alphaVal);
+		Point[] intersectionPoints1 = S0.getIntersections(rotationC);
+		int i;
+		if (!(intersectionPoints1==null)) {
+			i = 0;
+			for (Point p : intersectionPoints1) {
+				Point z = new Point(0.0, 0.0, D.getCoord(2));
+				if (dir==1) {
+					angles[i] = (angleTotal+angleCCW(z.vectorTo(p), z.vectorTo((Point)D)));
+				} else angles[i] = (angleTotal+angleCW(z.vectorTo(p), z.vectorTo((Point)D)));
+				i += 1;
+			}
+		} else i = 0;
+		Sphere S1 = new Sphere(center1, alphaVal);
+		Point[] intersectionPoints2 = S1.getIntersections(rotationC);
+		if (!(intersectionPoints2==null)) {
+//			int i = 2;
+			for (Point p : intersectionPoints2) {
+				Point z = new Point(0.0, 0.0, D.getCoord(2));
+				if (dir==1) {
+					angles[i] = (angleTotal+angleCCW(z.vectorTo(p), z.vectorTo((Point)D)));
+				} else angles[i] = (angleTotal+angleCW(z.vectorTo(p), z.vectorTo((Point)D)));
+				i += 1;
+			}
+		}
+		return getRotAngle(angles, 0);
+	}
+	
+	/** Numerical method
+	 * 
+	 * @param A
+	 * @param B
+	 * @param C
+	 * @param D
+	 * @param dir
+	 * @return
+	 * @author Daisy
+	 */
+	private Double[] getRootSSRR(Vertex A, Vertex B, Vertex C, Vertex D, int dir) {
+		tet2Rot++;
+//		System.out.println("Called with ["+A.getId()+", "+B.getId()+", "+C.getId()+", "+D.getId()+"]");
+		double precision = 0.05;
+		Double[] angles = new Double[4];
+		int numOfAngles = 0;
+		double offRadius = new Sphere(A, B, C, D).getRadius()-alphaVal;
+		double sign = Math.signum(offRadius);
+		Point Cnew;
+		Point Dnew;
+//		if (dir == 1) k = -1;
+		double angleSoFar = Math.floor(Math.toDegrees(angleTotal));
+		
+		for (double i = precision ; i<=Math.ceil(Math.toDegrees(angleLimit)-angleSoFar) ; i+=precision) {
+			Cnew = C.clone();
+			Dnew = D.clone();
+			if (dir == 0) {
+				Cnew.rotationCW(rotationAxis, Math.toRadians(i));
+				Dnew.rotationCW(rotationAxis, Math.toRadians(i));
+			} else {
+//				Cnew.rotationCCW(Z, Math.toRadians(i));
+//				Dnew.rotationCCW(Z, Math.toRadians(i));
+			}
+			double radius = new Sphere(A, B, Cnew, Dnew).getRadius();
+/*			if (A.getId()==5 && B.getId()==38 && C.getId()== 11 && D.getId()==13) {
+				System.out.println("Radius = "+radius+" angletotal = "+angleTotal);
+				System.out.println("Radius-alphaVal = "+(radius-alphaVal));
+			}*/
+			offRadius = radius-alphaVal;
+			if (Math.signum(offRadius) != sign) {
+/*				if (A.getId()==5 && B.getId()==38 && C.getId()== 11 && D.getId()==13) {
+					System.out.println("sign changed");
+				}*/
+//				System.out.println("Change in sign at "+i);
+				sign = Math.signum(offRadius);
+				Double angle = findAngle(i-precision, i, A, B, C, D, 0);
+				if (angle==null) {
+/*					if (A.getId()==5 && B.getId()==38 && C.getId()== 11 && D.getId()==13) {
+						System.out.println("Angles was null for this Tet");
+					}*/
+//					System.out.println("findAngle returned null");
+					return null;
+				}
+				
+				angles[numOfAngles] = Math.toRadians(angle)+angleTotal;
+				
+//				System.out.println("Angle in radians = "+angles[numOfAngles]);
+				numOfAngles++;
+			}
+		}
+		if (numOfAngles==0) {
+			return null;
+		} else return angles;
+	}
+	
+	private Double findAngle(double start, double end, Vertex A, Vertex B, Vertex C, Vertex D, int dir) {
+		Point Cnew = C.clone();
+		Point Dnew = D.clone();
+		if (dir == 0) {
+			Cnew.rotationCW(rotationAxis, Math.toRadians(start));
+			Dnew.rotationCW(rotationAxis, Math.toRadians(start));
+		}
+		double radius = new Sphere(A, B, Cnew, Dnew).getRadius();
+		if (Math.abs(radius-alphaVal)<Math.pow(10, -9)) return start;
+		double sign = Math.signum(radius-alphaVal);
+		double newStart = start;
+		double newEnd = end;
+		double angle = 0.0;
+		double newSign;
+		
+		for (int i = 0 ; i<99 ; i++) {
+			angle = (newEnd+newStart)/2.0;
+			Cnew = C.clone();
+			Dnew = D.clone();
+			if (dir == 0) {
+				Cnew.rotationCW(rotationAxis, Math.toRadians(angle));
+				Dnew.rotationCW(rotationAxis, Math.toRadians(angle));
+			}
+			radius = new Sphere(A, B, Cnew, Dnew).getRadius();
+			if (Math.abs(radius-alphaVal)<Math.pow(10, -9)) {
+				return angle;
+			}
+			newSign = Math.signum(radius-alphaVal);
+			if (newSign!=sign) {
+				newEnd = angle;
+			} else newStart = angle;
+		}
+		System.out.println("All 99 iterations used!!!! ");
+		return angle;
+	}
 	
 	private Double[] getRootSSSSR(Vertex A, Vertex B, Vertex C, Vertex D, Vertex E, int dir) {
 		double aa = A.getSquaredPolarRadius(); 
@@ -734,41 +1354,119 @@ public class KineticDelaunayTessellation {
 	    return getRotAngle(angles, dir);
 	}
 
-	
 	public Double[] getRotAngle(Double[] angles, int dir) {
-		if (angles == null || angles[1] == null) return null;
-		if (dir == 1) { 
-			angles[0] = Constants.TAU - angles[0] + angleTotal;
-			if (angles[0] > Constants.TAU) angles[0] = angles[0] - Constants.TAU;
-			angles[1] = Constants.TAU - angles[1] + angleTotal;
-			if (angles[1] > Constants.TAU) angles[1] = angles[1] - Constants.TAU;
+		if (angles == null || (angles[1]==null && angles[3]==null)) return null;
+		Double[] oldAngles = new Double[4];
+		int i = 0;
+		for (Double angle : angles) {
+			if (angle == null) continue;
+			oldAngles[i] = angle;
+			i += 1;
 		}
-		if (angles[1] < angles[0]) { double tmp = angles[1]; angles[1] = angles[0]; angles[0] = tmp; }
-		if (rotDir == Direction.CCW) {
-			if (angles[0] < angleTotal + Constants.EPSILON) {
-				if (angles[1] < angleTotal + Constants.EPSILON) angles[0] = angles[1] = Constants.TAU;
-				else {
-					angles[0] = angles[1];
-					angles[1] = Constants.TAU;
-				}
+		Double[] newAngles = new Double[i];
+		int j = 0;
+		for (Double angle : oldAngles) {
+			if (angle == null) break;
+			if (dir == 1){
+				angle = Constants.TAU-angle+angleTotal;
 			}
-		}
-		else {
-			if (Constants.TAU - angles[1] < angleTotal + Constants.EPSILON) {
-				if (Constants.TAU - angles[0] < angleTotal + Constants.EPSILON) angles[0] = angles[1] = Constants.TAU; 
-				else { 
-					angles[0] = Constants.TAU - angles[0];
-					angles[1] = Constants.TAU;
-				}
+			if (rotDir == Direction.CCW) {
+				if (angle < angleTotal + Constants.EPSILON) angle = angleLimit;//Constants.TAU;
 			}
 			else {
-				double tmp = angles[0];
-				angles[0] = Constants.TAU - angles[1];
-				angles[1] = Constants.TAU - tmp;
+				if (Constants.TAU - angle < angleTotal + Constants.EPSILON) angle = angleLimit;//Constants.TAU;
 			}
+			newAngles[j] = angle;
+			j += 1;
 		}
-		return angles;
-	}	
+		Arrays.sort(newAngles);
+		return newAngles;
+	}
+
+	// Edge
+	public Double[] getRoot(Vertex v0, Vertex v1, int count) {
+		if (count == 0 || count == 3) return null;
+		if (count == 1) {
+			return getRootSR(v1, v0, 0);
+		}
+		return getRootSR(v0, v1, 0);
+	}
+	
+	// Triangle
+	public Double[] getRoot(Vertex v0, Vertex v1, Vertex v2, int count) {
+		if (count == 0 || count == 7) return null;
+		if (count <=3 ) {
+			if (count == 1) return getRootSSR(v1, v2, v0, 0);
+			if (count == 2) return getRootSSR(v0, v2, v1, 0);
+			return getRootSSR(v0, v1, v2, 1);
+		}
+		if (count <= 5) {
+			if (count == 4) return getRootSSR(v0, v1, v2, 0);
+			return getRootSSR(v0, v2, v1, 1);
+		}
+		return getRootSSR(v1, v2, v0, 1);
+	}
+	
+	// Tetrahedron
+	public Double[] getRoot(Vertex v0, Vertex v1, Vertex v2, Vertex v3, int count) {
+		if ( count == 0 || count == 15 ) { return null; }
+		if ( count <= 7 ) {
+			if (count <=3 ) {
+				if (count == 1) return getRootSSSR(v1, v2, v3, v0, 0);
+				if (count == 2) return getRootSSSR(v0, v2, v3, v1, 0);
+				long start = System.nanoTime();
+				Double[] a = getRootSSRR(v2, v3, v0, v1, 0); 
+				numericalTime += (System.nanoTime() - start)/1000000.0;
+//				getRootSSSR(v2, v3, v0, v1, 0);
+				return a;
+			}
+			if (count <= 5) {
+				if (count == 4) return getRootSSSR(v0, v1, v3, v2, 0);
+				long start = System.nanoTime();
+				Double[] a = getRootSSRR(v1, v3, v0, v2, 0);
+				numericalTime += (System.nanoTime() - start)/1000000.0;
+//				getRootSSR(v1, v3, v0, 0);
+				return a;
+			}
+			if (count == 6) {
+				long start = System.nanoTime();
+				Double[] a = getRootSSRR(v0, v3, v1, v2, 0);
+				numericalTime += (System.nanoTime() - start)/1000000.0;
+//				getRootSSR(v0, v3, v1, 0);
+				return a;
+			}
+			return getRootSSSR(v0, v1, v2, v3, 1);
+		}
+		if (count <= 11) {
+			if (count <= 9) {
+				if (count == 8) return getRootSSSR(v0, v1, v2, v3, 0);
+				long start = System.nanoTime();
+				Double[] a = getRootSSRR(v1, v2, v0, v3, 0);
+				numericalTime += (System.nanoTime() - start)/1000000.0;
+//				getRootSSR(v1, v2, v0, 0);
+				return a;
+			}
+			if (count == 10) {
+				long start = System.nanoTime();
+				Double[] a = getRootSSRR(v0, v2, v1, v3, 0);
+				numericalTime += (System.nanoTime() - start)/1000000.0;
+//				getRootSSR(v0, v2, v1, 0);
+				return a;
+			}
+			return getRootSSSR(v0, v1, v3, v2, 1);
+		}
+		if (count <= 13) {
+			if (count == 12) {
+				long start = System.nanoTime();
+				Double[] a = getRootSSRR(v0, v1, v2, v3, 0);
+				numericalTime += (System.nanoTime() - start)/1000000.0;
+//				getRootSSR(v0, v1, v2, 0);
+				return a;
+			}
+			return getRootSSSR(v0, v2, v3, v1, 1);
+		}
+		return getRootSSSR(v1, v2, v3, v0, 1);
+	}
 
 	public Double[] getRoot(Tet t, Tet oppT) {
 		int count = t.getCount();
@@ -893,6 +1591,7 @@ public class KineticDelaunayTessellation {
 				}
 			}
 		}
+		initializeAlphaComplex();
 	}
 
 	
@@ -905,18 +1604,198 @@ public class KineticDelaunayTessellation {
 	 * @return The newly created tetrahedron.
 	 */
 	private Tet[] flip23(Tet t0, Tet t1){
-
+		long start = System.nanoTime();
+		nrFlips++;
 		Vertex vns0 = t0.getCorner(t0.apex(t1));
 		Vertex vns1 = t1.getCorner(t1.apex(t0));
+		
+		Edge commonEdge = new Edge(vns0, vns1); //To be created in complex
+		if (commonEdge.isAlpha(alphaVal)) { 
+			commonEdge.setAlph(true);
+			alphaEdges.add(commonEdge);
+			if (!commonEdge.isBig() && screenAlpha) commonEdge.toSceneEdge(scene, Color.BLACK, 0.005);
+		}
+		angles = getRoot(commonEdge.getCorner(0), commonEdge.getCorner(1), commonEdge.getCount());
+		if (angles!=null && angles[0]< angleLimit) {
+			addToHeap(angles, commonEdge);
+		}
+		
+		Tri commonTri = t0.getTri(vns0); //To be deleted in complex
+		if (commonTri.getAlph()==1) {
+			alphaTris.remove(commonTri);
+		}
+		commonTri.setAlive(false);
+		if (screenAlpha) commonTri.fromScene(scene);
 		
 		// identify three shared vertices
 		Vertex[] vs = new Vertex[3];
 		int k = 0;
 		for (int i = 0; i < 4; i++) if (t0.getCorner(i) != vns0) vs[k++] = t0.getCorner(i);
 		
+		Tet[] nt = new Tet[3];
 		Tet nt0 = new Tet(vns0, vns1, vs[0], vs[1]);
+		nt0.setEdge(commonEdge);
+		nt[0] = nt0;
 		Tet nt1 = new Tet(vns0, vns1, vs[1], vs[2]);
+		nt1.setEdge(commonEdge);
+		nt[1] = nt1;
 		Tet nt2 = new Tet(vns0, vns1, vs[2], vs[0]);
+		nt2.setEdge(commonEdge);
+		nt[2] = nt2;
+		
+		// New triangles
+		for (int i = 0 ; i<3 ; i++) {
+			Tet t = nt[i];
+			Tri tri = new Tri(vns0, vns1, vs[i]);
+			tri.setTet(t);
+			t.setTri(tri, t.indexOf(vs[(i+1)%3]));
+			Tet n = nt[(i+2)%3];
+			tri.setTet(n);
+			n.setTri(tri, n.indexOf(vs[(i+2)%3]));
+			int count = tri.getCount();
+			Vertex S0 = tri.getCorner(0);
+			Vertex S1 = tri.getCorner(1);
+			Vertex R0 = tri.getCorner(2);
+			if (count == 0 || count == 7) {
+				if (tri.isAlpha(alphaVal)){
+					alphaTris.add(tri);
+					tri.setAlph(1);
+					if (!tri.isBig() && screenAlpha) tri.toScene(scene, new Color(0,0,200, 100));
+				}
+			} else {
+				if (count == 1 || count == 6) {
+					R0 = tri.getCorner(0);
+					S0 = tri.getCorner(1);
+					S1 = tri.getCorner(2);
+				}
+				if (count == 2 || count == 5) {
+					R0 = tri.getCorner(1);
+					S0 = tri.getCorner(0);
+					S1 = tri.getCorner(2);
+				}
+				if ( count == 4 || count == 3) {
+					R0 = tri.getCorner(2);
+					S0 = tri.getCorner(0);
+					S1 = tri.getCorner(1);
+				}
+				if (tri.isAlpha(alphaVal)) {
+					alphaTris.add(tri);
+					tri.setAlph(1);
+				} else {
+					Point center = Point.getMidpoint(S0, S1);
+					Circle C = new Circle(center, alphaVal, center.vectorTo(S0).normalize());
+					double dist = C.getDistanceSquared(R0);
+					if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
+						tri.setAlph(2);
+					} else tri.setAlph(0);
+				}
+				angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
+				if ((angles != null) && (angles[0] < angleLimit)) {
+					addToHeap(angles, tri);
+				}
+			}
+		}
+		for (Edge e : t0.getEdges()) {
+			if (e.equals(new Edge(vns0, vs[0]))) {
+				nt0.setEdge(e);
+				nt2.setEdge(e);
+			} else if (e.equals(new Edge(vns0, vs[1]))) {
+				nt0.setEdge(e);
+				nt1.setEdge(e);
+			} else if (e.equals(new Edge(vns0, vs[2]))) {
+				nt2.setEdge(e);
+				nt1.setEdge(e);
+			} else if (e.equals(new Edge(vs[0], vs[1]))) {
+				nt0.setEdge(e);
+			} else if (e.equals(new Edge(vs[1], vs[2]))) {
+				nt1.setEdge(e);
+			} else if (e.equals(new Edge(vs[0], vs[2]))) {
+				nt2.setEdge(e);
+			}
+		}
+		for (Edge e : t1.getEdges()) {
+			if (e.equals(new Edge(vns1, vs[0]))) {
+				nt0.setEdge(e);
+				nt2.setEdge(e);
+			} else if (e.equals(new Edge(vns1, vs[1]))) {
+				nt0.setEdge(e);
+				nt1.setEdge(e);
+			} else if (e.equals(new Edge(vns1, vs[2]))) {
+				nt2.setEdge(e);
+				nt1.setEdge(e);
+			}
+		}
+		
+		commonEdge.setTet(nt0);
+		nt0.setEdge(commonEdge);
+		nt1.setEdge(commonEdge);
+		nt2.setEdge(commonEdge);
+		// Events for new tetrahedra
+		for (Tet t : nt) {
+			int count = t.getCount();
+			int idxR = -1;
+			int idxS0 = -1;
+			int idxS1 = -1;
+			int idxS2 = -1;
+			if (count == 0 || count == 15) {
+				if (t.isAlpha(alphaVal)) {
+					t.setAlph(1);
+					alphaTets.add(t);
+				}
+			} else {
+				if (t.isAlpha(alphaVal)) { 
+					t.setAlph(1);
+					alphaTets.add(t);
+				} else if (t.nrRotating()==1){
+					if (count == 8 || count == 7) {
+						idxR = 3;
+						idxS0 = 0;
+						idxS1 = 1;
+						idxS2 = 2;
+					}
+					if (count==4 || count == 11) {
+						idxR = 2;
+						idxS0 = 0;
+						idxS1 = 1;
+						idxS2 = 3;
+					}
+					if (count==2 || count == 13) {
+						idxR = 1;
+						idxS0 = 0;
+						idxS1 = 3;
+						idxS2 = 2;
+					}
+					if (count==1 || count == 14) {
+						idxR = 0;
+						idxS0 = 3;
+						idxS1 = 1;
+						idxS2 = 2;
+					}
+					Vertex r = t.getCorner(idxR);
+					Vertex s0 = t.getCorner(idxS0);
+					Vertex s1 = t.getCorner(idxS1);
+					Vertex s2 = t.getCorner(idxS2);
+					
+					double d0 = s0.distanceSquared(s1);
+					double d1 = s1.distanceSquared(s2);
+					double d2 = s2.distanceSquared(s0);
+					double a0 = r.distanceSquared(s0);
+					double a1 = r.distanceSquared(s1);
+					double a2 = r.distanceSquared(s2);
+					
+					if (a0 < d0 && a1 < d0 && a1 < d1 && a2 < d2 && a2 < d2 && a0 < d2) {
+						t.setAlph(2);
+					} else t.setAlph(0);
+				}
+				angles = getRoot(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3), count);
+				if (angles!=null && angles[0]< angleLimit) {
+					addToHeap(angles, t);
+				}
+			}
+		}
+		alphaTets.remove(t0);
+		alphaTets.remove(t1);
+		
 		
 		// vertices get new tetrahedron pointers
 		vns0.setTet(nt0);
@@ -925,39 +1804,54 @@ public class KineticDelaunayTessellation {
 		vs[1].setTet(nt0);
 		vs[2].setTet(nt1);
 		
-		// nt0 contain vs[0]Êand vs[1]
-		
+		// nt0 contain vs[0] and vs[1]
 		if (!nt1.hasVertex(vs[0])) nt0.neighbors[nt0.indexOf(vs[0])] = nt1; else nt0.neighbors[nt0.indexOf(vs[0])] = nt2;
 		if (!nt1.hasVertex(vs[1])) nt0.neighbors[nt0.indexOf(vs[1])] = nt1; else nt0.neighbors[nt0.indexOf(vs[1])] = nt2;
 		Tet t = t1.neighbors[t1.indexOf(vs[2])];
+		Tri tri = t1.getTri(t1.indexOf(vs[2]));
+		tri.setTet(nt0);
 		nt0.neighbors[nt0.indexOf(vns0)] = t;
+		nt0.setTri(tri, nt0.indexOf(vns0));
 		if (t != null) t.neighbors[t.apex(t1)] = nt0;
 		t = t0.neighbors[t0.indexOf(vs[2])];
+		tri = t0.getTri(t0.indexOf(vs[2]));
+		tri.setTet(nt0);
+		nt0.setTri(tri, nt0.indexOf(vns1));
 		nt0.neighbors[nt0.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt0;
 		
 		// nt1 contains vs[1] and vs[2]
-		
 		if (!nt0.hasVertex(vs[1])) nt1.neighbors[nt1.indexOf(vs[1])] = nt0; else nt1.neighbors[nt1.indexOf(vs[1])] = nt2;
 		if (!nt0.hasVertex(vs[2])) nt1.neighbors[nt1.indexOf(vs[2])] = nt0; else nt1.neighbors[nt1.indexOf(vs[2])] = nt2;
 		t = t1.neighbors[t1.indexOf(vs[0])];
+		tri = t1.getTri(t1.indexOf(vs[0]));
+		tri.setTet(nt1);
+		nt1.setTri(tri, nt1.indexOf(vns0));
 		nt1.neighbors[nt1.indexOf(vns0)] = t;
 		if (t != null) t.neighbors[t.apex(t1)] = nt1;
 		t = t0.neighbors[t0.indexOf(vs[0])];
+		tri = t0.getTri(t0.indexOf(vs[0]));
+		tri.setTet(nt1);
+		nt1.setTri(tri, nt1.indexOf(vns1));
 		nt1.neighbors[nt1.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt1;
 		
 		// nt2 contains vs[2] and vs[0]
-		
 		if (!nt0.hasVertex(vs[2])) nt2.neighbors[nt2.indexOf(vs[2])] = nt0; else nt2.neighbors[nt2.indexOf(vs[2])] = nt1;
 		if (!nt0.hasVertex(vs[0])) nt2.neighbors[nt2.indexOf(vs[0])] = nt0; else nt2.neighbors[nt2.indexOf(vs[0])] = nt1;
 		t = t1.neighbors[t1.indexOf(vs[1])];
+		tri = t1.getTri(t1.indexOf(vs[1]));
+		tri.setTet(nt2);
+		nt2.setTri(tri, nt2.indexOf(vns0));
 		nt2.neighbors[nt2.indexOf(vns0)] = t;
 		if (t != null) t.neighbors[t.apex(t1)] = nt2;
 		t = t0.neighbors[t0.indexOf(vs[1])];
+		tri = t0.getTri(t0.indexOf(vs[1]));
+		tri.setTet(nt2);
+		nt2.setTri(tri, nt2.indexOf(vns1));
 		nt2.neighbors[nt2.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt2;
-		
+			
 		tets.remove(t0);
 		t0.setAlive(false);
 		if (testingScreen) t0.fromSceneEdges(scene);
@@ -968,28 +1862,30 @@ public class KineticDelaunayTessellation {
 		newTets[0] = nt0;
 		newTets[1] = nt1;
 		newTets[2] = nt2;
-		if (testingScreen) 
+		if (testingScreen) {
 			for (int i = 0; i < 3; i++) newTets[i].toSceneEdges(scene, Color.black, 0.001, 0.0001);
+		}
 		tets.add(nt0);
 		tets.add(nt1);
 		tets.add(nt2);
+		//Flip event
 		angles = getRoot(nt0, nt1);
-		if (angles[0] < angleLimit) {
+		if (angles!=null && angles[0] < angleLimit) {
 			addToHeap(angles, nt0, nt1);
 			if (testingPrint) System.out.println(nt0 + " " + nt1 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
 		angles = getRoot(nt0, nt2);
-		if (angles[0] < angleLimit) {
+		if (angles!=null && angles[0] < angleLimit) {
 			addToHeap(angles, nt0, nt2);
 			if (testingPrint) System.out.println(nt0 + " " + nt2 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
 		angles = getRoot(nt1, nt2);
-		if (angles[0] < angleLimit) {
+		if (angles!=null && angles[0] < angleLimit) {
 			addToHeap(angles, nt1, nt2);
 			if (testingPrint) System.out.println(nt1 + " " + nt2 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
-		
-		// check for new events
+				
+		// check for new events for new tetrahedra neighbours
 		Tet nti;
 		for (int i = 0; i < 4; i++) {
 			nti = nt0.neighbors[i];
@@ -1023,6 +1919,7 @@ public class KineticDelaunayTessellation {
 				}
 			}
 		}
+		flipTime += (System.nanoTime() - start)/1000000.0;
 		return newTets;
 	}
 
@@ -1037,12 +1934,61 @@ public class KineticDelaunayTessellation {
 	 * @return The deleted tetrahedron.
 	 */
 	private Tet[] flip32(Tet t0, Tet t1, Tet t2){
-
+		long start = System.nanoTime();
+		nrFlips++;
 		//Locate three non-shared vertices
 		Vertex[] vns = new Vertex[3];
 		vns[0] = t0.getCorner(t0.apex(t1));
 		vns[1] = t1.getCorner(t1.apex(t2));
 		vns[2] = t2.getCorner(t2.apex(t0));
+		
+		//kill common edge
+		boolean foundEdge = false;
+		for (Edge e : t0.getEdges()) {
+			if (t1.hasEdge(e) && t2.hasEdge(e)) {
+				foundEdge = true;
+				e.setAlive(false);
+				if (e.getAlph()) { 
+					e.setAlph(false); 
+					alphaEdges.remove(e);
+					if (screenAlpha) e.fromSceneEdge(scene);
+				}
+				break;
+			}
+		}
+		if (!foundEdge)	{
+			System.out.println("Did not find common edge of edges ");
+			for (Edge e : t0.getEdges()) {
+				System.out.println("   "+e.toString());
+			}
+			System.out.println();
+			for (Edge e : t1.getEdges()) {
+				System.out.println("   "+e.toString());
+			}
+			System.out.println();
+			for (Edge e : t2.getEdges()) {
+				System.out.println("   "+e.toString());
+			}
+		}
+		//remove common triangles
+		Tri tri0 = t0.getTri(vns[0]);
+		if (tri0.getAlph()==1) {
+			alphaTris.remove(tri0);
+		}
+		tri0.setAlive(false);
+		if (screenAlpha) tri0.fromScene(scene);
+		Tri tri1 = t1.getTri(vns[1]);
+		if (tri1.getAlph()==1) {
+			alphaTris.remove(tri1);
+		}
+		tri1.setAlive(false);
+		if (screenAlpha) tri1.fromScene(scene);
+		Tri tri2 = t2.getTri(vns[2]);
+		if (tri2.getAlph()==1) {
+			alphaTris.remove(tri2);
+		}
+		tri2.setAlive(false);
+		if (screenAlpha) tri2.fromScene(scene);
 
 		//Locate two shared vertices
 		Vertex[] vs = new Vertex[2];
@@ -1052,8 +1998,170 @@ public class KineticDelaunayTessellation {
 			if (t1.hasVertex(v) && t2.hasVertex(v)) vs[nrSharedFound++] = v;
 		}
 		
+		Tet[] nt = new Tet[2];
 		Tet nt0 = new Tet(vns[0], vns[1], vns[2], vs[0]);
+		nt[0] = nt0;
 		Tet nt1 = new Tet(vns[0], vns[1], vns[2], vs[1]);
+		nt[1] = nt1;
+		
+		// New common triangle
+		Tri tri = new Tri(vns[0], vns[1], vns[2]);
+		tri.setTet(nt0);
+		tri.setTet(nt1);
+		nt0.setTri(tri, nt0.indexOf(vs[0]));
+		nt1.setTri(tri, nt1.indexOf(vs[1]));
+		int count = tri.getCount();
+		Vertex S0 = tri.getCorner(0);
+		Vertex S1 = tri.getCorner(1);
+		Vertex R0 = tri.getCorner(2);
+		if (count == 0 || count == 7) {
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+				if (!tri.isBig() && screenAlpha) tri.toScene(scene, new Color(0,0,200, 100));
+			}
+		} else {
+			if (count == 1 || count == 6) {
+				R0 = tri.getCorner(0);
+				S0 = tri.getCorner(1);
+				S1 = tri.getCorner(2);
+			}
+			if (count == 2 || count == 5) {
+				R0 = tri.getCorner(1);
+				S0 = tri.getCorner(0);
+				S1 = tri.getCorner(2);
+			}
+			if ( count == 4 || count == 3) {
+				R0 = tri.getCorner(2);
+				S0 = tri.getCorner(1);
+				S1 = tri.getCorner(0);
+			}
+			
+			if (tri.isAlpha(alphaVal)) {
+				alphaTris.add(tri);
+				tri.setAlph(1);
+			} else {
+				Point center = Point.getMidpoint(S0, S1);
+				Circle C = new Circle(center, alphaVal, center.vectorTo(S0).normalize());
+				double dist = C.getDistanceSquared(R0);
+				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
+					tri.setAlph(2);
+				} else tri.setAlph(0);
+			}
+			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
+			if ((angles != null) && (angles[0] < angleLimit)) {
+				addToHeap(angles, tri);
+			}
+		}
+		
+		for (Edge e : t0.getEdges()) {
+			if (e.equals(new Edge(vs[0], vns[0]))) {
+				nt0.setEdge(e);
+			} else if (e.equals(new Edge(vs[0], vns[1]))) {
+				nt0.setEdge(e);
+			} else if (e.equals(new Edge(vs[1], vns[0]))) {
+				nt1.setEdge(e);
+			} else if (e.equals(new Edge(vs[1], vns[1]))) {
+				nt1.setEdge(e);
+			} else if (e.equals(new Edge(vns[1], vns[0]))) {
+				nt1.setEdge(e);
+				nt0.setEdge(e);
+			}
+		}
+		for (Edge e : t1.getEdges()) {
+			if (e.equals(new Edge(vs[0], vns[2]))) {
+				nt0.setEdge(e);
+			} else if (e.equals(new Edge(vs[0], vns[1]))) {
+				nt0.setEdge(e);
+			} else if (e.equals(new Edge(vs[1], vns[2]))) {
+				nt1.setEdge(e);
+			} else if (e.equals(new Edge(vs[1], vns[1]))) {
+				nt1.setEdge(e);
+			} else if (e.equals(new Edge(vns[1], vns[2]))) {
+				nt1.setEdge(e);
+				nt0.setEdge(e);
+			}
+		}
+		for (Edge e : t2.getEdges()) {
+			if (e.equals(new Edge(vs[0], vns[2]))) {
+				nt0.setEdge(e);
+			} else if (e.equals(new Edge(vs[0], vns[0]))) {
+				nt0.setEdge(e);
+			} else if (e.equals(new Edge(vs[1], vns[2]))) {
+				nt1.setEdge(e);
+			} else if (e.equals(new Edge(vs[1], vns[0]))) {
+				nt1.setEdge(e);
+			} else if (e.equals(new Edge(vns[0], vns[2]))) {
+				nt1.setEdge(e);
+				nt0.setEdge(e);
+			}
+		}
+		
+		// Events for new tetrahdra
+		for (Tet t : nt) {
+			count = t.getCount();
+			int idxR = -1;
+			int idxS0 = -1;
+			int idxS1 = -1;
+			int idxS2 = -1;
+			if (count == 0 || count == 15) {
+				if (t.isAlpha(alphaVal)) {
+					t.setAlph(1);
+					alphaTets.add(t);
+				}
+			} else {
+				if (t.isAlpha(alphaVal)) {
+					t.setAlph(1);
+					alphaTets.add(t);
+				} else if (t.nrRotating()==1){
+					if (count == 8 || count == 7) {
+						idxR = 3;
+						idxS0 = 0;
+						idxS1 = 1;
+						idxS2 = 2;
+					}
+					if (count==4 || count == 11) {
+						idxR = 2;
+						idxS0 = 0;
+						idxS1 = 1;
+						idxS2 = 3;
+					}
+					if (count==2 || count == 13) {
+						idxR = 1;
+						idxS0 = 0;
+						idxS1 = 3;
+						idxS2 = 2;
+					}
+					if (count==1 || count == 14) {
+						idxR = 0;
+						idxS0 = 3;
+						idxS1 = 1;
+						idxS2 = 2;
+					}
+					Vertex r = t.getCorner(idxR);
+					Vertex s0 = t.getCorner(idxS0);
+					Vertex s1 = t.getCorner(idxS1);
+					Vertex s2 = t.getCorner(idxS2);
+					
+					double d0 = s0.distanceSquared(s1);
+					double d1 = s1.distanceSquared(s2);
+					double d2 = s2.distanceSquared(s0);
+					double a0 = r.distanceSquared(s0);
+					double a1 = r.distanceSquared(s1);
+					double a2 = r.distanceSquared(s2);
+					
+					if (a0 < d0 && a1 < d0 && a1 < d1 && a2 < d2 && a2 < d2 && a0 < d2) {
+						t.setAlph(2);
+					} else t.setAlph(0);
+				}
+				angles = getRoot(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3), count);
+				if (angles!=null && angles[0]< angleLimit) {
+					addToHeap(angles, t);
+				}
+			}
+		}
+		
+		alphaTets.remove(t0); alphaTets.remove(t1); alphaTets.remove(t2);
 
 		// vertices get new tetrahedron pointers
 		vs[0].setTet(nt0);
@@ -1065,7 +2173,6 @@ public class KineticDelaunayTessellation {
 
 		
 		// update neighbor information
-		
 		nt0.neighbors[nt0.indexOf_slow(vs[0])] = nt1;      
 		nt1.neighbors[nt1.indexOf_slow(vs[1])] = nt0;
 
@@ -1075,44 +2182,85 @@ public class KineticDelaunayTessellation {
 		if (!t0.hasVertex(vns[1])) tn1 = t0; else { if (!t1.hasVertex(vns[1])) tn1 = t1; }
 		Tet tn2 = t2;
 		if (!t0.hasVertex(vns[2])) tn2 = t0; else { if (!t1.hasVertex(vns[2])) tn2 = t1; }
-		
 		for (int i = 0; i < 4; i++) {
+			Tri triangle;
 			Tet n0 = tn0.neighbors[i];
-			if ((n0 != null) && (n0 != tn1) && (n0 != tn2)) {
+			triangle = tn0.getTri(i);
+			int idx;
+			if (n0 == null) { 
+				if (tn0.getCorner(i)==vs[1]) {
+					nt0.setTri(triangle, nt0.indexOf_slow(vns[0]));
+				} else nt1.setTri(triangle, nt1.indexOf_slow(vns[0]));
+			} else if((n0 != tn1) && (n0 != tn2)) {
+				idx = n0.apex(tn0);
 				if (n0.hasVertex(vs[0])) {
-					n0.neighbors[n0.apex(tn0)] = nt0;
+					n0.neighbors[idx] = nt0;
+					triangle = n0.getTri(idx);
+					triangle.setTet(nt0);
+					nt0.setTri(triangle, nt0.indexOf_slow(vns[0]));
 					nt0.neighbors[nt0.indexOf_slow(vns[0])] = n0;
 				}
 				else {
-					n0.neighbors[n0.apex(tn0)] = nt1;
+					n0.neighbors[idx] = nt1;
+					triangle = n0.getTri(idx);
+					triangle.setTet(nt1);
+					nt1.setTri(triangle, nt1.indexOf_slow(vns[0]));
 					nt1.neighbors[nt1.indexOf_slow(vns[0])] = n0;
 				}
 			}
 		}
 
 		for (int i = 0; i < 4; i++) {
+			Tri triangle;
 			Tet n1 = tn1.neighbors[i];
-			if ((n1 != null) && (n1 != tn0) && (n1 != tn2)) {
+			triangle = tn1.getTri(i);
+			int idx;
+			if (n1 == null) { 
+				if (tn1.getCorner(i)==vs[1]) {
+					nt0.setTri(triangle, nt0.indexOf_slow(vns[1]));
+				} else nt1.setTri(triangle, nt1.indexOf_slow(vns[1]));
+			} else if((n1 != tn0) && (n1 != tn2)) {
+				idx = n1.apex(tn1);
 				if (n1.hasVertex(vs[0])) {
-					n1.neighbors[n1.apex(tn1)] = nt0;
+					n1.neighbors[idx] = nt0;
+					triangle = n1.getTri(idx);
+					triangle.setTet(nt0);
+					nt0.setTri(triangle, nt0.indexOf_slow(vns[1]));
 					nt0.neighbors[nt0.indexOf_slow(vns[1])] = n1;
 				}
 				else {
-					n1.neighbors[n1.apex(tn1)] = nt1;
+					n1.neighbors[idx] = nt1;
+					triangle = n1.getTri(idx);
+					triangle.setTet(nt1);
+					nt1.setTri(triangle, nt1.indexOf_slow(vns[1]));
 					nt1.neighbors[nt1.indexOf_slow(vns[1])] = n1;
 				}
 			}
 		}
 
 		for (int i = 0; i < 4; i++) {
+			Tri triangle;
 			Tet n2 = tn2.neighbors[i];
-			if ((n2 != null) && (n2 != tn0) && (n2 != tn1)) {
+			triangle = tn2.getTri(i);
+			int idx;
+			if (n2 == null) { 
+				if (tn2.getCorner(i)==vs[1]) {
+					nt0.setTri(triangle, nt0.indexOf_slow(vns[2]));
+				} else nt1.setTri(triangle, nt1.indexOf_slow(vns[2]));
+			} else if((n2 != tn0) && (n2 != tn1)) {
+				idx = n2.apex(tn2);
 				if (n2.hasVertex(vs[0])) {
-					n2.neighbors[n2.apex(tn2)] = nt0;
+					n2.neighbors[idx] = nt0;
+					triangle = n2.getTri(idx);
+					triangle.setTet(nt0);
+					nt0.setTri(triangle, nt0.indexOf_slow(vns[2]));
 					nt0.neighbors[nt0.indexOf_slow(vns[2])] = n2;
 				}
 				else {
-					n2.neighbors[n2.apex(tn2)] = nt1;
+					n2.neighbors[idx] = nt1;
+					triangle = n2.getTri(idx);
+					triangle.setTet(nt1);
+					nt1.setTri(triangle, nt1.indexOf_slow(vns[2]));
 					nt1.neighbors[nt1.indexOf_slow(vns[2])] = n2;
 				}
 			}
@@ -1138,8 +2286,9 @@ public class KineticDelaunayTessellation {
 		}
 		tets.add(nt0);
 		tets.add(nt1);
+		//Flip event
 		angles = getRoot(nt0, nt1);
-		if (angles[0] < angleLimit) {
+		if (angles!=null && angles[0] < angleLimit) {
 			addToHeap(angles, nt0, nt1);
 			if (testingPrint) System.out.println(nt0 + " " + nt1 + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 		}
@@ -1167,7 +2316,8 @@ public class KineticDelaunayTessellation {
 					if (testingPrint) System.out.println(nt1 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
 			}
-		}	
+		}
+		flipTime += (System.nanoTime() - start)/1000000.0;
 		return newTets;
 	}
 	
@@ -1175,7 +2325,9 @@ public class KineticDelaunayTessellation {
 	public boolean isDelaunay() {
 		boolean cont = true;
 		for (Tet t : tets) {
+			if (t.isBig()) continue;
 			t.setCircumSphere();
+			List<Vertex> noBigpoints = new ArrayList<Vertex>(vertices.size());
 			if (!t.circumSphere.isEmpty(vertices, Constants.EPSILON)) {
 				System.out.print(t + " is not empty: ");
 				t.circumSphere.contains(vertices, Constants.EPSILON);
@@ -1210,65 +2362,354 @@ public class KineticDelaunayTessellation {
 		scene.repaint();
 	}
 	
-	public void rotate() {
+	private void showAlpha() {
+		for (Edge ae : alphaEdges) {
+			if (ae.isBig()) continue;
+			Color clr = Color.BLACK;
+			if (ae.getCount()==3) clr = Color.RED;
+			ae.toSceneEdge(scene, clr, 0.005);
+		}
+		for (Tri at : alphaTris) {
+			if (at.isBig()) continue;
+			at.toScene(scene, new Color(0,0,200, 100));
+		}
+	}
+	
+	public void rotate(double rotateTo) {
+		if (rotateTo>angleLimit) {
+			throw new RuntimeException("Angle is bigger than limit=360");
+		}
 		HeapItem heapItem;
 		Tet t, nt, tt;
-		Tet tet1 = null; 
-		Tet tet2 = null;
-		Tet[] newTets = new Tet[3];
+		Edge edg;
+		Tri tri;
 		int nrFlips = 0;
 		double rotAngle;
-//		Color red_tr = new Color(255,0,0,50);
-//		Color blue_tr = new Color(0,0,255,50);
-//		Color green_tr = new Color(0,128,0,50);
-		initializeRotation();
-		while (!heap.isEmpty()) {
-			heapItem = (HeapItem) heap.extract();
-			t = heapItem.getT();   
-			nt = heapItem.getNT(); 
-			if (testingPrint) {
-				System.out.print(t.toString());  if (!t.isAlive())  System.out.print(" ");
-				System.out.print(nt.toString()); if (!nt.isAlive()) System.out.print(" ");
+		if (screenAlpha) {
+			showAlpha();
+			for (int i = 0; i < vertices.size(); i++) {
+				Vertex v = vertices.get(i);
+				scene.addShape(new TextShape(Integer.toString(i), v.returnAsPoint(), 0.3));
+				Color clr = Color.BLACK;
+				if (v.getType()==VertexType.R) clr = Color.RED;
+				v.toScene(scene, clr, 0.1);
 			}
-			angles = heapItem.getAngles();
-			rotAngle = angles[0];
-			if (t.isAlive() && nt.isAlive() && (rotAngle < Constants.TAU)) {
-				animate(scene, rotAngle-angleTotal);
-//				isDelaunay();
-//				animate(scene, (rotAngle-angleTotal)/2.0);	
-				angleTotal = rotAngle;
-				
-				if (!t.isConvex(nt)) {
-					tt = KineticToolbox.getThirdTet(t, nt);
-					if (tt != null) {
-						if (testingPrint) {
-							System.out.print(tt.toString()); 
-							if (!tt.isAlive())  System.out.print(" ");
-							System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngles()[0]));						
-							System.out.println();
-						}
-						newTets = flip32(t, nt, tt);
-						if (testingPrint) System.out.println(++nrFlips + ". flip.");
-					}
-					else { System.out.println(" not convex but tt = null"); break; }
-				}
-				else {
-					if (testingPrint) {
-						System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngles()[0]));
-						System.out.println();
-					}
-					if (testingScreen) {
-						t.fromSceneFaces(scene);
-						nt.fromSceneFaces(scene);
-					}
-					newTets = flip23(t, nt);
-					if (testingPrint) System.out.println(++nrFlips + ". flip.");
-				}
-			}
-			else System.out.println();
 		}
-		animate(scene, Constants.TAU-angleTotal);
-
+		clashFirst = alphaEdges.isEmpty();
+		clash = clashFirst;
+		while (!heap.isEmpty() && angleTotal < rotateTo) {
+			HeapItem angleCheck = (HeapItem) heap.peek();
+			if (angleCheck.angles[0]>rotateTo) break;
+			heapItem = (HeapItem) heap.extract();
+			t = heapItem.getT();
+			tri = heapItem.getTri();
+			if (t!=null) {
+				nt = heapItem.getNT();
+				if (nt!=null) {
+					if (testingPrint) {
+						System.out.print(t.toString());  if (!t.isAlive())  System.out.print("");
+						System.out.print(nt.toString()); if (!nt.isAlive()) System.out.print("");
+					}
+					angles = heapItem.getAngles();
+					rotAngle = angles[0];
+					if (rotAngle > rotateTo) break;
+					if (t.isAlive() && nt.isAlive()) {
+						
+						animate(scene, rotAngle-angleTotal);
+						angleTotal = rotAngle;
+//						System.out.println("AngleTotal = "+angleTotal);
+						if (!t.isConvex(nt)) {
+							tt = KineticToolbox.getThirdTet(t, nt);
+							if (tt != null) {
+//								System.out.println("Flip event with "+t.toString()+" and "+nt.toString()+" and "+tt.toString());
+								if (testingPrint) {
+									System.out.print(tt.toString()); 
+									if (!tt.isAlive())  System.out.print("ï¿½");
+									System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngles()[0]));						
+									System.out.println();
+								}
+								flip32(t, nt, tt);
+								
+								if (testingPrint) System.out.println(++nrFlips + ". flip.");
+							}
+							else { 
+								System.out.println(" not convex but tt = null");
+//								break;
+							}
+						}
+						else {
+//							System.out.println("Flip event with "+t.toString()+" and "+nt.toString());
+							if (testingPrint) {
+								System.out.print(" rotated to angle = " + Functions.toDeg(heapItem.getAngles()[0]));
+								System.out.println();
+							}
+							if (testingScreen) {
+								t.fromSceneFaces(scene);
+								nt.fromSceneFaces(scene);
+							}
+							flip23(t, nt);
+							if (testingPrint) System.out.println(++nrFlips + ". flip.");
+						}
+						if (clash!=alphaEdges.isEmpty()) {
+							clash = alphaEdges.isEmpty();
+							clashes.add(Math.toDegrees(angleTotal));
+						}
+						if (clash!=alphaEdges.isEmpty()) {
+							clash = alphaEdges.isEmpty();
+							clashes.add(Math.toDegrees(angleTotal));
+						}
+//						isAlpha();
+//						isDelaunay();
+					}
+				}
+				else { //radiusevent tetrahedron
+//					System.out.println("Radius event : tet "+t.toString());
+					angles = heapItem.getAngles();
+					rotAngle = angles[0];
+					if (t.isAlive() && rotAngle < angleLimit) {
+						if (t.nrRotating()==1) { // one corner is rotating
+							animate(scene, rotAngle-angleTotal);
+							angleTotal = rotAngle;
+//							System.out.println("AngleTotal = "+angleTotal);
+							int alph = t.getAlph();
+							int count = t.getCount();
+							int idxR = -1;
+							int idxS0 = -1;
+							int idxS1 = -1;
+							int idxS2 = -1;
+							if (count == 8 || count == 7) {
+								idxR = 3;
+								idxS0 = 0;
+								idxS1 = 1;
+								idxS2 = 2;
+							} else if (count==4 || count == 11) {
+								idxR = 2;
+								idxS0 = 0;
+								idxS1 = 1;
+								idxS2 = 3;
+							} else if (count==2 || count == 13) {
+								idxR = 1;
+								idxS0 = 0;
+								idxS1 = 3;
+								idxS2 = 2;
+							} else if (count==1 || count == 14) {
+								idxR = 0;
+								idxS0 = 3;
+								idxS1 = 1;
+								idxS2 = 2;
+							}
+							Vertex r = t.getCorner(idxR);
+							Vertex s0 = t.getCorner(idxS0);
+							Vertex s1 = t.getCorner(idxS1);
+							Vertex s2 = t.getCorner(idxS2);
+							
+							Circle circum = new Circle(s0, s1, s2);
+							
+	/*						double d0 = s0.distanceSquared(s1);
+							double d1 = s1.distanceSquared(s2);
+							double d2 = s2.distanceSquared(s0);
+							double a0 = r.distanceSquared(s0);
+							double a1 = r.distanceSquared(s1);
+							double a2 = r.distanceSquared(s2);*/
+							boolean onBoundary = false;
+							boolean insideBoth = false;
+							Vector vec = r.vectorTo(circum.getCenter());
+							Vector centerToRotate = vec.cross(circum.getNormal());
+							boolean orthogonal = centerToRotate.isZeroVector();
+							if (orthogonal && r.distance(circum.getCenter()) > circum.getRadius()-Constants.EPSILON && r.distance(circum.getCenter()) < circum.getRadius()+Constants.EPSILON) {
+								onBoundary = true;
+							}
+							if (r.distance(circum.getCenter()) > circum.getRadius()-Constants.EPSILON && r.distance(circum.getCenter()) < circum.getRadius()+Constants.EPSILON) {
+								insideBoth = true;
+							}
+							
+							if (alph == 0) {
+								//if (a0 <= Constants.EPSILON || a1 <= Constants.EPSILON || a2 <= Constants.EPSILON) {
+								if (onBoundary) {	
+									t.setAlph(2);
+								}
+								else {
+									t.setAlph(1);
+									alphaTets.add(t);
+								}
+							}
+							else if (alph == 1) {
+								//if (a0 <= Constants.EPSILON || a1 <= Constants.EPSILON || a2 <= Constants.EPSILON) {
+								if (onBoundary) {
+									t.setAlph(1);
+								}
+								else if (insideBoth) {//if (a0 < d0 && a1 < d0 && a1 < d1 && a2 < d2 && a2 < d2 && a0 < d2) {
+									t.setAlph(2);
+									alphaTets.remove(t);
+								}
+								else {
+									t.setAlph(0);
+									alphaTets.remove(t);
+								}
+							}
+							else {
+								//if (a0 <= Constants.EPSILON || a1 <= Constants.EPSILON || a2 <= Constants.EPSILON) {
+								if (onBoundary) {
+									t.setAlph(0);
+								}
+								else {
+									t.setAlph(1);
+									alphaTets.add(t);
+								}
+							}
+							Double[] tmp = new Double[4];
+							int i = -1;
+							for (Double angle : angles){
+								if (i==-1) { i += 1; continue; }
+								if (angle==null) break;
+								tmp[i] = angle;
+								i += 1;
+							}
+							if (i>0) {
+								Double[] newangles = new Double[i];
+								for (int j = 0 ; j<i; j++) {
+									newangles[j] = tmp[j];
+								}
+								addToHeap(newangles, t);
+							}
+						} else { // two corners rotating	
+							animate(scene, rotAngle-angleTotal);
+							angleTotal = rotAngle;
+//								System.out.println("AngleTotal = "+angleTotal);
+							if (t.getAlph()==1) {
+								t.setAlph(0);
+								alphaTets.remove(t);
+							}
+							else {
+								t.setAlph(1);
+								alphaTets.add(t);
+							}
+							Double[] tmp = new Double[4];
+							int i = -1;
+							for (Double angle : angles){
+								if (i==-1) { i += 1; continue; }
+								if (angle==null) break;
+								tmp[i] = angle;
+								i += 1;
+							}
+							if (i>0) {
+								Double[] newangles = new Double[i];
+								for (int j = 0 ; j<i; j++) {
+									newangles[j] = tmp[j];
+								}
+								addToHeap(newangles, t);
+							}
+						}
+						if (clash!=alphaEdges.isEmpty()) {
+							clash = alphaEdges.isEmpty();
+							clashes.add(Math.toDegrees(angleTotal));
+						}
+//						isAlpha();
+					}
+				}
+			} else if (tri!=null) {
+//				System.out.println("Radius event : tri "+tri.toString());
+				angles = heapItem.getAngles();
+				rotAngle = angles[0];
+				if (tri.isAlive() && rotAngle < angleLimit) {
+					animate(scene, rotAngle-angleTotal);
+					angleTotal = rotAngle;
+//					System.out.println("AngleTotal = "+angleTotal);
+					int alph = tri.getAlph();
+					int count = tri.getCount();
+					int idxR = -1;
+					int idxS0 = -1;
+					int idxS1 = -1;
+					if (count == 1 || count == 6) {
+						idxR = 0;
+						idxS0 = 2;
+						idxS1 = 1;
+					} else if (count==2 || count == 5) {
+						idxR = 1;
+						idxS0 = 0;
+						idxS1 = 2;
+					} else if (count==4 || count == 3) {
+						idxR = 2;
+						idxS0 = 0;
+						idxS1 = 1;
+					}
+					Vertex r = tri.getCorner(idxR);
+					Vertex s0 = tri.getCorner(idxS0);
+					Vertex s1 = tri.getCorner(idxS1);
+					if (alph == 1) {
+						alphaTris.remove(tri);
+						Point c = Point.getMidpoint(s0, s1);
+						if (screenAlpha) tri.fromScene(scene);
+						if (c.distanceSquared(r)<c.distanceSquared(s0)) {
+							tri.setAlph(2);
+						} else tri.setAlph(0);
+					} else if(alph == 0) {
+						if (!tri.isBig() && screenAlpha) tri.toScene(scene, new Color(0,0,200, 100));
+						alphaTris.add(tri);
+						tri.setAlph(1);
+					} else { //when alph == 2
+						if (!tri.isBig() && screenAlpha) tri.toScene(scene, new Color(0,0,200, 100));
+						alphaTris.add(tri);
+						tri.setAlph(1);
+					}
+					Double[] tmp = new Double[4];
+					int i = -1;
+					for (Double angle : angles){
+						if (i==-1) { i += 1; continue; }
+						if (angle==null) break;
+						tmp[i] = angle;
+						i += 1;
+					}
+					if (i>0) {
+						Double[] newangles = new Double[i];
+						for (int j = 0 ; j<i; j++) {
+							newangles[j] = tmp[j];
+						}
+						addToHeap(newangles, tri);
+					}
+					if (clash!=alphaEdges.isEmpty()) {
+						clash = alphaEdges.isEmpty();
+						clashes.add(Math.toDegrees(angleTotal));
+					}
+//					isAlpha();
+				}
+			} else {
+				edg = heapItem.getEdg();
+//				System.out.println("Radius event : edg "+edg.toString());
+				angles = heapItem.getAngles();
+				rotAngle = angles[0];
+				if (edg.isAlive() && edg!=null && rotAngle < angleLimit) {
+					animate(scene, rotAngle-angleTotal);
+					angleTotal = rotAngle;
+//					System.out.println("AngleTotal = "+angleTotal);
+					if (edg.getAlph()) {
+						edg.setAlph(false);
+						if (screenAlpha) edg.fromSceneEdge(scene);
+						alphaEdges.remove(edg);
+					}
+					else {
+						edg.setAlph(true);
+						if (!edg.isBig() && screenAlpha) edg.toSceneEdge(scene, Color.BLACK, 0.005);
+						alphaEdges.add(edg);
+					}
+					Double[] newangles = new Double[4];
+					if (angles[1]!=null) {
+						newangles[0] = angles[1];
+						addToHeap(newangles, edg);
+					}
+					if (clash!=alphaEdges.isEmpty()) {
+						clash = alphaEdges.isEmpty();
+						clashes.add(Math.toDegrees(angleTotal));
+					}
+//					isAlpha();
+				}
+			}
+			
+			
+		}
+		
+//		animate(scene, rotateTo-angleTotal);
+//		System.out.println("AlphaComplex = "+alphaTets.toString()+" and "+alphaTris.toString()+" and "+alphaEdges.toString());
 	}
 	/* specify what is rotating - 3 methods to do it */
 	public void setRotVertices() { for (Vertex v : vertices) v.setType(Vertex.VertexType.S); }
@@ -1276,8 +2717,12 @@ public class KineticDelaunayTessellation {
 	public void setRotVertices(int a, int b) { 
 		for (int i = a; i <= b; i++) rotIndx.add(i); 
 		for (Vertex v : vertices) v.setType(Vertex.VertexType.S); 
-		for (int i : rotIndx) vertices.get(i).setType(Vertex.VertexType.R);
+		for (int i : rotIndx) {
+			Vertex v = vertices.get(i);
+			v.setType(Vertex.VertexType.R);
+		}
 	}
+	
 	public void setRotVertices(List<Integer> rotList) { 
 		rotIndx = rotList; 
 		for (Vertex v : vertices) v.setType(Vertex.VertexType.S); 
@@ -1288,7 +2733,7 @@ public class KineticDelaunayTessellation {
 	public J3DScene getScene() { return scene; }
 	
 	/** returns the list of tetrahedra in this kinetic Dalaunay tessellation */
-	public List<Tet> getTetrahedra(){ return tets; }
+	public Set<Tet> getTetrahedra(){ return tets; }
 	
 	/** Displays Delaunay tesselation */
 	public void toScene(J3DScene scene) { toScene(scene, Constants.bigDouble); }
@@ -1326,7 +2771,7 @@ public class KineticDelaunayTessellation {
 		int nrTetrahedra = 0;
 		for (Tet tet : tets) { 
 			nrTetrahedra++;
-			System.out.println(nrTetrahedra);
+//			System.out.println(nrTetrahedra);
 			tet.getCircumSphere();
 			if (tet.circumRadius() <= alpha) tet.toSceneFaces(scene, Color.red);
 			else {
@@ -1358,10 +2803,21 @@ public class KineticDelaunayTessellation {
 		}
 	}
 	
+	//Daisy:
+	public void toScene(Tet t) {
+		scene.addShape(new Tetrahedron(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3)), new Color(200, 0, 0, 100));
+	}
+	public void toScene(Tri t) {
+		scene.addShape(new Triangle(t.getCorner(0), t.getCorner(1), t.getCorner(2)), new Color(0, 2000, 0, 100));
+	}
+	public void toScene(Edge e) {
+		scene.addShape(new LSS(e.getCorner(0), e.getCorner(1), 0.01), new Color(0, 0, 200, 100));
+	}
+	
 	public static void main(String[] args){
 		System.out.println(java.lang.Runtime.getRuntime().maxMemory());
-		KineticDelaunayTessellation kDT = new KineticDelaunayTessellation(1000000, ProblemInstanceType.random);
-		
+		long start = System.nanoTime();
+		KineticDelaunayTessellation kDT = new KineticDelaunayTessellation(1.0, ProblemInstanceType.random, 50);
 /*		if (kDT.getInstanceType() == ProblemInstanceType.pdbNCC) {
 			if (kDT.testingScreen) {
 				kDT.toSceneBackbone(kDT.scene, 0.1, Color.blue);
@@ -1410,11 +2866,28 @@ public class KineticDelaunayTessellation {
 		}
 		
 		
-*/		
-		long start = System.nanoTime();
-
-		kDT.rotate();
+*/
+		
+//		System.out.printf(" time in miliseconds %.2f\n", (System.nanoTime() - start)/1000000.0);
+//		start = System.nanoTime();
+		kDT.rotate(Math.toRadians(360));
+//		System.out.println("Flips : "+kDT.nrFlips);
 		System.out.printf(" time in miliseconds %.2f\n", (System.nanoTime() - start)/1000000.0);
+//		start = System.nanoTime();
+		//kDT.rotate(Math.toRadians(360));
+		System.out.println("Flips : "+kDT.nrFlips);
+//		System.out.printf(" time in miliseconds %.2f\n", (System.nanoTime() - start)/1000000.0);
+		
+		boolean curClash = kDT.clashFirst;
+		System.out.println("length of shortest edge is "+kDT.shortestEdge);
+		System.out.println("Clash at first ? "+!curClash);
+		System.out.println("Alpha edges empty? "+kDT.alphaEdges.isEmpty());
+		for (Double clash : kDT.clashes) {
+			System.out.println(!curClash?"No clash from "+clash:"Clash from "+clash);
+			if (curClash) {
+				curClash=false;
+			} else curClash=true;
+		}
 	}
 
 	public ProblemInstanceType getInstanceType() {
@@ -1426,11 +2899,11 @@ public class KineticDelaunayTessellation {
 	}
 
 	public double getAlpha() {
-		return alpha;
+		return alphaVal;
 	}
 
 	public void setAlpha(double alpha) {
-		this.alpha = alpha;
+		this.alphaVal = alpha;
 	}
 	
 }

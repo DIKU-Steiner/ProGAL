@@ -6,7 +6,7 @@ import ProGAL.math.Constants;
 
 public class InexactJavaPredicates extends Predicates{
 	public double circumradius(Point p0, Point p1, Point p2, Point p3){				return circumradius(new Tetrahedron(p0,p1,p2,p3)); 	}
-	public double circumradius(Tetrahedron t){										return t.circumradius();							}
+	public double circumradius(Tetrahedron t){										return t.circumRadius();							}
 	public double circumradius(Point p0, Point p1, Point p2){						return circumradius(new Triangle(p0,p1,p2));		}
 	public double circumradius(Triangle t){											return t.circumradius(); 						}
 	
@@ -19,7 +19,7 @@ public class InexactJavaPredicates extends Predicates{
 	
 	public SphereConfig insphere(Point p0, Point p1, Point p2, Point p3, Point q){	return insphere(new Tetrahedron(p0,p1,p2,p3),q);	}
 	public SphereConfig insphere(Tetrahedron t, Point q){
-		Point tCenter = t.circumcenter();
+		Point tCenter = t.circumCenter();
 		double diff = tCenter.distance(q)-tCenter.distance(t.getCorner(0));
 		if(Double.isNaN(diff)) return SphereConfig.COPLANAR;
 		if(Math.abs(diff)<Constants.EPSILON) return SphereConfig.ON;

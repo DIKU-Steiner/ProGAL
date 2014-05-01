@@ -103,7 +103,7 @@ public class CanonicalSheet {
 		bTop.setPaired(0, 1);
 		bTop.setPaired(0, 2);
 		SheetTopology sTop = bTop.getSheets().get(0);
-		PDBFile pdbFile = new PDBFile("/Users/ras/Downloads/1CTF.pdb");
+		PDBFile pdbFile = new PDBFile("/Users/ras/Downloads/1CTF.pdb", true);
 		CanonicalSheet cs = CanonicalSheet.createFromPDB(pdbFile, sTop);
 		System.out.println("Done");
 		J3DScene scene = J3DScene.createJ3DSceneInFrame();

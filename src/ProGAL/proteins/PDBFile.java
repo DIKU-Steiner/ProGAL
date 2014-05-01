@@ -7,20 +7,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 import ProGAL.geom3d.Point;
-import ProGAL.geom3d.complex.CTetrahedron;
+import ProGAL.geom3d.Triangle;
 import ProGAL.geom3d.complex.alphaComplex.AlphaComplex;
-import ProGAL.geom3d.complex.delaunayComplex.DelaunayComplex;
-import ProGAL.geom3d.Vector;
 import ProGAL.geom3d.complex.CTriangle;
 import ProGAL.geom3d.superposition.RMSD;
 import ProGAL.geom3d.superposition.Transform;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.io.IOToolbox;
 import ProGAL.io.WebIOToolbox;
-import ProGAL.math.Randomization;
-import ProGAL.proteins.structure.AminoAcid;
 import ProGAL.proteins.structure.AminoAcidChain;
-import ProGAL.proteins.structure.Atom;
 import ProGAL.proteins.structure.generators.HeavyAtomAminoAcidGenerator;
 
 /**
@@ -54,19 +49,25 @@ public class PDBFile extends File{
 
 	
 	/** Construct a PDB-file from the specified file-path */
+	public PDBFile(String path, boolean hydro){
+		this(new File(path), hydro);
+	}
+	/** Construct a PDB-file from the specified file-path */
 	public PDBFile(String path){
-		this(new File(path));
+		this(new File(path), false);
 	}
 	
 	/** Construct a PDB-file from the specified file */
-	public PDBFile(File f){
+	public PDBFile(File f, boolean hydro){
 		super(f.getAbsolutePath());
 		if(f.getName().contains("."))	name = f.getName().substring(0,f.getName().indexOf('.'));
 		else							name = f.getName();
 		records = readPDBFile(f,false);
 		buildPDBStructure();
-		if(name.contains("_")) 
+		if(name.contains("_")) {
 			setStandardChain(name.charAt(name.indexOf('_')+1));
+		}
+		this.includeHydrogens = hydro;
 	}
 
 	private void buildPDBStructure(){
@@ -181,8 +182,8 @@ public class PDBFile extends File{
 	}
 	
 	/** Read a PDB-file from www.pdb.org.*/
-	public static PDBFile downloadPDBFile(String pdbId){
-		return new PDBFile(WebIOToolbox.downloadFile("http://www.pdb.org/pdb/files/"+pdbId.toUpperCase()+".pdb"));
+	public static PDBFile downloadPDBFile(String pdbId, boolean hydro){
+		return new PDBFile(WebIOToolbox.downloadFile("http://www.pdb.org/pdb/files/"+pdbId.toUpperCase()+".pdb"), hydro);
 	}
 
 	public void setStandardModel(int m){ this.standardModel = m; }
@@ -253,7 +254,7 @@ public class PDBFile extends File{
 	public List<AtomRecord> getAtomRecords(int modelNum, int chainNum){
 		List<AtomRecord> ret = new ArrayList<AtomRecord>();
 		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
-			if(!ar.isOnBackbone()) continue;       // to be removed if all atoms are to be included
+//			if(!ar.isOnBackbone()) continue;       // to be removed if all atoms are to be included
 			if(!includeHydrogens && ar.isHydrogen()) continue;
 			if(!includeHetAtms && ar instanceof HetatmRecord) continue;
 			
@@ -782,16 +783,62 @@ public class PDBFile extends File{
 	}
 
 	public static void main(String[] args) {
-		PDBFile f = new PDBFile("/Users/pawel/Downloads/1X0O.pdb");
-		List<Point> points = f.getAtomCoords();
-//		points.addAll(f.getAtomCoords(0, 1));
 		
-		System.out.println(points.size());
-		AlphaComplex ac = new AlphaComplex(points, 2.8);
+		PDBFile f = new PDBFile("/home/daisy/Downloads/2oed_cs_244_samples/sample_000267200000_2_91.576430.pdb", true);//folded
+//		PDBFile f = new PDBFile("/home/daisy/Downloads/2oed_cs_244_samples/sample_000000200000_2_284.178215.pdb", true);
+		
+//		PDBFile f = new PDBFile("/home/daisy/Downloads/1X0O.pdb", true);
 		J3DScene scene = J3DScene.createJ3DSceneInFrame();
-		for(CTetrahedron tetr : ac.getTetrahedra()) {
-			scene.addShape(tetr, new Color(255, 0, 255, 100));
+		List<Point> points = f.getAtomCoords();
+		AlphaComplex ac = new AlphaComplex(points, 2.8);
+		System.out.println("Point set size : "+points.size());
+		/*List<Point> pointList = new ArrayList<Point>(points.size()/2);
+		Vector translate = new Vector(-points.get(0).getCoord(0), -points.get(0).getCoord(1), -points.get(0).getCoord(2)); 
+		for (int i=0 ; i<343 ; i++) {
+			pointList.add(points.get(i).add(translate));
+		}*/
+/*		List<AtomRecord> AR = f.getAtomRecords();
+//		points.addAll(f.getAtomCoords(0, 1));
+		int maxAA = AR.get(AR.size()-1).residueNumber;
+		int indexAA = (int)Math.ceil(maxAA*0.5);
+		System.out.println("IndexAA = "+indexAA);
+		
+		int j = 0;
+		for (j=0 ; j<AR.size() ; j++) {
+			if (AR.get(j).residueNumber==indexAA ) break;
 		}
+		Line l = new Line(points.get(80), points.get(83));
+		System.out.println(points.size());
+//		AlphaComplex ac = new AlphaComplex(points, 2.0);
+		
+		l.toScene(scene, 0.1, Color.CYAN);
+		List<Integer> rotIndices = new ArrayList<Integer>(Arrays.asList(84, 85, 86, 89, 90, 91, 92, 93, 94, 95, 96, 97));
+		j = 0;
+		for (int i=0 ; i<points.size() ; i++) {
+			Sphere s = new Sphere(points.get(i), 0.9);
+			Color clr= Color.black;
+			//if (AR.get(i).residueNumber>= indexAA) {
+			if (rotIndices.contains(i)) {
+				clr = Color.RED;
+			}
+			scene.addShape(s, clr);
+//			scene.addShape(new TextShape(Integer.toString(i)+" - "+AR.get(i-1).aaType, pointList.get(i-1), 0.3));
+		}
+		for (CEdge edg : ac.getEdges()) {
+			System.out.println("new Edge");
+			LSS lss = new LSS(edg.getA(), edg.getB(), 0.02);
+			scene.addShape(lss, new Color(0, 0, 150, 100));
+			try { Thread.sleep(30); } catch (InterruptedException e) {}
+		}*/
+		
+/*		for(CTetrahedron tetr : ac.getTetrahedra()) {
+			scene.addShape(tetr, new Color(0, 255, 255, 100));
+		}*/
+		for (CTriangle tri : ac.getAlphaShape(2.8)) {
+				Triangle t = new Triangle(tri.getP1(), tri.getP2(), tri.getP3());
+				t.toScene(scene, new Color(50,205,50, 200));
+		}
+		
 		
 	}
 

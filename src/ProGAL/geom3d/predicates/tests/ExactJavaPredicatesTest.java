@@ -30,13 +30,13 @@ public class ExactJavaPredicatesTest {
 		Point p3 = new Point(1,1,2);
 		
 		Tetrahedron tet = new Tetrahedron(p0,p1,p2,p3);
-		assertEquals(tet.circumradius(), pred.circumradius(p0, p1, p2, p3), Constants.EPSILON);
-		assertEquals(tet.circumradius(), pred.circumradius(p0, p1, p3, p2), Constants.EPSILON);
-		assertEquals(tet.circumradius(), pred.circumradius(p0, p2, p1, p3), Constants.EPSILON);
-		assertEquals(tet.circumradius(), pred.circumradius(p0, p3, p1, p2), Constants.EPSILON);
-		assertEquals(tet.circumradius(), pred.circumradius(p1, p0, p2, p3), Constants.EPSILON);
-		assertEquals(tet.circumradius(), pred.circumradius(p1, p0, p3, p2), Constants.EPSILON);
-		assertEquals(tet.circumradius(), pred.circumradius(p1, p2, p0, p3), Constants.EPSILON);
+		assertEquals(tet.circumRadius(), pred.circumradius(p0, p1, p2, p3), Constants.EPSILON);
+		assertEquals(tet.circumRadius(), pred.circumradius(p0, p1, p3, p2), Constants.EPSILON);
+		assertEquals(tet.circumRadius(), pred.circumradius(p0, p2, p1, p3), Constants.EPSILON);
+		assertEquals(tet.circumRadius(), pred.circumradius(p0, p3, p1, p2), Constants.EPSILON);
+		assertEquals(tet.circumRadius(), pred.circumradius(p1, p0, p2, p3), Constants.EPSILON);
+		assertEquals(tet.circumRadius(), pred.circumradius(p1, p0, p3, p2), Constants.EPSILON);
+		assertEquals(tet.circumRadius(), pred.circumradius(p1, p2, p0, p3), Constants.EPSILON);
 	}
 
 	@Test
@@ -87,7 +87,7 @@ public class ExactJavaPredicatesTest {
 		assertEquals(SphereConfig.ON, pred.insphere(p0, p1, p2, p3, p3));
 		assertEquals(SphereConfig.ON, pred.insphere(p0, p1, p2, p3, p4));
 
-		p4 = new Tetrahedron(p0,p1,p2,p3).circumcenter();
+		p4 = new Tetrahedron(p0,p1,p2,p3).circumCenter();
 		assertEquals(SphereConfig.INSIDE, pred.insphere(p0, p1, p2, p3, p4));
 		p4 = new Point(1.9999,1.9999,1.9999);
 		assertEquals(SphereConfig.INSIDE, pred.insphere(p0, p1, p2, p3, p4));

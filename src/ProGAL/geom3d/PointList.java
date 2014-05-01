@@ -224,7 +224,7 @@ public class PointList extends ArrayList<Point> {
 
 	/** Construct a point-list containing n uniformly distributed random points in 
 	 * the unit cube. Uses the ProGAL.math.Randomization class.*/
-	public static PointList generatePointsInCube(int n) { return generatePointsInCube(n, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0); }
+	public static PointList generatePointsInCube(int n) { return generatePointsInCube(n, -1, 1, -1, 1, -1, 1); }
 
 	public static PointList generatePointsInCube(int n, double xL, double xH, double yL, double yH, double zL, double zH) {
 		PointList list = new PointList();

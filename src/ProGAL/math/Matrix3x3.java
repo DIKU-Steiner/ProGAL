@@ -151,6 +151,21 @@ public class Matrix3x3 extends Matrix{
 		ret[2] = new Vector(V[0][2],V[1][2],V[2][2]).multiplyThis(ed.getRealEigenvalues()[2]);
 		return ret;
 	}
+	
+	/* Multiply this matrix with matrix M */
+	public Matrix3x3 multiply(Matrix3x3 M) {
+		double[] r0 = {coords[0][0]*M.coords[0][0]+coords[0][1]*M.coords[1][0]+coords[0][2]*M.coords[2][0],
+					   coords[0][0]*M.coords[0][1]+coords[0][1]*M.coords[1][1]+coords[0][2]*M.coords[2][1],
+					   coords[0][0]*M.coords[0][2]+coords[0][1]*M.coords[1][2]+coords[0][2]*M.coords[2][2]};
+		double[] r1 = {coords[1][0]*M.coords[0][0]+coords[1][1]*M.coords[1][0]+coords[1][2]*M.coords[2][0],
+				   	   coords[1][0]*M.coords[0][1]+coords[1][1]*M.coords[1][1]+coords[1][2]*M.coords[2][1],
+				   	   coords[1][0]*M.coords[0][2]+coords[1][1]*M.coords[1][2]+coords[1][2]*M.coords[2][2]};
+		double[] r2 = {coords[2][0]*M.coords[0][0]+coords[2][1]*M.coords[1][0]+coords[2][2]*M.coords[2][0],
+	   			   	   coords[2][0]*M.coords[0][1]+coords[2][1]*M.coords[1][1]+coords[2][2]*M.coords[2][1],
+	   			   	   coords[2][0]*M.coords[0][2]+coords[2][1]*M.coords[1][2]+coords[2][2]*M.coords[2][2]};
+		double[][] mat = {r0, r1, r2};
+		return new Matrix3x3(mat);
+	}
 
 	public Matrix3x3 clone(){
 		Matrix3x3 ret = new Matrix3x3();

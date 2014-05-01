@@ -9,6 +9,7 @@ import ProGAL.geom3d.Point;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.LSS;
 import ProGAL.math.Constants;
+import ProGAL.math.Matrix;
 
 /** 
  *  A vector in (x,y,z)-space represented with double precision.
@@ -98,6 +99,13 @@ public class Vector extends ProGAL.geomNd.Vector{
 	
 	/** Multiply this vector by s and return the result (changing this object). */
 	public Vector multiplyThis(double s){ coords[0]*=s;coords[1]*=s;coords[2]*=s;return this; }
+	
+	//Daisy
+	public Vector multiply(Vector v){ 
+		double[] ret = new double[dim];
+		for(int d=0;d<dim;d++) ret[d] = coords[d]*v.getCoord(d);
+		return new Vector(ret); 
+	}
 	
 	/** Divide this vector by s and return the result (without changing this object). */
 	public Vector divide(double s){ return new Vector(coords[0]/s, coords[1]/s, coords[2]/s); }
@@ -296,10 +304,23 @@ public class Vector extends ProGAL.geomNd.Vector{
 		public Vector crossThis(Vector v){ return cross(v); }
 	}
 	public static void main(String[] args) {
+		Vector a = new Vector(0,0,1);
+		Vector b = new Vector(1,0,1);
+		Point center = new Point(1,1,0);
+		Circle C = new Circle(center, 0.2, b);
+		Vector rotAxis = b.cross(a);
+		double angle = b.angle(a);
+//		double angle = b.dot(a.toPoint());
+		Matrix rotMatrix = Matrix.createRotationMatrix(angle, rotAxis);
+		Vector translate = new Vector(-center.x(),-center.y(),-center.z());
+		Vector newVector = rotMatrix.multiply(b);
+		Circle newC = new Circle(center.add(translate), 0.2, newVector.normalize());
+		System.out.println("newC = "+newC.toString());
 		Vector n = new Vector(0, 0, 1);
 		Vector u = new Vector(0.3, 0.4, 0.0).normalize(); 
 		Vector v = n.cross(u);
 		System.out.println(u.x() + " " + v.y());
+		System.out.println("cross = "+n.cross(n));
 	}
 
 	

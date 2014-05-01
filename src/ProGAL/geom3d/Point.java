@@ -198,9 +198,9 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	/** Reflects this point through origo. */
 	public Point reflectThroughOrigoThis() { coords[0]*=-1; coords[1]*=-1; coords[2]*=-1; return this; }
 
-	/** rotates (clockwise) the point around the line through the  origo with the direction unit vector v.
+	/** rotates (clockwise) the point around the line through the origo with the direction unit vector v.
 	 * For counterclockwise rotation change signs within parentheses in non-diagonal terms. */
-	public void rotation(Vector v, double alpha) {
+	public void rotationCW(Vector v, double alpha) {
 		double c = Math.cos(alpha);
 		double d = 1.0-c;
 		double s = Math.sin(alpha);
@@ -212,12 +212,26 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 		setX(xNew);
 		setY(yNew);
 	}
+	// Daisy
+	/* rotates (counter-clockwise) the point around the line through the origo with the direction unit vector v. */
+	public void rotationCCW(Vector v, double alpha) {
+		double c = Math.cos(alpha);
+		double d = 1.0-c;
+		double s = Math.sin(alpha);
+		double vxyd = v.x()*v.y()*d, vxzd = v.x()*v.z()*d, vyzd = v.y()*v.z()*d;
+		double vxs = v.x()*s, vys = v.y()*s, vzs = v.z()*s; 
+		double xNew = (v.x()*v.x()*d+c)*x() + -(vxyd-vzs)*y()    + -(vxzd+vys)*z();
+		double yNew = -(vxyd+vzs)*x()    + (v.y()*v.y()*d+c)*y() + -(vyzd-vxs)*z();
+		setZ(-(vxzd-vys)*x()    + -(vyzd+vxs)*y()    + (v.z()*v.z()*d+c)*z());
+		setX(xNew);
+		setY(yNew);
+	}
 
 	/** rotates (clockwise) the point around the line through the  point p with the direction unit vector v.
 	 * For counterclockwise rotation change signs within parentheses in non-diagonal terms. */
 	public void rotation(Vector v, double alpha, Point p) {
 		this.translateThis(-p.x(), -p.y(), -p.z());
-		rotation(v, alpha);
+		rotationCW(v, alpha);
 		this.translateThis(p.x(), p.y(), p.z());
 	}
 
@@ -339,8 +353,13 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 		return true;
 	}
 	
-	
 	public static Point getCircumCenter(Point a, Point b, Point c) {
+		/*Plane p0 = Point.getBisector(a, b);
+		Plane p1 = Point.getBisector(a, c);
+		Line l = p0.getIntersection(p1);
+		Plane p = new Plane(a, b, c);
+		return p.getIntersection(l);*/
+		
 		Vector ca = new Vector(c, a);
 		Vector cb = new Vector(c, b);
 		Vector cr = ca.cross(cb);

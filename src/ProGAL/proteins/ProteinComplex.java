@@ -119,7 +119,7 @@ public class ProteinComplex extends AlphaComplex {
 			while(!candidates.isEmpty()){
 				CTetrahedron c = candidates.remove(0);
 				if(getDepth(c)<=0) continue;
-				if(c.circumradius()<probeRad) continue;
+				if(c.circumRadius()<probeRad) continue;
 				if(tetrahedra.contains(c)) continue;
 				tetrahedra.add(c);
 
@@ -178,8 +178,8 @@ public class ProteinComplex extends AlphaComplex {
 			while(!candidates.isEmpty()){
 				CTetrahedron c = candidates.remove(0);
 				if(getDepth(c)>=0) continue;
-				if(c.circumradius()<alpha) continue;
-				if(c.circumradius()>largeProbeRadius) continue;
+				if(c.circumRadius()<alpha) continue;
+				if(c.circumRadius()>largeProbeRadius) continue;
 				if(tetrahedrons.contains(c)) continue;
 				tetrahedrons.add(c);
 

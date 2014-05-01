@@ -116,7 +116,6 @@ public class Sphere implements Volume{
             -x0*(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3))
             +y0*(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3))
             -z0*(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3));
-
 	
 		    double x =  0.5*m12/m11;
 		    double y = -0.5*m13/m11;
@@ -465,19 +464,98 @@ public class Sphere implements Volume{
 				new Point( (2*zi1*Dyz+Dry)/(2*Dxy) , (2*zi1*Dzx+Dxr)/(2*Dxy) , zi1 )	//8HOp (70)
 		};
 	}
+	//Daisy
+	private double angle(Vector v1, Vector v2) {
+		double ret = Math.atan2(v1.y(), v1.x()) - Math.atan2(v2.y(), v2.x());
+		if (ret<0) ret = Constants.TAU+ret;
+		return ret;
+	}
+	
+	// Daisy : numerical method
+	private Double findAngle(int start, int end, Vertex A, Vertex B, Vertex C, Vertex D, int dir, double alphaVal) {
+		Point Cnew = C.clone();
+		Point Dnew = D.clone();
+		if (dir == 0) {
+			Cnew.rotationCW(new Vector(0,0,1), Math.toRadians(start));
+			Dnew.rotationCW(new Vector(0,0,1), Math.toRadians(start));
+		} else {
+			Cnew.rotationCCW(new Vector(0,0,1), Math.toRadians(start));
+			Dnew.rotationCCW(new Vector(0,0,1), Math.toRadians(start));
+		}
+		double radius = new Sphere(A, B, Cnew, Dnew).getRadius();
+		if (Math.abs(radius-alphaVal)<Math.pow(10, -9)) return start*(1.0);
+		System.out.println("Radius-alphaVal = "+(radius-alphaVal));
+		double sign = Math.signum(radius-alphaVal);
+		double newStart = start;
+		double newEnd = end;
+		double angle;
+		double newSign;
+		
+		for (int i = 0 ; i<99 ; i++) {
+			angle = (newEnd+newStart)/2.0;
+			System.out.println("Angle = "+angle);
+			Cnew = C.clone();
+			Dnew = D.clone();
+			if (dir == 0) {
+				Cnew.rotationCW(new Vector(0,0,1), Math.toRadians(angle));
+				Dnew.rotationCW(new Vector(0,0,1), Math.toRadians(angle));
+			} else {
+				Cnew.rotationCCW(new Vector(0,0,1), Math.toRadians(angle));
+				Dnew.rotationCCW(new Vector(0,0,1), Math.toRadians(angle));
+			}
+			radius = new Sphere(A, B, Cnew, Dnew).getRadius();
+			System.out.println("Radius-alphaVal = "+(radius-alphaVal));
+			if (Math.abs(radius-alphaVal)<Math.pow(10, -9)) {
+				
+				return angle;
+			}
+			newSign = Math.signum(radius-alphaVal);
+			if (newSign!=sign) {
+				newEnd = angle;
+			} else newStart = angle;
+		}
+		return null;
+	}
+	
+	public void plotRadius(Vertex A, Vertex B, Vertex C, Vertex D, J3DScene scene) {
+		Sphere s = new Sphere(A, B, C, D);
+		System.out.println("Initial radius2 = "+s.getRadius());
+		double R;
+		Sphere p;
+		Point Cnew;
+		Point Dnew;
+		for (int j = 1 ; j<360 ; j++) {
+/*			double R2 = getCircumRadiusSquared(A, B, C, D, Math.toRadians(j), radiusNoAngle);
+			System.out.println("radius^2 = "+R2);
+			R = Math.sqrt(R2);
+			System.out.println("radius = "+R);
+			p = new Sphere(new Point(j*1.0, R, 0.0), 0.01);
+			p.toScene(scene, Color.BLACK);*/
+			Cnew = C.clone();
+			Dnew = D.clone();
+			Cnew.rotationCW(new Vector(0,0,1), Math.toRadians(j));
+			Dnew.rotationCW(new Vector(0,0,1), Math.toRadians(j));
+			Sphere sphere = new Sphere(A, B, Cnew, Dnew);
+			double sphereRadius = sphere.getRadius();
+			System.out.println("plot : radius = "+sphereRadius+" at j = "+j);
+			if (sphereRadius>Math.pow(10, 40)) continue;
+			Color c = Color.BLACK;
+			if (sphereRadius<1.0) {
+				c = Color.ORANGE;
+			}
+			p = new Sphere(new Point(j*1.0, sphereRadius, 0.0), 1.0);
+//			System.out.println("p = "+p.toString());
+			p.toScene(scene, c);
+		}
+	}
+		
 	public static void main(String[] args){
 		J3DScene scene = J3DScene.createJ3DSceneInFrame();
-		Sphere s1 = new Sphere( new Point(0,0,0), 1);
-		Sphere s2 = new Sphere( new Point(0,0,0), 1.2);
-		Sphere s3 = new Sphere( new Point(1,1,0), 1);
-		scene.addShape(s1, new Color(200,0,0));
-		scene.addShape(s2, new Color(0,200,0));
-		scene.addShape(s3, new Color(0,0,200));
-		Point[] intersections = Sphere.getIntersections(s1, s2, s3);
-		for(Point p: intersections){
-			p.toConsole();
-			scene.addShape(new Sphere(p,0.1), Color.GRAY.darker());
-		}
+		Vertex C = new Vertex(new Point(0.0, 0.0, 0.0));
+		Sphere sphere = new Sphere(C, 1.5);
+		sphere.toScene(scene, new Color(0,0,255,255));
+		Plane p = new Plane(new Point(2.5,0.0,0.0), new Vector(1,0,0));
+		p.toScene(scene, new Color(255,0,0,100), 7);
 	}
 
 	/**

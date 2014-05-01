@@ -103,7 +103,7 @@ public class Hole {
 		// processes tetrahedra incident with u
 		this.scene = scene;
 		Stack<Tet> stack = new Stack<Tet>();
-		for (Tet tet : triangulation.getTets()) {
+		for (Tet tet : triangulation.getTetrahedra()) {
 			tet.onStack = false;
 			tet.toConsole();
 		}
@@ -118,7 +118,7 @@ public class Hole {
 			oppTet = tet.neighbors[indx];
 			if (oppTet == null) 
 				System.out.println("oppTet does not exist");
-			Face face = new Face(tet.getCorners()[(indx+1)%4], tet.getCorners()[(indx+2)%4], tet.getCorners()[(indx+3)%4], oppTet.getCorners()[oppTet.apex(tet)], tet, oppTet);
+			Face face = new Face(tet.getCorner((indx+1)%4), tet.getCorner((indx+2)%4), tet.getCorner((indx+3)%4), oppTet.getCorner(oppTet.apex(tet)), tet, oppTet);
 			tet.selectedFace = face;
 			faces.add(face);
 			if (testing) face.shape = tet.toSceneFace(scene, indx, Color.red);

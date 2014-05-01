@@ -155,7 +155,7 @@ public class J3DScene {
 
 	/** Add a volume object with a specified color */
 	public void addShape(Shape v, Color c){	
-		addShape(v,c,3);
+		addShape(v,c,300);
 	}
 
 	/** Add a volume object with a specified color and detail-level */

@@ -26,7 +26,7 @@ public class Circle implements Shape{
 	public Circle(Point center, double radius, Vector normal) {
 		this.center = center;
 		this.radius = radius;
-		this.normal = normal.normalize();
+		if (normal!=null) this.normal = normal.normalize();
 	}
 	
 	/** A circle with given center through a given point  and with specified normal vector */
@@ -145,11 +145,12 @@ public class Circle implements Shape{
 			double diff = Math.abs(radius - c.getRadius());
 			if (dist - diff < -Constants.EPSILON) return intersectionPoints;
 			else {
-				if (Math.abs(dist - sum) < Constants.EPSILON) {
+				if (Math.abs(dist - sum) < Constants.EPSILON) { // one intersection point
 					Vector v = new Vector(center, c.getCenter());
 					double fraction = radius/(radius+c.getRadius());
 					intersectionPoints = new Point[1];
 					intersectionPoints[0] = center.addThis(v.multiply(fraction));
+					System.out.println("Scale vector correct in Circle class? "+(center.distance(center.addThis(v.multiply(fraction)))==radius));
 					return intersectionPoints;
 				}
 				else {
@@ -227,6 +228,17 @@ public class Circle implements Shape{
 		else { 
 			if (normal.dot(cr) > 0) return 2*Math.PI - beta - alpha; else return beta - alpha;
 		}
+	}
+	
+	//Daisy
+	public double getDistanceSquared(Point p) {
+		double NPC = normal.dot(p.subtract(center));
+		double secondTerm = Math.sqrt(p.distanceSquared(center)-NPC*NPC)-radius;
+		return NPC*NPC+secondTerm*secondTerm;
+	}
+	//Daisy
+	public double getDistance(Point p) {
+		return Math.sqrt(getDistanceSquared(p));
 	}
 	
 	/** returns the smallest rotation angle (direction determined by vector dir) 

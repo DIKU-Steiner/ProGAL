@@ -1,22 +1,27 @@
 package ProGAL.geom3d.kineticDelaunay;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Stack;
 
 import ProGAL.geom3d.Point;
+import ProGAL.geom3d.viewer.J3DScene;
+import ProGAL.geom3d.volumes.Sphere;
 
 public class Vertex extends Point implements Comparable<Vertex>{
 	private static final long serialVersionUID = 1L;
 	public static enum VertexType { S, R };
 	private VertexType type;
 	private double polarAngle;
+	private double initAngle = -1.0;
 	private double cosAngle;
 	private double sinAngle;
 	private double polarRadius;
 	private double squaredPolarRadius;
 	private Tet tet;
+	private Sphere sphere;
 	private Integer depth = null;
 	public boolean flag = false;
 	
@@ -43,6 +48,15 @@ public class Vertex extends Point implements Comparable<Vertex>{
 	public void   setSquaredPolarRadius(double sqPR) { this.squaredPolarRadius = sqPR; }
 	public double getPolarAngle()                    { return polarAngle; }
     public void   setPolarAngle(double polarAngle)   { this.polarAngle = polarAngle; }
+    public double getInitAngle()                    { return initAngle; }
+    public void   setInitAngle(double initAngle)   {
+    	if (this.initAngle==-1.0) {
+    		this.initAngle = initAngle;
+    	}
+    }
+    public Point returnAsPoint() {
+    	return new Point(this.toVector());
+    }
     public double getCosAngle()                      { return cosAngle; }
     public void setCosAngle(double cosAngle)         { this.cosAngle = cosAngle; }
     public double getSinAngle()                      { return sinAngle; }
@@ -103,6 +117,13 @@ public class Vertex extends Point implements Comparable<Vertex>{
     
 	public int compareTo(Vertex arg0) {
 		return index-arg0.index;
+	}
+	
+	public void toScene(J3DScene scene, Color clr, double size) {
+		scene.removeShape(sphere);
+		sphere = new Sphere(this, size);
+		scene.addShape(sphere, clr);
+		scene.repaint();
 	}
 	
 	public String toString(){

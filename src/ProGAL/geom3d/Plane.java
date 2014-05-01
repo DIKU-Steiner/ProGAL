@@ -84,8 +84,21 @@ public class Plane implements Shape{
 
 	/** Get the projection of p onto this plane. */
 	public Point projectPoint(Point p) {
+		//Daisy
+		/*
+		System.out.println("Plane, point = "+point.toString());
+		System.out.println("Plane, p = "+p.getCoord(0)+", "+p.getCoord(1)+", "+p.getCoord(2));
+		Vector v = point.subtract(p).toVector();
+		System.out.println("Plane, v = "+v.toString());
+		double dist = v.dot(normal);
+		System.out.println("Plane, dist = "+dist);
+		Point projPoint = point.subtract(normal.multiply(dist));
+		return projPoint;*/
+		//Rasmus
+		
 		double t = normal.x()*p.x() + normal.y()*p.y() + normal.z()*p.z() + getD();
 		return new Point(p.x() - normal.x()*t, p.y() - normal.y()*t, p.z() - normal.z()*t);
+		
 	}
 
 	/** Returns 1/0/-1 if point p is above/on/below this plane. */
@@ -138,7 +151,17 @@ public class Plane implements Shape{
 	/** Get the intersection of a segment with the plane. Returns null if line is 
 	 * parallel to plane.*/
 	public Point getIntersection(LineSegment sgm) {
-		Vector dir = sgm.getAToB();
+		//Daisy
+		double dist0 = normal.dot(sgm.getA().subtract(point));
+		double dist1 = normal.dot(sgm.getB().subtract(point));
+		if (dist0*dist1>0) return null;
+		Vector x = (Vector)(sgm.getB().subtract(sgm.getA())).multiplyThis(1/sgm.getB().distance(sgm.getA())).toVector();
+		double cos = normal.dot(x);
+		if (Math.abs(cos)>=Constants.EPSILON) {
+			return sgm.getB().subtract(x.multiply(dist1/cos));
+		} else return null;
+		//Rasmus
+/*		Vector dir = sgm.getAToB();
 		double denom = normal.dot(dir);
 		if (denom == 0) return null;
 		else {
@@ -146,7 +169,7 @@ public class Plane implements Shape{
 			double u = normal.dot(pa)/denom;
 			if ((u < 0) || (u > 1)) return null;
 			else return new Point(sgm.a.x() + u*dir.x(), sgm.a.y() + u*dir.y(), sgm.a.z() + u*dir.z());
-		}
+		}*/
 	}
 
 	public Double getIntersectionAngle(Circle circle, Point p, Vector dir, J3DScene scene) {
@@ -356,13 +379,13 @@ public class Plane implements Shape{
 
 		for (int i = 0; i < steps; i++) {
 			scene.removeShape(shape);
-			c.rotation(zaxis.dir, delta);
-			d.rotation(zaxis.dir, delta);
+			c.rotationCW(zaxis.dir, delta);
+			d.rotationCW(zaxis.dir, delta);
 			cd = new Vector(c ,d);
 			cdBis = new Vector(cdBis.x()*Math.cos(delta) - cdBis.y()*Math.sin(delta), cdBis.y()*Math.cos(delta) + cdBis.x()*Math.sin(delta), cdBis.z());
 			System.out.println("Angle check: " + Functions.toDeg(z.angle(cd)));
 			System.out.println("Angle check bis: " + Functions.toDeg(z.angle(cdBis)));
-			midPointCD.rotation(zaxis.dir, delta);
+			midPointCD.rotationCW(zaxis.dir, delta);
 			scene.repaint();
 			new LineSegment(c,d);
 			shape = new LineSegment(c, d).toScene(scene, 0.01, Color.green);
@@ -578,9 +601,9 @@ public class Plane implements Shape{
 			mBeta.toScene(scene, qBeta, Color.green, 0.001);
 			n.toScene(scene, qBeta, Color.red, 0.001);
 			nxmBeta.toScene(scene, qBeta, Color.magenta, 0.001);
-			c.rotation(zaxis.dir, delta);
-			d.rotation(zaxis.dir, delta);
-			midPointCD.rotation(zaxis.dir, delta);
+			c.rotationCW(zaxis.dir, delta);
+			d.rotationCW(zaxis.dir, delta);
+			midPointCD.rotationCW(zaxis.dir, delta);
 
 		}
 		
@@ -764,10 +787,10 @@ public class Plane implements Shape{
 		Vector rotV = rotAxis.dir.cross(new Vector(0,0,1));
 		LSS lss = rotV.toScene(scene, Color.magenta, 0.01);
 		double angle = rotAxis.dir.angle(new Vector(0,0,1));
-		S1.rotation(rotV, angle);
-		S2.rotation(rotV, angle);
-		R1.rotation(rotV, angle);
-		R2.rotation(rotV, angle);
+		S1.rotationCW(rotV, angle);
+		S2.rotationCW(rotV, angle);
+		R1.rotationCW(rotV, angle);
+		R2.rotationCW(rotV, angle);
 		scene.removeShape(SS1); SS1 = S1.toScene(scene, 0.01, Color.black);
 		scene.removeShape(SS2); SS2 = S2.toScene(scene, 0.01, Color.blue);
 		scene.removeShape(SR1); SR1 = R1.toScene(scene, 0.01, Color.green);
@@ -820,10 +843,10 @@ public class Plane implements Shape{
 		
 		// rotates so that R1 is on the positive x-axis
 		angle = new Vector(1,0,0).angle(R1.toVector());
-		S1.rotation(rotAxis.dir, angle);
-		S2.rotation(rotAxis.dir, angle);
-		R1.rotation(rotAxis.dir, angle);
-		R2.rotation(rotAxis.dir, angle);
+		S1.rotationCW(rotAxis.dir, angle);
+		S2.rotationCW(rotAxis.dir, angle);
+		R1.rotationCW(rotAxis.dir, angle);
+		R2.rotationCW(rotAxis.dir, angle);
 		scene.removeShape(SS1); SS1 = S1.toScene(scene, 0.01, Color.black);
 		scene.removeShape(SS2); SS2 = S2.toScene(scene, 0.01, Color.blue);
 		scene.removeShape(SR1); SR1 = R1.toScene(scene, 0.01, Color.green);

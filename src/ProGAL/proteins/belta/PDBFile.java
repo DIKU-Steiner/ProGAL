@@ -29,7 +29,7 @@ public class PDBFile extends ProGAL.proteins.PDBFile {
 	private Map<Integer, Integer> shiftMap = new HashMap<Integer,Integer>();
 	
 	public PDBFile(String path) {
-		super(path);
+		super(path, true);
 		
 		for(PDBRecord rec: super.records){
 			if(rec instanceof HelixRecord){ helixRecords.add((HelixRecord)rec); }

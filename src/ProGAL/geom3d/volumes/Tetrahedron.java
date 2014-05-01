@@ -100,7 +100,7 @@ public class Tetrahedron implements Simplex, Volume {
 		int count = 0;
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
-				if (corners[i] == t.corners[j]) {
+				if (corners[i].equals(t.corners[j])) {
 					common[count++] = corners[i];
 					j = 4;
 				}
@@ -205,7 +205,7 @@ public class Tetrahedron implements Simplex, Volume {
 	}
 
 	/*
-	 * returns TRUE if the tetrahedron is acute. Tetrahedron is acute if all its dihedral angles are acute (< 90¡)
+	 * returns TRUE if the tetrahedron is acute. Tetrahedron is acute if all its dihedral angles are acute (< 90ï¿½)
 	 * added by pawel 12-11-2011
 	 */
 
@@ -242,7 +242,7 @@ public class Tetrahedron implements Simplex, Volume {
 	
 	public void toScene(J3DScene scene) {
 		for (int i = 0; i < 4; i++)
-			for (int j = i+1; j < 4; j++) scene.addShape(new LSS(corners[i], corners[j], 0.01), Color.BLACK, 3);	
+			for (int j = i+1; j < 4; j++) scene.addShape(new LSS(corners[i], corners[j], 0.01), Color.BLUE, 3);	
 	}
 	
 	public static void main(String[] args) {

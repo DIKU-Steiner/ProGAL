@@ -494,7 +494,7 @@ public class Matrix {
 		return new EigenvalueDecomposition();
 	}
 
-	public String toString(){ return toString(2); }
+	public String toString(){ return toString(4); }
 
 	public String toString(int dec){
 		StringBuilder sb = new StringBuilder();
@@ -564,6 +564,7 @@ public class Matrix {
 		return ret;
 	}
 
+	//Daisy says : The returned rotation matrix changes the size of the vector it is applied to
 	public static Matrix createRotationMatrix(double angle, Vector v){
 		double ux = v.x();
 		double uy = v.y();

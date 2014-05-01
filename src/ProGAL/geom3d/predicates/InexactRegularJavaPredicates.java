@@ -9,7 +9,7 @@ import ProGAL.math.Matrix;
 
 public class InexactRegularJavaPredicates extends Predicates{
 	public double circumradius(Point p0, Point p1, Point p2, Point p3){				return circumradius(new Tetrahedron(p0,p1,p2,p3)); 	}
-	public double circumradius(Tetrahedron t){										return t.circumradius();							}
+	public double circumradius(Tetrahedron t){										return t.circumRadius();							}
 	public double circumradius(Point p0, Point p1, Point p2){						return circumradius(new Triangle(p0,p1,p2));		}
 	public double circumradius(Triangle t){											return t.circumradius(); 						}
 	
