@@ -213,15 +213,48 @@ public class KineticAlphaComplex {
 	
 	
 	private void initializeRadiusEvents() {
-		//TODO: Move stuff from initialize alpha complex up here
+		//Test each tetrahedron
+		for (Tet T : tets) {
+			angles = getRoot(T.getCorner(0), T.getCorner(1), T.getCorner(2), T.getCorner(3), T.getCount());
+			if ((angles != null) && (angles[0] < angleLimit)) {
+				addToHeap(angles, T);
+			}
+			
+			//Test each triangle
+			for (Tri t : T.getListOfTris()) {
+				angles = getRoot(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCount());
+				if ((angles != null) && (angles[0] < angleLimit)) {
+					addToHeap(angles, t);
+				}
+			}
+			
+			//Test each edge
+			for (Edge e : T.getEdges()) {
+				angles = getRoot(e.getCorner(0), e.getCorner(1), e.getCount());
+				if ((angles != null) && (angles[0] < angleLimit)) {
+					addToHeap(angles, e);
+				}
+			}
+		}
 	}
 	
 	// Daisy
-/*	private Edge getEdge(Edge e) {
-		int idx = edges.indexOf(e);
-		if (idx > -1) return edges.get(idx);
-		return null;
-	}*/
+	private boolean isGabriel(Edge e) {
+		Sphere s = new Sphere(Point.getMidpoint(e.getCorner(0), e.getCorner(1)), e.getCircumRadius());
+		for (Point p : vertices) {
+			if (e.hasVertex(new Vertex(p))) continue;
+			if (s.contains(p)) return false;
+		}
+		return true;
+	}
+	private boolean isGabriel(Tri t) {
+		Sphere s = new Sphere(new Circle(t.getCorner(0), t.getCorner(1), t.getCorner(2)).getCenter(), t.getCircumRadius());
+		for (Point p : vertices) {
+			if (t.hasVertex(new Vertex(p))) continue;
+			if (s.contains(p)) return false;
+		}
+		return true;
+	}
 	private void initializeAlphaComplex() {
 		for (Tet t : tets) {
 			if (!t.isAlive()) continue;
@@ -316,8 +349,10 @@ public class KineticAlphaComplex {
 				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
-					alphaEdges.add(tmp);
 					tmp.setAlph(true);
+					if (isGabriel(tmp)) {
+						alphaEdges.add(tmp);
+					}
 				}
 				angles = getRoot(v0, v1, tmp.getCount());
 				if ((angles != null) && (angles[0] < angleLimit)) {
@@ -333,12 +368,14 @@ public class KineticAlphaComplex {
 				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
-					alphaEdges.add(tmp);
 					tmp.setAlph(true);
+					if (isGabriel(tmp)) {
+						alphaEdges.add(tmp);
+					}
 				}
 				angles = getRoot(v0, v2, tmp.getCount());
 				if ((angles != null) && (angles[0] < angleLimit)) {
-					addToHeap(angles, tmp);// Requires simplex-interface
+					addToHeap(angles, tmp);
 				}
 			} else t.setEdge(mapEdges.get(new EdgePoints(v0, v2)));
 			
@@ -346,16 +383,17 @@ public class KineticAlphaComplex {
 				tmp =  new Edge(v0, v3);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v0, v3), tmp);
-				//edges.add(tmp);
 				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
-					alphaEdges.add(tmp);
 					tmp.setAlph(true);
+					if (isGabriel(tmp)) {
+						alphaEdges.add(tmp);
+					}
 				}
 				angles = getRoot(v0, v3, tmp.getCount());
 				if ((angles != null) && (angles[0] < angleLimit)) {
-					addToHeap(angles, tmp); // Requires simplex-interface
+					addToHeap(angles, tmp);
 				}
 			} else t.setEdge(mapEdges.get(new EdgePoints(v0, v3)));
 			
@@ -363,16 +401,17 @@ public class KineticAlphaComplex {
 				tmp =  new Edge(v1, v2);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v1, v2), tmp);
-//				edges.add(tmp);
 				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
-					alphaEdges.add(tmp);
 					tmp.setAlph(true);
+					if (isGabriel(tmp)) {
+						alphaEdges.add(tmp);
+					}
 				}
 				angles = getRoot(v1, v2, tmp.getCount());
 				if ((angles != null) && (angles[0] < angleLimit)) {
-					addToHeap(angles, tmp);// Requires simplex-interface
+					addToHeap(angles, tmp);
 				}
 			} else t.setEdge(mapEdges.get(new EdgePoints(v1, v2)));
 			
@@ -380,16 +419,17 @@ public class KineticAlphaComplex {
 				tmp =  new Edge(v1, v3);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v1, v3), tmp);
-//				edges.add(tmp);
 				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
-					alphaEdges.add(tmp);
 					tmp.setAlph(true);
+					if (isGabriel(tmp)) {
+						alphaEdges.add(tmp);
+					}
 				}
 				angles = getRoot(v1, v3, tmp.getCount());
 				if ((angles != null) && (angles[0] < angleLimit)) {
-					addToHeap(angles, tmp);// Requires simplex-interface
+					addToHeap(angles, tmp);
 				}
 			} else t.setEdge(mapEdges.get(new EdgePoints(v1, v3)));
 			
@@ -397,16 +437,17 @@ public class KineticAlphaComplex {
 				tmp =  new Edge(v2, v3);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v2, v3), tmp);
-//				edges.add(tmp);
 				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
-					alphaEdges.add(tmp);
 					tmp.setAlph(true);
+					if (isGabriel(tmp)) {
+						alphaEdges.add(tmp);
+					}
 				}
 				angles = getRoot(v2, v3, tmp.getCount());
 				if ((angles != null) && (angles[0] < angleLimit)) {
-					addToHeap(angles, tmp);// Requires simplex-interface
+					addToHeap(angles, tmp);
 				}
 			} else t.setEdge(mapEdges.get(new EdgePoints(v2, v3)));
 		}
@@ -422,11 +463,12 @@ public class KineticAlphaComplex {
 			tri = new Tri(s0, s1, s2);
 			mapTris.put(new TrianglePoints(s0, s1, s2), tri);
 			t.setTri(tri, t.indexOf(s3));
-//			tris.add(tri);
 			tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, s2));
@@ -437,11 +479,12 @@ public class KineticAlphaComplex {
 			tri = new Tri(s0, s1, s3);
 			mapTris.put(new TrianglePoints(s0, s1, s3), tri);
 			t.setTri(tri, t.indexOf(s2));
-//			tris.add(tri);
 			tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, s3));
@@ -452,11 +495,12 @@ public class KineticAlphaComplex {
 			tri = new Tri(s1, s2, s3);
 			mapTris.put(new TrianglePoints(s1, s2, s3), tri);
 			t.setTri(tri, t.indexOf(s0));
-//			tris.add(tri);
 			tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s1, s2, s3));
@@ -467,11 +511,12 @@ public class KineticAlphaComplex {
 			tri = new Tri(s0, s2, s3);
 			mapTris.put(new TrianglePoints(s0, s2, s3), tri);
 			t.setTri(tri, t.indexOf(s1));
-//			tris.add(tri);
 			tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s2, s3));
@@ -500,12 +545,13 @@ public class KineticAlphaComplex {
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, s2))) {
 			tri = new Tri(s0, s1, s2);
 			mapTris.put(new TrianglePoints(s0, s1, s2), tri);
-//			tris.add(tri);
 			tri.setTet(t);
 			t.setTri(tri, t.indexOf_slow(r));
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, s2));
@@ -515,12 +561,13 @@ public class KineticAlphaComplex {
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r))) {
 			tri = new Tri(s0, s1, r);
 			mapTris.put(new TrianglePoints(s0, s1, r), tri);
-//			tris.add(tri);
 			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s2));
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			} else {
 				Point center = Point.getMidpoint(s0, s1);
 				Circle C = new Circle(center, alphaVal, center.vectorTo(s0));
@@ -528,10 +575,6 @@ public class KineticAlphaComplex {
 				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
 					tri.setAlph(2);
 				} else tri.setAlph(0);
-			}
-			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
-			if ((angles != null) && (angles[0] < angleLimit)) {
-				addToHeap(angles, tri);
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, r));
@@ -541,12 +584,13 @@ public class KineticAlphaComplex {
 		if (!mapTris.containsKey(new TrianglePoints(s0, s2, r))) {
 			tri = new Tri(s0, s2, r);
 			mapTris.put(new TrianglePoints(s0, s2, r), tri);
-//			tris.add(tri);
 			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			} else {
 				Point center = Point.getMidpoint(s0, s2);
 				Circle C = new Circle(center, alphaVal, center.vectorTo(s0));
@@ -554,11 +598,6 @@ public class KineticAlphaComplex {
 				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
 					tri.setAlph(2);
 				} else tri.setAlph(0);
-			}
-			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
-			if ((angles != null) && (angles[0] < angleLimit)) {
-				addToHeap(angles, tri);
-				
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s2, r));
@@ -568,12 +607,13 @@ public class KineticAlphaComplex {
 		if (!mapTris.containsKey(new TrianglePoints(s1, s2, r))) {
 			tri = new Tri(s1, s2, r);
 			mapTris.put(new TrianglePoints(s1, s2, r), tri);
-//			tris.add(tri);
 			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			} else {
 				Point center = Point.getMidpoint(s1, s2);
 				Circle C = new Circle(center, alphaVal, center.vectorTo(s1));
@@ -581,10 +621,6 @@ public class KineticAlphaComplex {
 				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
 					tri.setAlph(2);
 				} else tri.setAlph(0);
-			}
-			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
-			if ((angles != null) && (angles[0] < angleLimit)) {
-				addToHeap(angles, tri);
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s1, s2, r));
@@ -595,7 +631,6 @@ public class KineticAlphaComplex {
 	
 	
 	private void twoRotate(Tet t, Vertex s0, Vertex s1, Vertex r0, Vertex r1) {
-//		System.out.println("Looking at tet "+t.toString());
 		if (t.isAlpha(alphaVal)) {
 			alphaTets.add(t);
 			t.setAlph(1);
@@ -608,12 +643,13 @@ public class KineticAlphaComplex {
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r0))) {
 			tri = new Tri(s0, s1, r0);
 			mapTris.put(new TrianglePoints(s0, s1, r0), tri);
-//			tris.add(tri);
 			tri.setTet(t);
 			t.setTri(tri, t.indexOf_slow(r1));
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			} else {
 				Point center = Point.getMidpoint(s0, s1);
 				Circle C = new Circle(center, alphaVal, center.vectorTo(s0));
@@ -621,10 +657,6 @@ public class KineticAlphaComplex {
 				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
 					tri.setAlph(2);
 				} else tri.setAlph(0);
-			}
-			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
-			if ((angles != null) && (angles[0] < angleLimit)) {
-				addToHeap(angles, tri);
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, r0));
@@ -634,12 +666,13 @@ public class KineticAlphaComplex {
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r1))) {
 			tri = new Tri(s0, s1, r1);
 			mapTris.put(new TrianglePoints(s0, s1, r1), tri);
-//			tris.add(tri);
 			tri.setTet(t);
 			t.setTri(tri, t.indexOf(r0));
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			} else {
 				Point center = Point.getMidpoint(s0, s1);
 				Circle C = new Circle(center, alphaVal, center.vectorTo(s0));
@@ -647,10 +680,6 @@ public class KineticAlphaComplex {
 				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
 					tri.setAlph(2);
 				} else tri.setAlph(0);
-			}
-			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
-			if ((angles != null) && (angles[0] < angleLimit)) {
-				addToHeap(angles, tri);
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, r1));
@@ -660,12 +689,13 @@ public class KineticAlphaComplex {
 		if (!mapTris.containsKey(new TrianglePoints(s0, r0, r1))) {
 			tri = new Tri(s0, r0, r1);
 			mapTris.put(new TrianglePoints(s0, r0, r1), tri);
-//			tris.add(tri);
 			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			} else {
 				Point center = Point.getMidpoint(r0, r1);
 				Circle C = new Circle(center, alphaVal, center.vectorTo(r0));
@@ -673,10 +703,6 @@ public class KineticAlphaComplex {
 				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
 					tri.setAlph(2);
 				} else tri.setAlph(0);
-			}
-			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
-			if ((angles != null) && (angles[0] < angleLimit)) {
-				addToHeap(angles, tri);
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, r0, r1));
@@ -686,12 +712,13 @@ public class KineticAlphaComplex {
 		if (!mapTris.containsKey(new TrianglePoints(s1, r0, r1))) {
 			tri = new Tri(s1, r0, r1);
 			mapTris.put(new TrianglePoints(s1, r0, r1), tri);
-//			tris.add(tri);
 			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 			if (tri.isAlpha(alphaVal)) {
-				alphaTris.add(tri);
 				tri.setAlph(1);
+				if (isGabriel(tri)) {
+					alphaTris.add(tri);
+				}
 			} else {
 				Point center = Point.getMidpoint(r0, r1);
 				Circle C = new Circle(center, alphaVal, center.vectorTo(s1));
@@ -699,10 +726,6 @@ public class KineticAlphaComplex {
 				if (dist < (alphaVal*alphaVal)+Constants.EPSILON) {
 					tri.setAlph(2);
 				} else tri.setAlph(0);
-			}
-			angles = getRoot(tri.getCorner(0), tri.getCorner(1), tri.getCorner(2), tri.getCount());
-			if ((angles != null) && (angles[0] < angleLimit)) {
-				addToHeap(angles, tri);
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s1, r0, r1));
