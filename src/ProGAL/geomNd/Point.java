@@ -3,6 +3,7 @@ package ProGAL.geomNd;
 import java.io.Serializable;
 
 import ProGAL.math.Constants;
+import ProGAL.math.Randomization;
 
 /** 
  * A class representing a point in an N-dimensional Euclidean space. The underlying 
@@ -89,6 +90,7 @@ public class Point implements Serializable{
 	
 /** Returns squared distance to the point p */
 	public double distanceSquared(Point p){
+		assert dim==p.dim: "Dimensions don't match";
 		double sum = 0;
 		for(int d=0;d<dim;d++) {
 			double delta = coords[d]-p.coords[d];
@@ -157,7 +159,13 @@ public class Point implements Serializable{
 		return angle;
 	}
 
-
+	public static Point getRandomPoint(int d, double minCoord, double maxCoord){
+		Point ret = new Point(d);
+		for(int i=0;i<d;i++){
+			ret.coords[i] = Randomization.randBetween(minCoord, maxCoord);
+		}
+		return ret;
+	}
 	
 	public Vector vectorTo(Point p1) {
 		double[] newCoords = new double[dim];

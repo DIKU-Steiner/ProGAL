@@ -25,6 +25,8 @@ public class Vector extends ProGAL.geomNd.Vector{
 
 	public void negative() { scale(-1); }
 	public Vector scale(double a) { coords[0]*=a; coords[1]*=a; return this; }
+	
+	/** Perform a counter-clock-wise rotation by a radians. */
 	public Vector rotateThis(double a) {
 		double cosA = Math.cos(a);
 		double sinA = Math.sin(a);

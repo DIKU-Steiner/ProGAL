@@ -74,7 +74,7 @@ public class PDBFileViewer{
 		scene.autoZoom();
 	}
 	public static void main(String[] args){
-		PDBFile f = new PDBFile(PDBWebReader.downloadPDBFile("3SQF"));
+		PDBFile f = new PDBFile(PDBWebReader.downloadPDBFile("2CRO"));
 		new PDBFileViewer(f);
 	}
 }

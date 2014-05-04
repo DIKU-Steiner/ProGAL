@@ -97,9 +97,9 @@ public class Tet {
 		return tris;
 	}
 	
-	public Tetrahedron makeTetrahedron() {
-		return new Tetrahedron(corners[0], corners[1], corners[2], corners[3]);
-	}
+//	public Tetrahedron makeTetrahedron() {
+//		return new Tetrahedron(corners[0], corners[1], corners[2], corners[3]);
+//	}
 	
 	public Vertex getCorner(int i) { return corners[i]; }
 	
@@ -137,8 +137,16 @@ public class Tet {
 	public double getCircumSphereRadius() { return getCircumSphere().getRadius(); }
 	
 	public void setCircumSphere() {
-		Tetrahedron tetra = makeTetrahedron();
-		circumSphere = tetra.circumSphere();
+//		Tetrahedron tetra = new Tetrahedron(corners[0], corners[1], corners[2], corners[3]);
+//		circumSphere = tetra.circumSphere();
+		Vector a = corners[3].vectorTo(corners[0]);
+		Vector b = corners[3].vectorTo(corners[1]);
+		Vector c = corners[3].vectorTo(corners[2]);
+		Vector O = b.cross(c).multiplyThis(a.dot(a));
+		O.addThis(c.cross(a).multiplyThis(b.dot(b)));
+		O.addThis(a.cross(b).multiplyThis(c.dot(c)));
+		O.multiplyThis(1.0/(2*a.dot(b.crossThis(c))));
+		circumSphere = new Sphere(corners[3].add(O), O.length());
 	}
 	
 	/** Calculate the radius of the circumsphere. */
@@ -151,6 +159,14 @@ public class Tet {
 		O.addThis(a.cross(b).multiplyThis(c.dot(c)));
 		O.multiplyThis(1.0/(2*a.dot(b.crossThis(c))));
 		return O.length();
+	}
+	
+	/** Get the volume of the tetrahedron. */
+	public double getVolume() {
+		Vector a = corners[3].vectorTo(corners[0]);
+		Vector b = corners[3].vectorTo(corners[1]);
+		Vector c = corners[3].vectorTo(corners[2]);
+		return Math.abs(a.dot(b.crossThis(c)))/6.0;
 	}
 
 	// Daisy

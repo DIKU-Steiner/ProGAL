@@ -124,6 +124,8 @@ public class KineticAlphaComplex {
 		for (Tet tet : tets) {
 			for (int i = 0; i < 4; i++) tet.getCorner(i).setTet(tet);
 		}
+		
+		initializeAlphaComplex();
 	}
 	
 	/** Adds new event to the heap */
@@ -153,7 +155,8 @@ public class KineticAlphaComplex {
 //	public Point getRotationPoint() { return rotationPoint; }
 	
 	
-	/** Returns tetrahedra sharing a face and a vertex */
+	/** Assuming v is a corner of tet, this method returns the three tetrahedra that are neighbors of 
+	 * tet and have v as a corner point.  */
 	public Tet[] getTetrahedra(Vertex v, Tet tet) {
 		int indxV = tet.indexOf(v);
 		Tet[] nTet = new Tet[3]; 
@@ -1342,7 +1345,7 @@ public class KineticAlphaComplex {
 				}
 			}
 		}
-		initializeAlphaComplex();
+		initializeRadiusEvents();
 	}
 
 	
@@ -2067,7 +2070,7 @@ public class KineticAlphaComplex {
 	}
 	
 	/** Rotates points */
-	public void rotatePoints(double angle) {
+	private void rotatePoints(double angle) {
 		int steps = 1;
 		double angleStep = angle/steps;
 		for (int k = 0; k < steps; k++) {
@@ -2085,7 +2088,7 @@ public class KineticAlphaComplex {
 	}
 
 	
-	public void rotate(double rotateTo) {
+	public void rotateTo(double rotateTo) {
 		if (rotateTo>angleLimit) {
 			throw new RuntimeException("Angle is bigger than limit=360");
 		}
@@ -2422,6 +2425,9 @@ public class KineticAlphaComplex {
 
 	/** returns the list of tetrahedra in this kinetic Dalaunay tessellation */
 	public Set<Tet> getTetrahedra(){ return tets; }
+	
+	/** Returns the set of tetrahedra that are currently part of the alpha complex */
+	public Set<Tet> getAlphaTetrahedra(){ return alphaTets; }
 	
 	public double getAlpha() {
 		return alphaVal;

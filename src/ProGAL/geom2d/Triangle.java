@@ -3,20 +3,20 @@ package ProGAL.geom2d;
 
 public class Triangle implements Shape{
 	protected final Point[] points;
-	
+
 	public Triangle(Point p1, Point p2, Point p3) { points = new Point[]{p1,p2,p3}; }
-	
+
 	public Point getCorner(int i) { return points[i]; }
-	
+
 	public void setCorner(Point p, int i){ points[i] = p; }
-	
+
 	public double getAltitude(int i) {
 		Line line  = new Line(points[(i+1)%3], points[(i+2)%3]);
 		return line.getDistance(points[i]);
 	}
 
 	public Point getCenter() { return points[0].clone(); }
-	
+
 	/** returns the cosinus of the angle opposite to the vertex with vertex i */
 	public double getCos(int i) {
 		double a01 = points[0].distance(points[1]);
@@ -26,15 +26,40 @@ public class Triangle implements Shape{
 		if (i == 1) return (a01*a01 + a12*a12 - a20*a20)/(2*a01*a12); 
 		return (a12*a12 + a20*a20 - a01*a01)/(2*a12*a20);
 	}
-	
+
 	public Circle getCircumCircle(){
 		Line bisectorAB = Point.getBisector(points[0],points[1]);
 		Line bisectorAC = Point.getBisector(points[0],points[2]);
 		Point d = Line.getIntersection(bisectorAB, bisectorAC);
 		return new Circle(d, d.distance(points[0]));
-//		return new Circle(points[0], points[1], points[2]);
+		//		return new Circle(points[0], points[1], points[2]);
 	}
-	
+
+	public Point getSteinerPoint(){
+		Vector v = points[0].vectorTo(points[1]);
+		if(Point.leftTurn(points[0], points[1], points[2])){
+			v.rotateThis(-Math.PI/3.0);
+			Point eqPoint = points[0].add(v);
+			Triangle eqTri = new Triangle(eqPoint, points[1], points[0]);
+			if(!Point.rightTurn(eqPoint, points[0], points[2])) return points[0];
+			if(!Point.leftTurn(eqPoint, points[1], points[2])) return points[1];
+			Circle ccirc = eqTri.getCircumCircle();
+			Line l = new Line(eqPoint, eqPoint.vectorTo(points[2]));
+			Point[] intersections = ccirc.intersections(l);
+			return intersections[1];
+		}else{
+			v.rotateThis(Math.PI/3.0);
+			Point eqPoint = points[0].add(v);
+			Triangle eqTri = new Triangle(eqPoint, points[1], points[0]);
+			if(!Point.leftTurn(eqPoint, points[0], points[2])) return points[0];
+			if(!Point.rightTurn(eqPoint, points[1], points[2])) return points[1];
+			Circle ccirc = eqTri.getCircumCircle();
+			Line l = new Line(eqPoint, eqPoint.vectorTo(points[2]));
+			Point[] intersections = ccirc.intersections(l);
+			return intersections[1];
+		}
+	}
+
 	public boolean inCircumCircle(Point s) {
 		Point p = points[0];
 		Point q = points[1];
@@ -48,7 +73,7 @@ public class Triangle implements Shape{
 				sD2*(p.x()*(q.y()-r.y()) + q.x()*(r.y()-p.y()) + r.x()*(p.y()-q.y())) + 
 				p.x()*(q.y()*rD2-r.y()*qD2) + p.y()*(r.x()*qD2-q.x()*rD2) + pD2*(q.x()*r.y()-r.x()*q.y())  < 0.0;
 	}
-	
+
 	public static void main(String[] args) {
 		Triangle tr = new Triangle(new Point(-3.2,-1.5), new Point(-1,3), new Point(3.1,0));
 		if (tr.inCircumCircle(new Point(0,-4))) System.out.println("TRUE"); else System.out.println("FALSE");
