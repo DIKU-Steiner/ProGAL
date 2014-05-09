@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,11 +13,9 @@ import java.util.Stack;
 
 import ProGAL.dataStructures.Heap;
 import ProGAL.dataStructures.SortTool;
-import ProGAL.geom3d.viewer.TextShape;
 import ProGAL.geom3d.Circle;
-import ProGAL.geom3d.LineSegment;
-
 import ProGAL.geom3d.Line;
+import ProGAL.geom3d.LineSegment;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.Triangle;
@@ -35,7 +32,6 @@ import ProGAL.math.Matrix;
 import ProGAL.math.Randomization;
 import ProGAL.math.Trigonometry;
 import ProGAL.proteins.PDBFile; //
-import ProGAL.proteins.PDBFile.AtomRecord;
 
 
 
@@ -86,7 +82,7 @@ public class KineticACD {
 //	private boolean testing = true;
 	private boolean testingPrint = false;
 	private boolean testingScreen = false;
-	private boolean screenAlpha = true;
+	private boolean screenAlpha = false;
 	private boolean sphereAnimation = false;
 	J3DScene scene;
 
@@ -140,7 +136,8 @@ public class KineticACD {
 
 		Tetrahedron bigT = Tetrahedron.regularTetrahedron();
 		bigT.blowUp(1000);
-		lastTet = new BigTet(bigT, vertices);
+		lastTet = new Tet(bigT);
+		
 		
 		for (Point p: points) {
 			insertPoint(p);	
@@ -1530,9 +1527,13 @@ public class KineticACD {
 	}
 
 	
-	private void initializeRotation(List<Integer> rotIndices, int a, int b) {
+	public void initializeRotation(List<Integer> rotIndices, int a, int b) {	
+		initializeRotation(rotIndices, new Line(vertices.get(a+4), vertices.get(b+4)));
+	}
+	public void initializeRotation(List<Integer> rotIndices, Line l) {
 		heap.clear();
-		setRotationAxis(vertices.get(a+4), vertices.get(b+4));
+//		setRotationAxis(vertices.get(a+4), vertices.get(b+4));
+		setRotationAxis(l.getP(), l.getPoint(1.0));
 		setRotVertices(rotIndices);
 		// set constants associated with vertices - does not include vertices of big points
 		for (Vertex v : vertices) {
@@ -2200,7 +2201,7 @@ public class KineticACD {
 		}
 	}
 	
-	public void rotate(double rotateTo) {
+	public void rotateTo(double rotateTo) {
 		if (rotateTo>angleLimit) {
 			throw new RuntimeException("Angle is bigger than limit=360");
 		}
@@ -2604,7 +2605,7 @@ public class KineticACD {
 		
 //		System.out.printf(" time in miliseconds %.2f\n", (System.nanoTime() - start)/1000000.0);
 //		start = System.nanoTime();
-		kDT.rotate(Math.toRadians(360));
+		kDT.rotateTo(Math.toRadians(360));
 //		System.out.println("Flips : "+kDT.nrFlips);
 		System.out.printf(" time in miliseconds %.2f\n", (System.nanoTime() - start)/1000000.0);
 //		start = System.nanoTime();
@@ -2639,5 +2640,8 @@ public class KineticACD {
 	public void setAlpha(double alpha) {
 		this.alphaVal = alpha;
 	}
+
+	/** Returns the set of tetrahedra that are currently part of the alpha complex */
+	public Set<Tet> getAlphaTetrahedra(){ return alphaTets; }
 	
 }
