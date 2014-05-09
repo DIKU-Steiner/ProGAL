@@ -235,12 +235,12 @@ public class Tet {
 	
 	
 	public int getCount() { 
-		if (count != null) return count; 
-		else {
+//		if (count != null) return count; 
+//		else {
 			count = 0;
 			for (int i = 0; i < 4; i++) { if (corners[i].getType() == Vertex.VertexType.R) count = count + (int)Math.pow(2,i);  }
 			return count;
-		}
+//		}
 	}
 	
 	//Daisy:
