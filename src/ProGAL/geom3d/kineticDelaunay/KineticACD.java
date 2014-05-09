@@ -50,6 +50,8 @@ public class KineticACD {
 	private Set<Edge> alphaEdges = new HashSet<Edge>();
 	private Set<Tri> alphaTris = new HashSet<Tri>();
 	private Set<Tet> alphaTets = new HashSet<Tet>();
+	private Set<Tri> initDTtriangles = new HashSet<Tri>();
+	private Set<Edge> initDTedges = new HashSet<Edge>();
 	private double alphaVal = Double.POSITIVE_INFINITY;
 	public int nrFlips = 0;
 	private PDBFile f;
@@ -438,15 +440,16 @@ public class KineticACD {
 	private void initializeRadiusEvents() {
 		//Test each tetrahedron
 		for (Tet T : tets) {
-			angles = getRoot(T.getCorner(0), T.getCorner(1), T.getCorner(2), T.getCorner(3), T.getCount());
-			if ((angles != null) && (angles[0] < angleLimit)) {
-				addToHeap(angles, T);
+			if (T.isAlive()) {
+				angles = getRoot(T.getCorner(0), T.getCorner(1), T.getCorner(2), T.getCorner(3), T.getCount());
+				if ((angles != null) && (angles[0] < angleLimit)) {
+					addToHeap(angles, T);
+				}
 			}
 		}
 			
 		//Test each triangle
-		for (Tri t : mapTris.values()) {
-			
+		for (Tri t : initDTtriangles) {
 			angles = getRoot(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCount());
 			if ((angles != null) && (angles[0] < angleLimit)) {
 				addToHeap(angles, t);
@@ -454,7 +457,7 @@ public class KineticACD {
 		}
 		
 		//Test each edge
-		for (Edge e : mapEdges.values()) {
+		for (Edge e : initDTedges) {
 			angles = getRoot(e.getCorner(0), e.getCorner(1), e.getCount());
 			if ((angles != null) && (angles[0] < angleLimit)) {
 				addToHeap(angles, e);
@@ -1529,15 +1532,27 @@ public class KineticACD {
 		scene.addShape(t.circumSphere, new Color(255, 255, 0, 100), 32);
 	}
 
+	private void initDT() {
+		initDTtriangles.clear();
+		initDTedges.clear();
+		for (Tet t : tets) {
+			if (t.isAlive()) {
+				initDTtriangles.addAll(Arrays.asList(t.getTris()));
+				initDTedges.addAll(t.getEdges());
+			}
+		}
+	}
 	
 	public void initializeRotation(List<Integer> rotIndices, int a, int b) {	
 		initializeRotation(rotIndices, new Line(vertices.get(a+4), vertices.get(b+4)));
 	}
 	public void initializeRotation(List<Integer> rotIndices, Line l) {
 		heap.clear();
+		angleTotal = 0;
 //		setRotationAxis(vertices.get(a+4), vertices.get(b+4));
 		setRotationAxis(l.getP(), l.getPoint(1.0));
 		setRotVertices(rotIndices);
+		initDT();
 		// set constants associated with vertices - does not include vertices of big points
 		for (Vertex v : vertices) {
 			if (testingPrint) System.out.print(v.getId() + ": " + v.toString(2));
@@ -2208,6 +2223,7 @@ public class KineticACD {
 		if (rotateTo>angleLimit) {
 			throw new RuntimeException("Angle is bigger than limit=360");
 		}
+		System.out.println("Heap size = "+heap.size());
 		HeapItem heapItem;
 		Tet t, nt, tt;
 		Edge edg;
