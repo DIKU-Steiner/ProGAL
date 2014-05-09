@@ -177,8 +177,11 @@ public class KineticACD {
 				v.rotationCW(rotationAxis, angleStep);
 				if (screenAlpha) v.toScene(scene, Color.RED, 0.1);
 			}
-			try { Thread.sleep(30); } catch (InterruptedException e) {}
-			if (testingScreen && sphereAnimation) animateSpheres();
+			
+			if ( (testingScreen && sphereAnimation) || screenAlpha){ 
+				try { Thread.sleep(30); } catch (InterruptedException e) {}
+				animateSpheres();
+			}
 			//if (k==0) isAlpha(); 
 //			System.out.println("AlphaComplex? "+isAlpha()+" : "+alphaTets.toString()+" , "+alphaTris.toString()+", "+alphaEdges.toString());
 
