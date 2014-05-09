@@ -1547,6 +1547,7 @@ public class KineticACD {
 		initializeRotation(rotIndices, new Line(vertices.get(a+4), vertices.get(b+4)));
 	}
 	public void initializeRotation(List<Integer> rotIndices, Line l) {
+		System.out.println("Line : "+l);
 		heap.clear();
 		angleTotal = 0;
 //		setRotationAxis(vertices.get(a+4), vertices.get(b+4));
@@ -2279,6 +2280,7 @@ public class KineticACD {
 							}
 							else { 
 								System.out.println(" not convex but tt = null");
+								System.out.println("t= "+t+" nt = "+nt);
 //								break;
 							}
 						}
