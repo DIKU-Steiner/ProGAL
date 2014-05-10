@@ -139,6 +139,8 @@ public class KineticACD {
 		Tetrahedron bigT = Tetrahedron.regularTetrahedron();
 		bigT.blowUp(1000);
 		lastTet = new Tet(bigT);
+		for(int i=0;i<4;i++) 
+			vertices.add(lastTet.getCorner(i));
 		
 		
 		for (Point p: points) {
@@ -1599,6 +1601,7 @@ public class KineticACD {
 			}
 		}
 		initializeRadiusEvents();
+		System.out.println("Stop please");
 	}
 
 	

@@ -68,7 +68,7 @@ public class KineticToolbox {
 //		double K2 = -r*m.minor(4, 1).determinant();
 //		double K3 = v.z()*m.minor(4, 2).determinant()-v.dot(v)*m.minor(4, 3).determinant()+m.minor(4, 4).determinant();
 //		
-//		//The solutions to the above equation are of the form alpha = 2*atan( (-K2±Ã(K1^2+K2^2-K3^2))/(K3-K1) )
+//		//The solutions to the above equation are of the form alpha = 2*atan( (-K2ï¿½ï¿½(K1^2+K2^2-K3^2))/(K3-K1) )
 //		double D = K1*K1 + K2*K2 - K3*K3;
 //		if(D<0) return Double.POSITIVE_INFINITY;
 //
@@ -96,7 +96,7 @@ public class KineticToolbox {
 //				new Vertex(new Point(Math.sqrt(2),0,0))
 //		};
 //		double a = nextEvent(vs, 4, 0*Math.PI/180);
-//		System.out.printf("Vertex 4 will intersect circumsphere of 0-3 at the angle %.2f¡. Expects 45¡\n", a*180/Math.PI);
+//		System.out.printf("Vertex 4 will intersect circumsphere of 0-3 at the angle %.2fï¿½. Expects 45ï¿½\n", a*180/Math.PI);
 //	}
 //	
 //	/** 
@@ -157,7 +157,7 @@ public class KineticToolbox {
 //		double C2 =-k3*sin(a2)+k4*cos(a2)-k5*sin(a1)+k6*cos(a1);
 //		double C3 = k1*sin(a1-a2)+k7;
 //
-//		//The solutions to the above equation are of the form alpha = 2*atan( (-K2±Ã(K1^2+K2^2-K3^2))/(K3-K1) )
+//		//The solutions to the above equation are of the form alpha = 2*atan( (-K2ï¿½ï¿½(K1^2+K2^2-K3^2))/(K3-K1) )
 //		double D = C1*C1 + C2*C2 - C3*C3;
 //		
 //		if(D<-Constants.EPSILON) return Double.POSITIVE_INFINITY;
@@ -203,7 +203,7 @@ public class KineticToolbox {
 //		System.out.println(Arrays.toString(vs[3].getCoords()));
 //		System.out.println(Arrays.toString(vs[4].getCoords()));
 //		double a = nextEvent(vs, 3,4, 0*Math.PI/180);
-//		System.out.printf("Common sphere at angle %.10f¡\n", a*180/Math.PI);
+//		System.out.printf("Common sphere at angle %.10fï¿½\n", a*180/Math.PI);
 ////		Line l = new Line(new Point(0,0,0), new Vector(0,0,1));
 ////		l.rotateIn(vs[3], a);
 ////		l.rotateIn(vs[4], a);
@@ -271,7 +271,7 @@ public class KineticToolbox {
 //		l = new Line(new Point(0,0,0), new Vector(0,0,1));
 //		
 //		a = nextEvent(vs, 3,4, 0*Math.PI/180);
-//		System.out.printf("Common sphere at angle %.2f¡\n", a*180/Math.PI);
+//		System.out.printf("Common sphere at angle %.2fï¿½\n", a*180/Math.PI);
 //
 //		double a1 = Math.atan2(v1.y(),v1.x());
 //		double a2 = Math.atan2(v2.y(),v2.x());
@@ -297,7 +297,7 @@ public class KineticToolbox {
 ////		scene.addShape(new Sphere(new Point(vs[1]),0.05),Color.RED);
 ////		scene.addShape(new Sphere(new Point(vs[2]),0.05),Color.RED);
 ////		a = nextEvent(vs, 0,1,2, 0*Math.PI/180);
-////		System.out.printf("Common sphere at angle %.2f¡ (expects %.2f¡)\n", a*180/Math.PI, angle*180/Math.PI);
+////		System.out.printf("Common sphere at angle %.2fï¿½ (expects %.2fï¿½)\n", a*180/Math.PI, angle*180/Math.PI);
 //
 //
 //
