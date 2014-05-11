@@ -5,11 +5,11 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
+import ProGAL.dataStructures.UnionFind;
 import ProGAL.geom3d.Simplex;
 import ProGAL.geom3d.complex.CTetrahedron;
 import ProGAL.geom3d.complex.CTriangle;
 import ProGAL.geom3d.complex.alphaComplex.AlphaFiltration;
-import ProGAL.geom3d.complex.alphaComplex.UnionFind;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.LSS;
 import ProGAL.proteins.PDBFile;

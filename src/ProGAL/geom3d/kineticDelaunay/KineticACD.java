@@ -72,7 +72,7 @@ public class KineticACD {
 	
 	private Tet lastTet;
 	private Double[] angles = new Double[4]; // Daisy: changed from 2 to 4
-	private double angleTotal = 0.0;
+	public double angleTotal = 0.0;
 	private double angleLimit = Constants.TAU;        
 	
 	private Point rotationPoint;   // rotation center
@@ -146,6 +146,7 @@ public class KineticACD {
 		for (Point p: points) {
 			insertPoint(p);	
 		}
+		System.out.println("Initial coords for vertex indexed at 10 = "+vertices.get(10).getCoord(0)+" , "+vertices.get(10).getCoord(1)+" , "+vertices.get(10).getCoord(2));
 		this.setAlpha(alpha);
 		
 		/** Each vertex gets a pointer to one of its faces */
@@ -440,6 +441,8 @@ public class KineticACD {
 	}
 	
 	private void initializeRadiusEvents() {
+		initDT();
+		
 		//Test each tetrahedron
 		for (Tet T : tets) {
 			if (T.isAlive()) {
@@ -1549,35 +1552,39 @@ public class KineticACD {
 		initializeRotation(rotIndices, new Line(vertices.get(a+4), vertices.get(b+4)));
 	}
 	public void initializeRotation(List<Integer> rotIndices, Line l) {
-		System.out.println("Line : "+l);
+//		System.out.println("Line : "+l);
 		heap.clear();
 		angleTotal = 0;
 //		setRotationAxis(vertices.get(a+4), vertices.get(b+4));
-		setRotationAxis(l.getP(), l.getPoint(1.0));
-		setRotVertices(rotIndices);
-		initDT();
-		// set constants associated with vertices - does not include vertices of big points
-		for (Vertex v : vertices) {
-			if (testingPrint) System.out.print(v.getId() + ": " + v.toString(2));
-			if (v.distanceSquared() < Constants.EPSILON) { //takes care of the special case when the rotation center overlaps with one of the given points
-				v.setSquaredPolarRadius(0.0);                            
-				v.setPolarRadius(0.0);                        
-				v.setPolarAngle(0.0);			
-				if (testingPrint) System.out.println(", polar angle: 0.0"); 
-				v.setCosAngle(1.0);
-				v.setSinAngle(0.0);
-				v.setType(Vertex.VertexType.S);
-				rotIndx.remove((Integer)v.getId());
-			}
-			else {
-				v.setSquaredPolarRadius(v.distanceSquared());       // remains unchanged when rotating around the same point
-				v.setPolarRadius(v.distance());                     // remains unchanged when rotating around the same point
-				v.setPolarAngle(v.polarAngleXY());     			
-				if (testingPrint) System.out.println(", initial polar angle: " + Functions.toDeg(v.getPolarAngle())); 
-				v.setCosAngle(v.polarAngleCosXY());
-				v.setSinAngle(v.polarAngleSinXY());
+		
+		if(l!=null){//Don't reuse existing axis
+			setRotationAxis(l.getP(), l.getPoint(1.0));
+			setRotVertices(rotIndices);
+
+			// set constants associated with vertices - does not include vertices of big points
+			for (Vertex v : vertices) {
+				if (testingPrint) System.out.print(v.getId() + ": " + v.toString(2));
+				if (v.distanceSquared() < Constants.EPSILON) { //takes care of the special case when the rotation center overlaps with one of the given points
+					v.setSquaredPolarRadius(0.0);                            
+					//				v.setPolarRadius(0.0);                        
+					//				v.setPolarAngle(0.0);			
+					if (testingPrint) System.out.println(", polar angle: 0.0"); 
+					v.setCosAngle(1.0);
+					v.setSinAngle(0.0);
+					v.setType(Vertex.VertexType.S);
+					rotIndx.remove((Integer)v.getId());
+				}
+				else {
+					v.setSquaredPolarRadius(v.distanceSquared());       // remains unchanged when rotating around the same point
+					//				v.setPolarRadius(v.distance());                     // remains unchanged when rotating around the same point
+					//				v.setPolarAngle(v.polarAngleXY());     			
+					//				if (testingPrint) System.out.println(", initial polar angle: " + Functions.toDeg(v.getPolarAngle())); 
+					v.setCosAngle(v.polarAngleCosXY());
+					v.setSinAngle(v.polarAngleSinXY());
+				}
 			}
 		}
+		
 		int count = 0;
 		int count4 = 0;
 		Tet nt = null;
@@ -1600,8 +1607,8 @@ public class KineticACD {
 				}
 			}
 		}
+		
 		initializeRadiusEvents();
-		System.out.println("Stop please");
 	}
 
 	
@@ -2175,7 +2182,7 @@ public class KineticACD {
 		for (Tet t : tets) {
 			if (t.isBig()) continue;
 			t.setCircumSphere();
-			List<Vertex> noBigpoints = new ArrayList<Vertex>(vertices.size());
+//			List<Vertex> noBigpoints = new ArrayList<Vertex>(vertices.size());
 			if (!t.circumSphere.isEmpty(vertices, Constants.EPSILON)) {
 				System.out.print(t + " is not empty: ");
 				t.circumSphere.contains(vertices, Constants.EPSILON);
@@ -2224,10 +2231,17 @@ public class KineticACD {
 	}
 	
 	public void rotateTo(double rotateTo) {
-		if (rotateTo>angleLimit) {
-			throw new RuntimeException("Angle is bigger than limit=360");
+		if (rotateTo<angleTotal) {
+			throw new RuntimeException("Cannot rotate clockwise");
 		}
-		System.out.println("Heap size = "+heap.size());
+		if (rotateTo>angleLimit) {
+			rotateTo(angleLimit);
+			System.out.println("Initial coords for vertex indexed at 10 = "+vertices.get(10).getCoord(0)+" , "+vertices.get(10).getCoord(1)+" , "+vertices.get(10).getCoord(2));
+			initializeRotation(null, null);
+			rotateTo(rotateTo-angleLimit);
+			return;
+			//throw new RuntimeException("Angle is bigger than limit=360");
+		}
 		HeapItem heapItem;
 		Tet t, nt, tt;
 		Edge edg;
@@ -2460,9 +2474,11 @@ public class KineticACD {
 			
 		}
 		
-//		animate(scene, rotateTo-angleTotal);
+		animate(scene, rotateTo-angleTotal);
+		angleTotal = rotateTo;
 //		System.out.println("AlphaComplex = "+alphaTets.toString()+" and "+alphaTris.toString()+" and "+alphaEdges.toString());
 	}
+	
 	/* specify what is rotating - 3 methods to do it */
 	public void setRotVertices() { for (Vertex v : vertices) v.setType(Vertex.VertexType.S); }
 	public void setRotVertices(int a) { setRotVertices(a, a); }

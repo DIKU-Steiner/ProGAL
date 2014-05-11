@@ -7,9 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import java.util.HashMap;
 
+import ProGAL.dataStructures.UnionFind;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Simplex;
 import ProGAL.geom3d.Triangle;

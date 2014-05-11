@@ -155,7 +155,9 @@ public class Sphere implements Volume{
 	}
 	
 	public void contains(List<Vertex> points, double eps) {
-		for (Vertex p : points) if (isInside(p, eps)) System.out.print(p.getId() + " " + (radius*radius) + " " + center.distanceSquared(p) + ", ");
+		for (Vertex p : points) 
+			if (isInside(p, eps)) 
+				System.out.print(p.getId() + " " + (radius*radius) + " " + center.distanceSquared(p) + ", ");
 		System.out.println();
 	}
 

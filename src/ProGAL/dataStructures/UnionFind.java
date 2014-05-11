@@ -4,7 +4,7 @@
 //Note: Taken from jutil, with the graceful premission of Scott
 //C. Ananian.  (in jutil and earlier jpaul versions, it was called
 //DisjointSet). Modified heavily by Alex Salcianu.
-package ProGAL.geom3d.complex.alphaComplex;
+package ProGAL.dataStructures;
 //package jpaul.DataStructs;
 
 import java.io.Serializable;
