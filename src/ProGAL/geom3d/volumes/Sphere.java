@@ -2,7 +2,6 @@ package ProGAL.geom3d.volumes;
 
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,19 +37,22 @@ public class Sphere implements Volume{
 	}
 
 	
-	public Sphere(Point[] points) {
-		computeSphere(points);
+	public Sphere(Point[] ps) {
+		this(0,0,0,0);
+		radius = computeSphere_fast(ps[0],ps[1],ps[2],ps[3], center);
 	}
 	
 	public Sphere(Point p0, Point p1, Point p2, Point p3) {
-		Point[] points = new Point[4];
-		points[0] = p0; points[1] = p1; points[2] = p2; points[3] = p3;
-		computeSphere(points);
+		this(0,0,0,0);
+		radius = computeSphere_fast(p0,p1,p2,p3, center);
 	}
 	
 	public Sphere(CTetrahedron tetr) {
-		computeSphere(tetr.getCorners());
+		this(0,0,0,0);
+		Point[] ps = tetr.getCorners();
+		radius = computeSphere_fast(ps[0],ps[1],ps[2],ps[3], center);
 	}
+	
 	/** Constructs a sphere with the weighted point as center and a radius with 
 	 * the square root of the points weight. */
 	public Sphere(PointWeighted p) {
@@ -64,64 +66,104 @@ public class Sphere implements Volume{
 		radius = c.getRadius();
 	}
 	
-	private void computeSphere(Point[] points) {
-		Point p0 = points[0];
-		Point p1 = points[1];
-		Point p2 = points[2];
-		Point p3 = points[3];
-		computeSphere(p0, p1, p2, p3);
-	}
+	/**
+	 * Calculates the radius and center of the sphere touching the four specified points. The radius is 
+	 * returned and if <code>center!=null</code> the coordinates of <code>center</code> are overwritten 
+	 * with the coordinates of the circumsphere. Uses 46 "heavy" operations (multiplication/division).
+	 */
+	public static double computeSphere_fast(Point p0, Point p1,  Point p2, Point p3, Point center ) {
+		double x1 = p1.x()-p0.x(), y1 = p1.y()-p0.y(), z1 = p1.z()-p0.z();
+		double x2 = p2.x()-p0.x(), y2 = p2.y()-p0.y(), z2 = p2.z()-p0.z();
+		double x3 = p3.x()-p0.x(), y3 = p3.y()-p0.y(), z3 = p3.z()-p0.z();
 		
+		double xx1 = x1*x1 + y1*y1 + z1*z1; //3HOp
+		double xx2 = x2*x2 + y2*y2 + z2*z2, xx3 = x3*x3 + y3*y3 + z3*z3;  //6HOp
+		
+		double x1y2 = x1*y2, x1y3 = x1*y3, x1z2 = x1*z2, x1z3 = x1*z3;   //4HOp
+		double x2y1 = x2*y1, x2y3 = x2*y3, x2z1 = x2*z1, x2z3 = x2*z3;   //4HOp
+		double x3y2 = x3*y2, x3y1 = x3*y1, x3z2 = x3*z2, x3z1 = x3*z1;   //4HOp
+
+		double y1z2 = y1*z2, y1z3 = y1*z3; //2HOp
+		double y2z1 = y2*z1, y2z3 = y2*z3; //2HOp
+		double y3z1 = y3*z1, y3z2 = y3*z2; //2HOp
+		
+		double m11 = -((x1y2-x2y1)*z3 + (x3y1-x1y3)*z2 + (x2y3-x3y2)*z1);  //3HOp
+			
+		if (m11 != 0.0) {
+			
+			double m12 = -(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3)); //3HOp
+			double m13 = -(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3)); //3HOp
+			double m14 = -(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3)); //3HOp
+	
+			double m11x2 = 0.5/m11; //1HOp
+			double x = m12*m11x2; //1HOp
+			double y =-m13*m11x2; //1HOp
+			double z = m14*m11x2; //1HOp
+			
+			if(center!=null){
+				center.setX(x+p0.x());
+				center.setY(y+p0.y());
+				center.setZ(z+p0.z());
+			}
+		    return Math.sqrt(x*x + y*y + z*z); //3HOp
+		}
+		else throw new RuntimeException("Points are coplanar");
+	}
+	
+	/**
+	 * 96 HOps
+	 */
 	private void computeSphere(Point p0, Point p1,  Point p2, Point p3 ) {
 		double x0 = p0.x(); double y0 = p0.y(); double z0 = p0.z();
 		double x1 = p1.x(); double y1 = p1.y(); double z1 = p1.z();
 		double x2 = p2.x(); double y2 = p2.y(); double z2 = p2.z();
 		double x3 = p3.x(); double y3 = p3.y(); double z3 = p3.z();
 		
-		double xx0 = x0*x0 + y0*y0 + z0*z0, xx1 = x1*x1 + y1*y1 + z1*z1;
-		double xx2 = x2*x2 + y2*y2 + z2*z2, xx3 = x3*x3 + y3*y3 + z3*z3;
+		double xx0 = x0*x0 + y0*y0 + z0*z0, xx1 = x1*x1 + y1*y1 + z1*z1; // 6HOps
+		double xx2 = x2*x2 + y2*y2 + z2*z2, xx3 = x3*x3 + y3*y3 + z3*z3; // 6HOps
 		
-		double x1y2 = x1*y2, x1y3 = x1*y3, x1z2 = x1*z2, x1z3 = x1*z3;
-		double x2y1 = x2*y1, x2y3 = x2*y3, x2z1 = x2*z1, x2z3 = x2*z3; 
-		double x3y2 = x3*y2, x3y1 = x3*y1, x3z2 = x3*z2, x3z1 = x3*z1;
+		double x1y2 = x1*y2, x1y3 = x1*y3, x1z2 = x1*z2, x1z3 = x1*z3; // 4HOps
+		double x2y1 = x2*y1, x2y3 = x2*y3, x2z1 = x2*z1, x2z3 = x2*z3; // 4HOps
+		double x3y2 = x3*y2, x3y1 = x3*y1, x3z2 = x3*z2, x3z1 = x3*z1; // 4HOps
 
-		double y1z2 = y1*z2, y1z3 = y1*z3;
-		double y2z1 = y2*z1, y2z3 = y2*z3;
-		double y3z1 = y3*z1, y3z2 = y3*z2;
+		double y1z2 = y1*z2, y1z3 = y1*z3; // 2HOps
+		double y2z1 = y2*z1, y2z3 = y2*z3; // 2HOps
+		double y3z1 = y3*z1, y3z2 = y3*z2; // 2HOps
 		
 		
 		double m11 =  x0*(y1z2 + y3z1 + y2z3 - y1z3 - y2z1 - y3z2)
 		             -y0*(x1z2 + x3z1 + x2z3 - x1z3 - x2z1 - x3z2)
 		             +z0*(x1y2 + x3y1 + x2y3 - x1y3 - x2y1 - x3y2)
-		             -((x1y2-x2y1)*z3 + (x3y1-x1y3)*z2 + (x2y3-x3y2)*z1);
+		             -((x1y2-x2y1)*z3 + (x3y1-x1y3)*z2 + (x2y3-x3y2)*z1); // 6HOps
 			
 		if (m11 != 0.0) {
 			
 			double m12 =  xx0*(y1z2 + y3z1 + y2z3 - y1z3 - y2z1 - y3z2)
             -y0*(xx1*(z2-z3)     + xx3*(z1-z2)     + xx2*(z3-z1))
             +z0*(xx1*(y2-y3)     + xx3*(y1-y2)     + xx2*(y3-y1))
-               -(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3));
+               -(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3)); // 12HOps
 		
 			double m13 =  xx0*(x1z2 + x3z1 + x2z3 - x1z3 - x2z1 - x3z2)
 			-x0*(xx1*(z2-z3)     + xx3*(z1-z2)     + xx2*(z3-z1))
             +z0*(xx1*(x2-x3)     + xx3*(x1-x2)     + xx2*(x3-x1))
-               -(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3));
+               -(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3)); // 12HOps
 
 			double m14 =  xx0*(x1y2 + x3y1 + x2y3 - x1y3 - x2y1 - x3y2)
             -x0*(xx1*(y2-y3)     + xx3*(y1-y2)     + xx2*(y3-y1))
             +y0*(xx1*(x2-x3)     + xx3*(x1-x2)     + xx2*(x3-x1))
-               -(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3));
+               -(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3)); // 12HOps
 
 			double m15 =  xx0*(z3*(x1y2-x2y1) + z2*(x3y1-x1y3) + z1*(x2y3-x3y2))
             -x0*(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3))
             +y0*(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3))
-            -z0*(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3));
+            -z0*(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3)); // 16HOps
 	
-		    double x =  0.5*m12/m11;
-		    double y = -0.5*m13/m11;
-		    double z =  0.5*m14/m11;
+			double m11x2 = 0.5/m11; // 1HOps
+			double x = m12*m11x2; // 1HOps
+			double y =-m13*m11x2; // 1HOps
+			double z = m14*m11x2; // 1HOps
 		    center = new Point(x, y, z);
-		    radius = Math.sqrt(x*x + y*y + z*z - m15/m11);
+		    radius = Math.sqrt(x*x + y*y + z*z - m15/m11); // 4HOps
 		}
 		else System.out.println("Points are coplanar");
 	}
@@ -327,57 +369,60 @@ public class Sphere implements Volume{
 	/** Constructs the sphere through four points. An error is thrown 
 	 * if the points are coplanar. */ 
 	public static Sphere getMinSphere(Point p0, Point p1, Point p2, Point p3) {
-		double x0 = p0.x(); double y0 = p0.y(); double z0 = p0.z();
-		double x1 = p1.x(); double y1 = p1.y(); double z1 = p1.z();
-		double x2 = p2.x(); double y2 = p2.y(); double z2 = p2.z();
-		double x3 = p3.x(); double y3 = p3.y(); double z3 = p3.z();
-
-		double xx0 = x0*x0 + y0*y0 + z0*z0, xx1 = x1*x1 + y1*y1 + z1*z1;
-		double xx2 = x2*x2 + y2*y2 + z2*z2, xx3 = x3*x3 + y3*y3 + z3*z3;
-
-		double x1y2 = x1*y2, x1y3 = x1*y3, x1z2 = x1*z2, x1z3 = x1*z3;
-		double x2y1 = x2*y1, x2y3 = x2*y3, x2z1 = x2*z1, x2z3 = x2*z3; 
-		double x3y2 = x3*y2, x3y1 = x3*y1, x3z2 = x3*z2, x3z1 = x3*z1;
-
-		double y1z2 = y1*z2, y1z3 = y1*z3;
-		double y2z1 = y2*z1, y2z3 = y2*z3;
-		double y3z1 = y3*z1, y3z2 = y3*z2;
-
-
-		double m11 =  x0*(y1z2 + y3z1 + y2z3 - y1z3 - y2z1 - y3z2)
-		-y0*(x1z2 + x3z1 + x2z3 - x1z3 - x2z1 - x3z2)
-		+z0*(x1y2 + x3y1 + x2y3 - x1y3 - x2y1 - x3y2)
-		-((x1y2-x2y1)*z3 + (x3y1-x1y3)*z2 + (x2y3-x3y2)*z1);
-
-		if (m11 != 0.0) {
-
-			double m12 =  xx0*(y1z2 + y3z1 + y2z3 - y1z3 - y2z1 - y3z2)
-			-y0*(xx1*(z2-z3)     + xx3*(z1-z2)     + xx2*(z3-z1))
-			+z0*(xx1*(y2-y3)     + xx3*(y1-y2)     + xx2*(y3-y1))
-			-(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3));
-
-			double m13 =  xx0*(x1z2 + x3z1 + x2z3 - x1z3 - x2z1 - x3z2)
-			-x0*(xx1*(z2-z3)     + xx3*(z1-z2)     + xx2*(z3-z1))
-			+z0*(xx1*(x2-x3)     + xx3*(x1-x2)     + xx2*(x3-x1))
-			-(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3));
-
-			double m14 =  xx0*(x1y2 + x3y1 + x2y3 - x1y3 - x2y1 - x3y2)
-			-x0*(xx1*(y2-y3)     + xx3*(y1-y2)     + xx2*(y3-y1))
-			+y0*(xx1*(x2-x3)     + xx3*(x1-x2)     + xx2*(x3-x1))
-			-(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3));
-
-			double m15 =  xx0*(z3*(x1y2-x2y1) + z2*(x3y1-x1y3) + z1*(x2y3-x3y2))
-			-x0*(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3))
-			+y0*(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3))
-			-z0*(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3));
-
-
-			double x =  0.5*m12/m11;
-			double y = -0.5*m13/m11;
-			double z =  0.5*m14/m11;
-			return new Sphere(new Point(x, y, z), Math.sqrt(x*x + y*y + z*z - m15/m11));
-		}
-		throw new Error("Points are coplanar");
+		Sphere ret = new Sphere(null, 0);
+		ret.computeSphere(p0, p1, p2, p3);
+		return ret;
+//		double x0 = p0.x(); double y0 = p0.y(); double z0 = p0.z();
+//		double x1 = p1.x(); double y1 = p1.y(); double z1 = p1.z();
+//		double x2 = p2.x(); double y2 = p2.y(); double z2 = p2.z();
+//		double x3 = p3.x(); double y3 = p3.y(); double z3 = p3.z();
+//
+//		double xx0 = x0*x0 + y0*y0 + z0*z0, xx1 = x1*x1 + y1*y1 + z1*z1;
+//		double xx2 = x2*x2 + y2*y2 + z2*z2, xx3 = x3*x3 + y3*y3 + z3*z3;
+//
+//		double x1y2 = x1*y2, x1y3 = x1*y3, x1z2 = x1*z2, x1z3 = x1*z3;
+//		double x2y1 = x2*y1, x2y3 = x2*y3, x2z1 = x2*z1, x2z3 = x2*z3; 
+//		double x3y2 = x3*y2, x3y1 = x3*y1, x3z2 = x3*z2, x3z1 = x3*z1;
+//
+//		double y1z2 = y1*z2, y1z3 = y1*z3;
+//		double y2z1 = y2*z1, y2z3 = y2*z3;
+//		double y3z1 = y3*z1, y3z2 = y3*z2;
+//
+//
+//		double m11 =  x0*(y1z2 + y3z1 + y2z3 - y1z3 - y2z1 - y3z2)
+//		-y0*(x1z2 + x3z1 + x2z3 - x1z3 - x2z1 - x3z2)
+//		+z0*(x1y2 + x3y1 + x2y3 - x1y3 - x2y1 - x3y2)
+//		-((x1y2-x2y1)*z3 + (x3y1-x1y3)*z2 + (x2y3-x3y2)*z1);
+//
+//		if (m11 != 0.0) {
+//
+//			double m12 =  xx0*(y1z2 + y3z1 + y2z3 - y1z3 - y2z1 - y3z2)
+//			-y0*(xx1*(z2-z3)     + xx3*(z1-z2)     + xx2*(z3-z1))
+//			+z0*(xx1*(y2-y3)     + xx3*(y1-y2)     + xx2*(y3-y1))
+//			-(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3));
+//
+//			double m13 =  xx0*(x1z2 + x3z1 + x2z3 - x1z3 - x2z1 - x3z2)
+//			-x0*(xx1*(z2-z3)     + xx3*(z1-z2)     + xx2*(z3-z1))
+//			+z0*(xx1*(x2-x3)     + xx3*(x1-x2)     + xx2*(x3-x1))
+//			-(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3));
+//
+//			double m14 =  xx0*(x1y2 + x3y1 + x2y3 - x1y3 - x2y1 - x3y2)
+//			-x0*(xx1*(y2-y3)     + xx3*(y1-y2)     + xx2*(y3-y1))
+//			+y0*(xx1*(x2-x3)     + xx3*(x1-x2)     + xx2*(x3-x1))
+//			-(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3));
+//
+//			double m15 =  xx0*(z3*(x1y2-x2y1) + z2*(x3y1-x1y3) + z1*(x2y3-x3y2))
+//			-x0*(xx1*(y2z3-y3z2) + xx3*(y1z2-y2z1) + xx2*(y3z1-y1z3))
+//			+y0*(xx1*(x2z3-x3z2) + xx3*(x1z2-x2z1) + xx2*(x3z1-x1z3))
+//			-z0*(xx1*(x2y3-x3y2) + xx3*(x1y2-x2y1) + xx2*(x3y1-x1y3));
+//
+//
+//			double x =  0.5*m12/m11;
+//			double y = -0.5*m13/m11;
+//			double z =  0.5*m14/m11;
+//			return new Sphere(new Point(x, y, z), Math.sqrt(x*x + y*y + z*z - m15/m11));
+//		}
+//		throw new Error("Points are coplanar");
 	}
 
 

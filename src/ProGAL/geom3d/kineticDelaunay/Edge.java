@@ -3,12 +3,9 @@ package ProGAL.geom3d.kineticDelaunay;
 import java.awt.Color;
 import java.util.Arrays;
 
-import com.sun.org.apache.xalan.internal.xsltc.runtime.Constants;
-
 import ProGAL.geom3d.Shape;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.LSS;
-import ProGAL.geom3d.volumes.Sphere;
 
 public class Edge {
 	private Vertex[] corners = new Vertex[2];

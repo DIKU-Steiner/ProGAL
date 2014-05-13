@@ -45,24 +45,24 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 //	public double get(int i) { return getCoord(i); }
 
 	/** Get the first coordinate. */
-	public double x() { return coords[0]; }
+	public final double x() { return coords[0]; }
 	/** Get the second coordinate. */
-	public double y() { return coords[1]; }
+	public final double y() { return coords[1]; }
 	/** Get the third coordinate. */
-	public double z() { return coords[2]; }
+	public final double z() { return coords[2]; }
 	
 	/** Set the first coordinate */
-	public void setX(double x) { this.coords[0] = x; }
+	public final void setX(double x) { this.coords[0] = x; }
 	/** Set the second coordinate */
-	public void setY(double y) { this.coords[1] = y; }
+	public final void setY(double y) { this.coords[1] = y; }
 	/** Set the third coordinate */
-	public void setZ(double z) { this.coords[2] = z; }
+	public final void setZ(double z) { this.coords[2] = z; }
 	
 	/** 
 	 * Return the 'dimension' of this object. Required by the interface Simplex.
 	 * Beware not to confuse this method with getDimensions from geomNd.Point.  
 	 */
-	public int getDimension() { return 0; }
+	public final int getDimension() { return 0; }
 	
 	/** Get the vector that points from this point to p */
 	public Vector vectorTo(Point p){
@@ -206,11 +206,12 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 		double s = Math.sin(alpha);
 		double vxyd = v.x()*v.y()*d, vxzd = v.x()*v.z()*d, vyzd = v.y()*v.z()*d;
 		double vxs = v.x()*s, vys = v.y()*s, vzs = v.z()*s; 
-		double xNew = (v.x()*v.x()*d+c)*x() + (vxyd-vzs)*y()    + (vxzd+vys)*z();
-		double yNew = (vxyd+vzs)*x()    + (v.y()*v.y()*d+c)*y() + (vyzd-vxs)*z();
-		setZ((vxzd-vys)*x()    + (vyzd+vxs)*y()    + (v.z()*v.z()*d+c)*z());
+		double xNew = (v.x()*v.x()*d+c)*coords[0] + (vxyd-vzs)*coords[1] + (vxzd+vys)*coords[2];
+		double yNew = (vxyd+vzs)*coords[0] + (v.y()*v.y()*d+c)*coords[1] + (vyzd-vxs)*coords[2];
+		double zNew = (vxzd-vys)*coords[0] + (vyzd+vxs)*coords[1] + (v.z()*v.z()*d+c)*coords[2];
 		setX(xNew);
 		setY(yNew);
+		setZ(zNew);
 	}
 	// Daisy
 	/* rotates (counter-clockwise) the point around the line through the origo with the direction unit vector v. */

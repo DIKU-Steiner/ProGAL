@@ -47,7 +47,6 @@ public class PDBFile extends File{
 	/** The name of this PDB-file. Typically the PDB-id. */
 	public String name;
 
-	
 	/** Construct a PDB-file from the specified file-path */
 	public PDBFile(String path, boolean hydro){
 		this(new File(path), hydro);
@@ -436,7 +435,8 @@ public class PDBFile extends File{
 	
 	
 	
-	public static interface PDBRecord{}
+	public static interface PDBRecord{
+	}
 
 	public static class HelixRecord implements PDBRecord{
 		public char initChainID, endChainID;

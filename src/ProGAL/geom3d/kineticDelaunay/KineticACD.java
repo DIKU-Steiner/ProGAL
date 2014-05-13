@@ -14,7 +14,6 @@ import java.util.Stack;
 import ProGAL.dataStructures.Heap;
 import ProGAL.dataStructures.SortTool;
 import ProGAL.geom3d.Circle;
-import ProGAL.geom3d.Line;
 import ProGAL.geom3d.LineSegment;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.PointList;
@@ -42,7 +41,7 @@ public class KineticACD {
 	private ProblemInstanceType instanceType;
 	private List<Vertex> vertices = new ArrayList<Vertex>();
 	private Set<Tet> tets = new HashSet<Tet>();
-	private Map<TetPoints,Tet> mapTets = new HashMap<TetPoints,Tet>();
+//	private Map<TetPoints,Tet> mapTets = new HashMap<TetPoints,Tet>();
 //	private List<Tri> tris = new LinkedList<Tri>();
 	private Map<TrianglePoints,Tri> mapTris = new HashMap<TrianglePoints,Tri>();
 //	private List<Edge> edges = new LinkedList<Edge>();
@@ -97,7 +96,7 @@ public class KineticACD {
 	LineSegment apexSegment = null;
 	LSS apexLSS = null;
 
-	private double alpha;
+//	private double alpha;
 	
 	private class HeapItem {
 		private Double[] angles;
@@ -134,7 +133,9 @@ public class KineticACD {
 	}
 	
 	public KineticACD(double alpha, List<Point> points) {
-		if (testingScreen || screenAlpha) scene  = J3DScene.createJ3DSceneInFrame();
+		if (testingScreen || screenAlpha)
+			scene = null;
+			//scene  = J3DScene.createJ3DSceneInFrame();
 
 		Tetrahedron bigT = Tetrahedron.regularTetrahedron();
 		bigT.blowUp(1000);
@@ -146,7 +147,7 @@ public class KineticACD {
 		for (Point p: points) {
 			insertPoint(p);	
 		}
-		System.out.println("Initial coords for vertex indexed at 10 = "+vertices.get(10).getCoord(0)+" , "+vertices.get(10).getCoord(1)+" , "+vertices.get(10).getCoord(2));
+//		System.out.println("Initial coords for vertex indexed at 10 = "+vertices.get(10).getCoord(0)+" , "+vertices.get(10).getCoord(1)+" , "+vertices.get(10).getCoord(2));
 		this.setAlpha(alpha);
 		
 		/** Each vertex gets a pointer to one of its faces */
@@ -473,17 +474,18 @@ public class KineticACD {
 	// Daisy
 	private boolean isGabriel(Edge e) {
 		Sphere s = new Sphere(Point.getMidpoint(e.getCorner(0), e.getCorner(1)), e.getCircumRadius());
-		for (Point p : vertices) {
-			if (e.hasVertex(new Vertex(p))) continue;
-			if (s.contains(p)) return false;
+		for (Vertex p : vertices) {
+//			if (e.hasVertex(new Vertex(p))) continue;
+			if (!e.hasVertex(p) && s.contains(p)) return false;
 		}
 		return true;
 	}
 	private boolean isGabriel(Tri t) {
 		Sphere s = new Sphere(new Circle(t.getCorner(0), t.getCorner(1), t.getCorner(2)).getCenter(), t.getCircumRadius());
-		for (Point p : vertices) {
-			if (t.hasVertex(new Vertex(p))) continue;
-			if (s.contains(p)) return false;
+		for (Vertex p : vertices) {
+//			if (t.hasVertex(new Vertex(p))) continue;
+//			if (s.contains(p)) return false;
+			if( !t.hasVertex(p) && s.contains(p) ) return false;
 		}
 		return true;
 	}
@@ -1200,16 +1202,19 @@ public class KineticACD {
 		double precision = 0.05;
 		Double[] angles = new Double[4];
 		int numOfAngles = 0;
-		double offRadius = new Sphere(A, B, C, D).getRadius()-alphaVal;
+//		double offRadius = new Sphere(A, B, C, D).getRadius()-alphaVal;
+		double offRadius = Sphere.computeSphere_fast(A, B, C, D, null)-alphaVal;
 		double sign = Math.signum(offRadius);
-		Point Cnew;
-		Point Dnew;
+		Point Cnew = C.clone();
+		Point Dnew = D.clone();
 //		if (dir == 1) k = -1;
 		double angleSoFar = Math.floor(Math.toDegrees(angleTotal));
 		
 		for (double i = precision ; i<=Math.ceil(Math.toDegrees(angleLimit)-angleSoFar) ; i+=precision) {
-			Cnew = C.clone();
-			Dnew = D.clone();
+//			Cnew = C.clone();
+//			Dnew = D.clone();
+			Cnew.set(C);
+			Dnew.set(D);
 			if (dir == 0) {
 				Cnew.rotationCW(rotationAxis, Math.toRadians(i));
 				Dnew.rotationCW(rotationAxis, Math.toRadians(i));
@@ -1217,7 +1222,8 @@ public class KineticACD {
 //				Cnew.rotationCCW(Z, Math.toRadians(i));
 //				Dnew.rotationCCW(Z, Math.toRadians(i));
 			}
-			double radius = new Sphere(A, B, Cnew, Dnew).getRadius();
+//			double radius = new Sphere(A, B, Cnew, Dnew).getRadius();
+			double radius = Sphere.computeSphere_fast(A, B, Cnew, Dnew, null);
 /*			if (A.getId()==5 && B.getId()==38 && C.getId()== 11 && D.getId()==13) {
 				System.out.println("Radius = "+radius+" angletotal = "+angleTotal);
 				System.out.println("Radius-alphaVal = "+(radius-alphaVal));
@@ -1256,24 +1262,30 @@ public class KineticACD {
 			Cnew.rotationCW(rotationAxis, Math.toRadians(start));
 			Dnew.rotationCW(rotationAxis, Math.toRadians(start));
 		}
-		double radius = new Sphere(A, B, Cnew, Dnew).getRadius();
-		if (Math.abs(radius-alphaVal)<Math.pow(10, -9)) return start;
+//		double radius = new Sphere(A, B, Cnew, Dnew).getRadius();
+		double radius = Sphere.computeSphere_fast(A, B, Cnew, Dnew, null);
+//		if (Math.abs(radius-alphaVal)<Math.pow(10, -9)) return start;
+		if (Math.abs(radius-alphaVal)<0.000000001) return start;
 		double sign = Math.signum(radius-alphaVal);
 		double newStart = start;
 		double newEnd = end;
 		double angle = 0.0;
 		double newSign;
 		
-		for (int i = 0 ; i<99 ; i++) {
+		for (int i = 0; i<99 ; i++) {
 			angle = (newEnd+newStart)/2.0;
-			Cnew = C.clone();
-			Dnew = D.clone();
+			Cnew.set(C);
+			Dnew.set(D);
+//			Cnew = C.clone();
+//			Dnew = D.clone();
 			if (dir == 0) {
 				Cnew.rotationCW(rotationAxis, Math.toRadians(angle));
 				Dnew.rotationCW(rotationAxis, Math.toRadians(angle));
 			}
-			radius = new Sphere(A, B, Cnew, Dnew).getRadius();
-			if (Math.abs(radius-alphaVal)<Math.pow(10, -9)) {
+//			radius = new Sphere(A, B, Cnew, Dnew).getRadius();
+			radius = Sphere.computeSphere_fast(A, B, Cnew, Dnew, null);
+//			if (Math.abs(radius-alphaVal)<Math.pow(10, -9)) {
+			if (Math.abs(radius-alphaVal)<0.000000001) {
 				return angle;
 			}
 			newSign = Math.signum(radius-alphaVal);
@@ -1548,39 +1560,57 @@ public class KineticACD {
 		}
 	}
 	
-	public void initializeRotation(List<Integer> rotIndices, int a, int b) {	
-		initializeRotation(rotIndices, new Line(vertices.get(a+4), vertices.get(b+4)));
-	}
-	public void initializeRotation(List<Integer> rotIndices, Line l) {
-//		System.out.println("Line : "+l);
+	public void initializeRotation(List<Integer> rotIndices, int a, int b) {
+//		int alive = 0, dead = 0;
+//		for(Tet t: tets){
+//			if(t.isAlive()) alive++; else dead++;
+//		}
+//		for(java.util.Map.Entry<TrianglePoints,Tri> entry: mapTris.entrySet()){
+//			Tri t = entry.getValue();
+//			if(t.isAlive()) alive++; else dead++;
+//		}
+//		for(java.util.Map.Entry<EdgePoints,Edge> entry: mapEdges.entrySet()){
+//			Edge t = entry.getValue();
+//			if(t.isAlive()) alive++; else dead++;
+//		}
+//		System.out.print("Alive: "+alive+" .. dead: "+dead);
+//		alive=dead=0;
+//		for(Tet t: alphaTets){
+//			if(t.isAlive()) alive++; else dead++;
+//		}
+//		System.out.println(" -- Alive: "+alive+" .. dead: "+dead);
 		heap.clear();
 		angleTotal = 0;
-//		setRotationAxis(vertices.get(a+4), vertices.get(b+4));
 		
-		if(l!=null){//Don't reuse existing axis
-			setRotationAxis(l.getP(), l.getPoint(1.0));
+		if(rotIndices!=null){//Don't reuse existing axis
+			setRotationAxis(vertices.get(a+4), vertices.get(b+4));
 			setRotVertices(rotIndices);
 
 			// set constants associated with vertices - does not include vertices of big points
 			for (Vertex v : vertices) {
 				if (testingPrint) System.out.print(v.getId() + ": " + v.toString(2));
-				if (v.distanceSquared() < Constants.EPSILON) { //takes care of the special case when the rotation center overlaps with one of the given points
-					v.setSquaredPolarRadius(0.0);                            
+				double zDist = Math.sqrt(v.get(0)*v.get(0) + v.get(1)*v.get(1));
+				v.setSquaredPolarRadius(v.distanceSquared());
+				if(zDist<Constants.EPSILON){
+//				if (v.distanceSquared() < Constants.EPSILON) { //takes care of the special case when the rotation center overlaps with one of the given points
+					
+//					v.setSquaredPolarRadius(0.0);                            
 					//				v.setPolarRadius(0.0);                        
 					//				v.setPolarAngle(0.0);			
 					if (testingPrint) System.out.println(", polar angle: 0.0"); 
 					v.setCosAngle(1.0);
 					v.setSinAngle(0.0);
+					
 					v.setType(Vertex.VertexType.S);
 					rotIndx.remove((Integer)v.getId());
-				}
-				else {
-					v.setSquaredPolarRadius(v.distanceSquared());       // remains unchanged when rotating around the same point
+				} else {
+//					v.setSquaredPolarRadius(v.distanceSquared());       // remains unchanged when rotating around the same point
 					//				v.setPolarRadius(v.distance());                     // remains unchanged when rotating around the same point
 					//				v.setPolarAngle(v.polarAngleXY());     			
 					//				if (testingPrint) System.out.println(", initial polar angle: " + Functions.toDeg(v.getPolarAngle())); 
 					v.setCosAngle(v.polarAngleCosXY());
 					v.setSinAngle(v.polarAngleSinXY());
+					
 				}
 			}
 		}
@@ -2236,8 +2266,9 @@ public class KineticACD {
 		}
 		if (rotateTo>angleLimit) {
 			rotateTo(angleLimit);
-			System.out.println("Initial coords for vertex indexed at 10 = "+vertices.get(10).getCoord(0)+" , "+vertices.get(10).getCoord(1)+" , "+vertices.get(10).getCoord(2));
-			initializeRotation(null, null);
+//			System.out.println("Initial coords for vertex indexed at 10 = "+vertices.get(10).getCoord(0)+" , "+vertices.get(10).getCoord(1)+" , "+vertices.get(10).getCoord(2));
+//			initializeRotation(null, null);
+			initializeRotation(null, 0,1);
 			rotateTo(rotateTo-angleLimit);
 			return;
 			//throw new RuntimeException("Angle is bigger than limit=360");

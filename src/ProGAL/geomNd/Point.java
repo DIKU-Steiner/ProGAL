@@ -1,6 +1,7 @@
 package ProGAL.geomNd;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import ProGAL.math.Constants;
 import ProGAL.math.Randomization;
@@ -58,6 +59,9 @@ public class Point implements Serializable{
 	
 	/** Set the d'th coordinate. */
 	public void setCoord(int d, double v){	coords[d]=v;			}
+	
+	/** Set all coordinates to the value v */
+	public void fill(double v){				Arrays.fill(coords, v);	}
 	
 	/** Set the coordinates to be identical to those in the specified point. If the dimensions of 
 	 * <code>p</code> and <code>this</code> are not the same, then the largest possible number of 

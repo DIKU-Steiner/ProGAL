@@ -30,13 +30,13 @@ public class Tet {
 	Integer count = null;
 	boolean dAlive = true;
 	boolean cAlive = true;
-	Shape[] LSSs = new Shape[6];
-	Shape[] faces = new Shape[4];
+	Shape[] LSSs;
+	Shape[] faces;
 	Shape faceShape = null;
 	boolean onStack = false;   // used when creating holes
 	Face selectedFace = null;  // used when creating holes
-	boolean[] oppositeInside = new boolean[4];
-	boolean centerInside;
+	private boolean[] oppositeInside;
+	private boolean centerInside;
 	boolean flag = false;
 	Integer depth = null;
 	int alph = 0;
@@ -44,7 +44,7 @@ public class Tet {
 	public Tet(Vertex[] corners){
 		this.corners = corners;
 		this.sortCorners();
-		normalizePredicates();
+//		normalizePredicates();
 	}
 	
 	public Tet(Vertex v0, Vertex v1, Vertex v2, Vertex v3) {
@@ -53,13 +53,13 @@ public class Tet {
 		corners[2] = v2;
 		corners[3] = v3;
 		this.sortCorners();
-		normalizePredicates();
+//		normalizePredicates();
 	}
 	 
 	public Tet(Tetrahedron tetra) {
 		for (int i = 0; i < 4; i++) corners[i] = new Vertex(tetra.getCorner(i));
 		this.sortCorners();		
-		normalizePredicates();
+//		normalizePredicates();
 	}
 
 	public Tet clone() {
@@ -69,13 +69,13 @@ public class Tet {
 	}
 	//Daisy
 	public void setEdge(Edge e) {
-		edges.add(e); 
+		edges.add(e);
 	}
-	public void setEdges(Edge[] es) {
-		for (Edge e : es) {
-			edges.add(e);
-		}
-	}
+//	public void setEdges(Edge[] es) {
+//		for (Edge e : es) {
+//			edges.add(e);
+//		}
+//	}
 	public void removeEdge(Edge e) {
 		edges.remove(e);
 	}
@@ -161,12 +161,23 @@ public class Tet {
 		return O.length();
 	}
 	
+	private static final double reci6 = 1.0/6.0;
+	
 	/** Get the volume of the tetrahedron. */
 	public double getVolume() {
-		Vector a = corners[3].vectorTo(corners[0]);
-		Vector b = corners[3].vectorTo(corners[1]);
-		Vector c = corners[3].vectorTo(corners[2]);
-		return Math.abs(a.dot(b.crossThis(c)))/6.0;
+		double x1 = corners[1].x()-corners[0].x(), y1 = corners[1].y()-corners[0].y(), z1 = corners[1].z()-corners[0].z();
+		double x2 = corners[2].x()-corners[0].x(), y2 = corners[2].y()-corners[0].y(), z2 = corners[2].z()-corners[0].z();
+		double x3 = corners[3].x()-corners[0].x(), y3 = corners[3].y()-corners[0].y(), z3 = corners[3].z()-corners[0].z();
+		double cx = y2*z3-z2*y3;
+		double cy = z2*x3-x2*z3;
+		double cz = x2*y3-y2*x3;
+		double ret = Math.abs( x1*cx+y1*cy+z1*cz );
+		return ret*reci6;
+//		Vector a = corners[3].vectorTo(corners[0]);
+//		Vector b = corners[3].vectorTo(corners[1]);
+//		Vector c = corners[3].vectorTo(corners[2]);
+//		return Math.abs(a.dot(b.crossThis(c)))/6.0;
+		
 	}
 
 	// Daisy
@@ -227,6 +238,8 @@ public class Tet {
 	public boolean isAlpha(double alpha) { return (getCircumSphereRadius() < (alpha+Constants.EPSILON)); }
 	
 	private void normalizePredicates(){
+		if(oppositeInside==null)
+			oppositeInside = new boolean[4];
 		for(int i=0;i<4;i++){
 			oppositeInside[i] = orient(i, corners[i]);
 		}
@@ -369,11 +382,13 @@ public class Tet {
 	}
 	
 	public boolean insideFace(int face, Point p){
+		if(oppositeInside==null) normalizePredicates();
 		return orient(face, p)==oppositeInside[face];
 	}
 	
 
 	public boolean insideCircumsphere(Point p){
+		if(oppositeInside==null) normalizePredicates();
 		return inSphere(p)==centerInside;
 	}
 	
@@ -468,6 +483,7 @@ public class Tet {
 	
 	/* draws edges of the tetrahedron.*/
 	public void toSceneEdges(J3DScene scene, Color clr, double width) {
+		if(LSSs==null) LSSs = new Shape[6];
 		int k = 0;
 		for (int i = 0; i < 3; i++)
 			for (int j = i+1; j < 4; j++) {
@@ -479,6 +495,7 @@ public class Tet {
 
 	/* draws edges of the tetrahedron. Special width is used if some corners are big points.*/
 	public void toSceneEdges(J3DScene scene, Color clr, double width, double bigWidth) {
+		if(LSSs==null) LSSs = new Shape[6];
 		double edgeWidth = width;
 		for (int i = 0; i < 4; i++)  if (corners[i].getId() < 4) edgeWidth = bigWidth;
 		int k = 0;
@@ -492,6 +509,7 @@ public class Tet {
 
 	
 	public void toSceneFaces(J3DScene scene, Color clr) {
+		if(faces==null) faces = new Shape[4];
 		if (faces[0] == null) faces[0] = new Triangle(corners[1], corners[2], corners[3]);
 		if (faces[1] == null) faces[1] = new Triangle(corners[0], corners[2], corners[3]);
 		if (faces[2] == null) faces[2] = new Triangle(corners[0], corners[1], corners[3]);
@@ -500,6 +518,7 @@ public class Tet {
 	}
 	
 	public Shape toSceneFace(J3DScene scene, int i, Color clr) {
+		if(faces==null) faces = new Shape[4];
 		if (faces[i] == null) faces[i] = new Triangle(corners[(i+1)%4], corners[(i+2)%4], corners[(i+3)%4]);
 		scene.addShape(faces[i], clr, 1);
 		return faces[i];
