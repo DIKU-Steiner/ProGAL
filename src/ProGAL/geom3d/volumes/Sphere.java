@@ -365,12 +365,12 @@ public class Sphere implements Volume{
 		double radius = p0.distance(center);
 		return new Sphere(center, radius);
 	}
-
+	
 	/** Constructs the sphere through four points. An error is thrown 
 	 * if the points are coplanar. */ 
 	public static Sphere getMinSphere(Point p0, Point p1, Point p2, Point p3) {
-		Sphere ret = new Sphere(null, 0);
-		ret.computeSphere(p0, p1, p2, p3);
+		Sphere ret = new Sphere(0,0,0,0);
+		ret.radius = computeSphere_fast(p0, p1, p2, p3, ret.center);
 		return ret;
 //		double x0 = p0.x(); double y0 = p0.y(); double z0 = p0.z();
 //		double x1 = p1.x(); double y1 = p1.y(); double z1 = p1.z();
@@ -462,6 +462,19 @@ public class Sphere implements Volume{
 	}
 	
 	
+	public static Circle getIntersection(Sphere s1, Sphere s2){
+		double r1 = s1.radius;
+		double r2 = s2.radius;
+		double d = s1.center.distance(s2.center);
+		if(d>r1+r2) return null;
+		
+		double h = ProGAL.geom2d.Triangle.calculateHeight(r1,r2,d);
+		double d1 = Math.sqrt(r1*r1 - h*h);
+		Vector normal = s1.center.vectorTo(s2.center).normalizeThis();
+		Point center = s1.center.add(normal.multiply(d1));
+		return new Circle(center, h, normal);
+	}
+	
 	/**
 	 * Find the two, one or zero points that is at the intersection of the three sphere shells.
 	 * If the three spheres intersect in more than two points or one sphere contains another, 
@@ -469,48 +482,56 @@ public class Sphere implements Volume{
 	 * @hops 57-70
 	 */
 	public static Point[] getIntersections(Sphere s1, Sphere s2, Sphere s3){
-		//See ProGAL/Doc/ThreeSphereIntersection.jpg for derivation of these expressions
+		
+		Circle i12 = getIntersection(s1,s2);
+		if(i12==null) return new Point[]{};
+		
+		return s3.getIntersections(i12);
+		
 		//Inspired by http://mathforum.org/library/drmath/view/63138.html
-		double x1 = s1.center.x();
-		double y1 = s1.center.y();
-		double z1 = s1.center.z();
-		double c1Sq = s1.center.dot(s1.center);								//3HOp
-		double c2Sq = s2.center.dot(s2.center);								//3HOp
-		double r1 = s1.radius,							r1Sq = r1*r1;		//2HOp
-		Vector v12 = s2.center.vectorTo(s1.center);
-		Vector v23 = s3.center.vectorTo(s2.center);
-		double c12 = c1Sq-c2Sq;	
-		double c23 = c2Sq-s3.center.dot(s3.center);							//3HOp
-		double r2Sq = s2.radius*s2.radius;									//1HOp (12)
-		double r12 = r2Sq-r1Sq + c12;
-		double r23 = s3.radius*s3.radius - r2Sq + c23;						//3HOp
-		double Dyz = v12.y()*v23.z()-v23.y()*v12.z(),	DyzSq = Dyz*Dyz;	//3HOp
-		double Dry = r12*v23.y()-r23*v12.y(), 			DrySq = Dry*Dry;	//3HOp
-		double Dzx = v12.z()*v23.x()-v23.z()*v12.x(), 	DzxSq = Dzx*Dzx;	//3HOp
-		double Dxr = v12.x()*r23-v23.x()*r12,			DxrSq = Dxr*Dxr;	//3HOp
-		double Dxy = v12.x()*v23.y()-v23.x()*v12.y(), 	DxySq = Dxy*Dxy;	//3HOp (30)
-				
-		double k2 = (DyzSq+DzxSq)/DxySq + 1;								//1HOp
-		double k1 = (Dyz*Dry+Dzx*Dxr)/DxySq - 4*(x1*Dyz+y1*Dzx)/Dxy - z1;	//7HOp
-		double k0 = (DrySq+DxrSq)/(4*DxySq) + c1Sq-r1Sq - 2*(x1*Dry+y1*Dxr)/Dxy;	//6HOp
-				
-		double d = k1*k1-4*k2*k0;											//3HOp
-		if(d<-Constants.EPSILON) return new Point[]{};
-		if(d<Constants.EPSILON) { //One intersection-point
-			double zi = -k1/(2*k2);											//2HOp (49)
-			return new Point[]{
-					new Point( (2*zi*Dyz+Dry)/(2*Dxy) , (2*zi*Dzx+Dxr)/(2*Dxy) , zi ) 	//8HOp (57)
-			};
-		}
-		double dRt = Math.sqrt(d);											//1HOp (50)
-		double zi0 = (-k1-dRt)/(2*k2);										//2HOp
-		double zi1 = (-k1+dRt)/(2*k2);										//2HOp 
-				
-		return new Point[]{
-				new Point( (2*zi0*Dyz+Dry)/(2*Dxy) , (2*zi0*Dzx+Dxr)/(2*Dxy) , zi0 ),	//8HOp
-				new Point( (2*zi1*Dyz+Dry)/(2*Dxy) , (2*zi1*Dzx+Dxr)/(2*Dxy) , zi1 )	//8HOp (70)
-		};
+		//Theres a bug. Above works
+//		double x1 = s1.center.x();
+//		double y1 = s1.center.y();
+//		double z1 = s1.center.z();
+//		double c1Sq = s1.center.dot(s1.center);								//3HOp
+//		double c2Sq = s2.center.dot(s2.center);								//3HOp
+//		double r1 = s1.radius,							r1Sq = r1*r1;		//2HOp
+//		Vector v12 = s2.center.vectorTo(s1.center);
+//		Vector v23 = s3.center.vectorTo(s2.center);
+//		double c12 = c1Sq-c2Sq;	
+//		double c23 = c2Sq-s3.center.dot(s3.center);							//3HOp
+//		double r2Sq = s2.radius*s2.radius;									//1HOp (12)
+//		double r12 = r2Sq-r1Sq + c12;
+//		double r23 = s3.radius*s3.radius - r2Sq + c23;						//3HOp
+//		double Dyz = v12.y()*v23.z()-v23.y()*v12.z(),	DyzSq = Dyz*Dyz;	//3HOp
+//		double Dry = r12*v23.y()-r23*v12.y(), 			DrySq = Dry*Dry;	//3HOp
+//		double Dzx = v12.z()*v23.x()-v23.z()*v12.x(), 	DzxSq = Dzx*Dzx;	//3HOp
+//		double Dxr = v12.x()*r23-v23.x()*r12,			DxrSq = Dxr*Dxr;	//3HOp
+//		double Dxy = v12.x()*v23.y()-v23.x()*v12.y(), 	DxySq = Dxy*Dxy;	//3HOp (30)
+//				
+//		double k2 = (DyzSq+DzxSq)/DxySq + 1;								//1HOp
+//		double k1 = (Dyz*Dry+Dzx*Dxr)/DxySq - 4*(x1*Dyz+y1*Dzx)/Dxy - z1;	//7HOp
+//		double k0 = (DrySq+DxrSq)/(4*DxySq) + c1Sq-r1Sq - 2*(x1*Dry+y1*Dxr)/Dxy;	//6HOp
+//				
+//		double d = k1*k1-4*k2*k0;											//3HOp
+//		if(d<-Constants.EPSILON) return new Point[]{};
+//		if(d<Constants.EPSILON) { //One intersection-point
+//			double zi = -k1/(2*k2);											//2HOp (49)
+//			return new Point[]{
+//					new Point( (2*zi*Dyz+Dry)/(2*Dxy) , (2*zi*Dzx+Dxr)/(2*Dxy) , zi ) 	//8HOp (57)
+//			};
+//		}
+//		double dRt = Math.sqrt(d);											//1HOp (50)
+//		double zi0 = (-k1-dRt)/(2*k2);										//2HOp
+//		double zi1 = (-k1+dRt)/(2*k2);										//2HOp 
+//				
+//		return new Point[]{
+//				new Point( (2*zi0*Dyz+Dry)/(2*Dxy) , (2*zi0*Dzx+Dxr)/(2*Dxy) , zi0 ),	//8HOp
+//				new Point( (2*zi1*Dyz+Dry)/(2*Dxy) , (2*zi1*Dzx+Dxr)/(2*Dxy) , zi1 )	//8HOp (70)
+//		};
 	}
+	
+	
 	//Daisy
 	private double angle(Vector v1, Vector v2) {
 		double ret = Math.atan2(v1.y(), v1.x()) - Math.atan2(v2.y(), v2.x());
@@ -598,11 +619,31 @@ public class Sphere implements Volume{
 		
 	public static void main(String[] args){
 		J3DScene scene = J3DScene.createJ3DSceneInFrame();
-		Vertex C = new Vertex(new Point(0.0, 0.0, 0.0));
-		Sphere sphere = new Sphere(C, 1.5);
-		sphere.toScene(scene, new Color(0,0,255,255));
-		Plane p = new Plane(new Point(2.5,0.0,0.0), new Vector(1,0,0));
-		p.toScene(scene, new Color(255,0,0,100), 7);
+//		Vertex C = new Vertex(new Point(0.0, 0.0, 0.0));
+//		Sphere sphere = new Sphere(C, 1.5);
+//		sphere.toScene(scene, new Color(0,0,255,255));
+//		Plane p = new Plane(new Point(2.5,0.0,0.0), new Vector(1,0,0));
+//		p.toScene(scene, new Color(255,0,0,100), 7);
+		
+		Point p0 = new Point(2.78348, 8.9871278, 1.79812);
+		Point p1 = new Point(5.8549, 9.32698, 17.9819);
+		Point p2 = new Point(21.25148, 19.278, 11.712);
+		Point p3 = new Point(6.876786, 5.11526, 2.00036);
+		double r0 = p3.distance(p0);
+		double r1 = p3.distance(p1);
+		double r2 = p3.distance(p2);
+		Sphere s0 = new Sphere(p0, r0);
+		Sphere s1 = new Sphere(p1, r1);
+		Sphere s2 = new Sphere(p2, r2);
+		scene.addShape(s0, new Color(200,0,0,200));
+		scene.addShape(s1, new Color(0,200,0,200));
+		scene.addShape(s2, new Color(0,0,200,200));
+		Point[] intersections = Sphere.getIntersections(s0, s1, s2);
+		
+		for(Point point : intersections){
+			scene.addShape(new Sphere(point, 2.0));
+			System.out.println(point.x() + " " + point.y() + " " + point.z());
+		}
 	}
 
 	/**

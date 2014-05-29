@@ -21,8 +21,6 @@ import java.util.ConcurrentModificationException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
 
 import javax.media.j3d.LinearFog;
 import javax.media.j3d.Transform3D;
@@ -46,7 +44,6 @@ import ProGAL.geom3d.Vector;
 import ProGAL.geom3d.volumes.LSS;
 import ProGAL.geom3d.volumes.Sphere;
 import ProGAL.geom3d.volumes.Tetrahedron;
-import ProGAL.math.Matrix;
 
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
@@ -72,7 +69,7 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 	private final Transform3D transform;
 	protected boolean rotateAroundObject = true;
 
-	private Point location, lookingAt;
+	private Point eye, lookingAt;
 	private Vector up;
 
 	Camera(J3DScene j3dScene, ViewingPlatform vp, LinearFog fog){
@@ -85,7 +82,7 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 		double[] entries = new double[16];
 		transform.get(entries);
 
-		location = new Point(entries[3], entries[7], entries[11]);
+		eye = new Point(entries[3], entries[7], entries[11]);
 		lookingAt = new Point(0,0,0);
 		up = new Vector(entries[1], entries[5], entries[9]);
 
@@ -99,7 +96,7 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 		setFrontFog(50);
 	}
 
-	public Point getLocation(){ return location; }
+	public Point getEye(){ return eye; }
 	public Point getLookingAt(){ return lookingAt; }
 	public Vector getUp(){ return up; }
 	public double getViewAngle(){ return view.getFieldOfView(); }
@@ -110,7 +107,7 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 	public boolean getParallel(){ return (view.getProjectionPolicy()==View.PARALLEL_PROJECTION); }
 
 	public void setLocation(Point p){ 
-		this.location = p;
+		this.eye = p;
 		updateView();
 	}
 	public void setLookingAt(Point p){ 
@@ -134,14 +131,14 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 	public void updateView(){
 		platform.getViewPlatformTransform().getTransform(transform);
 		//Prepare camera rotation (determined from location.VectorTo(lookingAt) and up).
-		Vector c = location.vectorTo(lookingAt).multiplyThis(-1/location.distance(lookingAt));
+		Vector c = eye.vectorTo(lookingAt).multiplyThis(-1/eye.distance(lookingAt));
 		Vector b = up.subtract( c.multiply(up.dot(c)) ).normalizeThis();
 		Vector a = b.cross(c);
 
 		transform.set(new double[]{
-				a.x(),b.x(),c.x(),location.x(), 
-				a.y(),b.y(),c.y(),location.y(),
-				a.z(),b.z(),c.z(),location.z(),
+				a.x(),b.x(),c.x(),eye.x(), 
+				a.y(),b.y(),c.y(),eye.y(),
+				a.z(),b.z(),c.z(),eye.z(),
 				0,0,0,1 });
 		platform.getViewPlatformTransform().setTransform(transform);
 		if(controlPanel!=null && controlPanel.isVisible()) {
@@ -151,23 +148,32 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 	}
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		int rot = e.getWheelRotation();
-		Line l = new Line(location, location.vectorTo(lookingAt));
-		if(shiftPressed){
-			double t;
+		double dist = eye.distance(lookingAt);
+//		Line l = new Line(eye, eye.vectorTo(lookingAt));
+//		if(shiftPressed){
+//			double t;
+//			if(rot<0){
+//				t = 1-Math.pow(0.99, -rot);
+//			}else{
+//				t = 1-Math.pow(1.0/0.99, rot);
+//			}
+//			location = l.getPoint(t);
+//			lookingAt = l.getPoint(1+t);
+//		}else{
+		
 			if(rot<0){
-				t = 1-Math.pow(0.99, -rot);
+//				System.out.println(eye.distanceSquared(lookingAt));
+				double lineVal = 1-Math.pow(0.99, -rot);
+				if(dist<0.001) return;
+//				eye = l.getPoint(lineVal);
+				eye = eye.add(eye.vectorTo(lookingAt).multiplyThis(lineVal));
 			}else{
-				t = 1-Math.pow(1.0/0.99, rot);
+				double lineVal = 1-Math.pow(1.0/0.95, rot);
+				if(dist>1000) return;
+//				eye = l.getPoint(lineVal);
+				eye = eye.add(eye.vectorTo(lookingAt).multiplyThis(lineVal));
 			}
-			location = l.getPoint(t);
-			lookingAt = l.getPoint(1+t);
-		}else{
-			if(rot<0){
-				location = l.getPoint(1-Math.pow(0.99, -rot));
-			}else{
-				location = l.getPoint(1-Math.pow(1.0/0.99, rot));
-			}
-		}
+//		}
 		updateView();
 	}
 	public void mouseClicked(MouseEvent e) {}
@@ -185,7 +191,7 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 		lastPoint = p;
 		double xangle = -xdiff*(rotateAroundObject?0.01:0.003);
 		double yangle = -ydiff*(rotateAroundObject?0.01:0.003);
-		Vector dir = location.vectorTo(lookingAt).normalizeThis();
+		Vector dir = eye.vectorTo(lookingAt).normalizeThis();
 		Vector up = this.up;
 		Vector right = dir.cross(up);
 		up.rotateIn(dir, xangle);
@@ -193,10 +199,10 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 		right.rotateIn(up, yangle);
 		if(rotateAroundObject){
 			Line l = new Line(lookingAt, dir.normalizeThis());
-			location = l.getPoint(-location.distance(lookingAt));
+			eye = l.getPoint(-eye.distance(lookingAt));
 		}else{
-			Line l = new Line(location, dir.normalizeThis());
-			lookingAt = l.getPoint(location.distance(lookingAt));
+			Line l = new Line(eye, dir.normalizeThis());
+			lookingAt = l.getPoint(eye.distance(lookingAt));
 		}
 		updateView();
 	}
@@ -207,10 +213,12 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 		if(e.getKeyCode()==KeyEvent.VK_SHIFT) shiftPressed = true;
 	}
 	public void keyReleased(KeyEvent e) {
-		if(e.getKeyCode()==KeyEvent.VK_SHIFT) shiftPressed = false;
+		if(e.getKeyCode()==KeyEvent.VK_SHIFT) {shiftPressed = false; return; }
 		switch(e.getKeyCode()){
 		case KeyEvent.VK_Z: scene.autoZoom();break;
 		case KeyEvent.VK_C: scene.centerCamera();break;
+		case KeyEvent.VK_R: scene.toggleRotation();break;
+		case KeyEvent.VK_A: scene.setAntialiasing(true);break;
 		}
 	}
 	public void keyTyped(KeyEvent e) {}
@@ -385,7 +393,7 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 //			java.awt.Shape oldClip = g2d.getClip();
 //			Area area = new Area(new Rectangle(new java.awt.Point(x,y), new Dimension(w,h)));
 //			g2d.setClip(area);
-			double realDist = location.distance(lookingAt);
+			double realDist = eye.distance(lookingAt);
 			double planeDist = camPos.distance(locPos);
 			for(int i=0;i<shapes.size();i++){//TODO: Improve
 				g2d.setColor(shapeColors.get(i));
@@ -458,7 +466,7 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 		Color background = controlPanel.getBackground();
 		List<ProGAL.geom2d.Shape> newShapes = new LinkedList<ProGAL.geom2d.Shape>();
 		List<java.awt.Color> newColors = new LinkedList<java.awt.Color>();
-		Vector x = location.vectorTo(lookingAt).normalizeThis();
+		Vector x = eye.vectorTo(lookingAt).normalizeThis();
 		Vector y = up.subtract( x.multiply(up.dot(x)) ).normalizeThis();
 		try{
 			for(Entry<Shape,Color> entry: scene.primitives.entrySet()){
@@ -467,22 +475,22 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 				Shape shape = entry.getKey();
 				if(shape instanceof Sphere){ 
 					Sphere s = (Sphere)shape;
-					double xT = x.dot(location.vectorTo(s.getCenter()));
-					double yT = y.dot(location.vectorTo(s.getCenter()));
+					double xT = x.dot(eye.vectorTo(s.getCenter()));
+					double yT = y.dot(eye.vectorTo(s.getCenter()));
 					newShapes.add(new ProGAL.geom2d.Circle(new ProGAL.geom2d.Point(xT,yT), s.getRadius()));
 					objectsAdded = 1;
 				}
 				//Tets
 				if(shape instanceof Tetrahedron){ 
 					Tetrahedron s = (Tetrahedron)shape;
-					double x1T = x.dot(location.vectorTo(s.getPoint(0)));
-					double y1T = y.dot(location.vectorTo(s.getPoint(0)));
-					double x2T = x.dot(location.vectorTo(s.getPoint(1)));
-					double y2T = y.dot(location.vectorTo(s.getPoint(1)));
-					double x3T = x.dot(location.vectorTo(s.getPoint(2)));
-					double y3T = y.dot(location.vectorTo(s.getPoint(2)));
-					double x4T = x.dot(location.vectorTo(s.getPoint(3)));
-					double y4T = y.dot(location.vectorTo(s.getPoint(3)));
+					double x1T = x.dot(eye.vectorTo(s.getPoint(0)));
+					double y1T = y.dot(eye.vectorTo(s.getPoint(0)));
+					double x2T = x.dot(eye.vectorTo(s.getPoint(1)));
+					double y2T = y.dot(eye.vectorTo(s.getPoint(1)));
+					double x3T = x.dot(eye.vectorTo(s.getPoint(2)));
+					double y3T = y.dot(eye.vectorTo(s.getPoint(2)));
+					double x4T = x.dot(eye.vectorTo(s.getPoint(3)));
+					double y4T = y.dot(eye.vectorTo(s.getPoint(3)));
 					newShapes.add(new ProGAL.geom2d.Triangle(new ProGAL.geom2d.Point(x1T,y1T),new ProGAL.geom2d.Point(x2T,y2T),new ProGAL.geom2d.Point(x3T,y3T) ));
 					newShapes.add(new ProGAL.geom2d.Triangle(new ProGAL.geom2d.Point(x1T,y1T),new ProGAL.geom2d.Point(x2T,y2T),new ProGAL.geom2d.Point(x4T,y4T) ));
 					newShapes.add(new ProGAL.geom2d.Triangle(new ProGAL.geom2d.Point(x1T,y1T),new ProGAL.geom2d.Point(x3T,y3T),new ProGAL.geom2d.Point(x4T,y4T) ));
@@ -492,22 +500,22 @@ public class Camera implements MouseListener, MouseMotionListener, MouseWheelLis
 				//Tris
 				if(shape instanceof Triangle){ 
 					Triangle s = (Triangle)shape;
-					double x1T = x.dot(location.vectorTo(s.getPoint(0)));
-					double y1T = y.dot(location.vectorTo(s.getPoint(0)));
-					double x2T = x.dot(location.vectorTo(s.getPoint(1)));
-					double y2T = y.dot(location.vectorTo(s.getPoint(1)));
-					double x3T = x.dot(location.vectorTo(s.getPoint(2)));
-					double y3T = y.dot(location.vectorTo(s.getPoint(2)));
+					double x1T = x.dot(eye.vectorTo(s.getPoint(0)));
+					double y1T = y.dot(eye.vectorTo(s.getPoint(0)));
+					double x2T = x.dot(eye.vectorTo(s.getPoint(1)));
+					double y2T = y.dot(eye.vectorTo(s.getPoint(1)));
+					double x3T = x.dot(eye.vectorTo(s.getPoint(2)));
+					double y3T = y.dot(eye.vectorTo(s.getPoint(2)));
 					newShapes.add(new ProGAL.geom2d.Triangle(new ProGAL.geom2d.Point(x1T,y1T),new ProGAL.geom2d.Point(x2T,y2T),new ProGAL.geom2d.Point(x3T,y3T) ));
 					objectsAdded = 1;
 				}
 				//LSSs
 				if(shape instanceof LSS){ 
 					LSS s = (LSS)shape;
-					double x1T = x.dot(location.vectorTo(s.segment.getA()));
-					double y1T = y.dot(location.vectorTo(s.segment.getA()));
-					double x2T = x.dot(location.vectorTo(s.segment.getB()));
-					double y2T = y.dot(location.vectorTo(s.segment.getB()));
+					double x1T = x.dot(eye.vectorTo(s.segment.getA()));
+					double y1T = y.dot(eye.vectorTo(s.segment.getA()));
+					double x2T = x.dot(eye.vectorTo(s.segment.getB()));
+					double y2T = y.dot(eye.vectorTo(s.segment.getB()));
 					newShapes.add(new ProGAL.geom2d.LSC(new ProGAL.geom2d.Point(x1T,y1T),new ProGAL.geom2d.Point(x2T,y2T), s.rad));
 					objectsAdded = 1;
 				}

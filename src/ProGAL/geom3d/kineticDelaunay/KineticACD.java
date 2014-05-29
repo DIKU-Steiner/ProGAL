@@ -1561,24 +1561,6 @@ public class KineticACD {
 	}
 	
 	public void initializeRotation(List<Integer> rotIndices, int a, int b) {
-//		int alive = 0, dead = 0;
-//		for(Tet t: tets){
-//			if(t.isAlive()) alive++; else dead++;
-//		}
-//		for(java.util.Map.Entry<TrianglePoints,Tri> entry: mapTris.entrySet()){
-//			Tri t = entry.getValue();
-//			if(t.isAlive()) alive++; else dead++;
-//		}
-//		for(java.util.Map.Entry<EdgePoints,Edge> entry: mapEdges.entrySet()){
-//			Edge t = entry.getValue();
-//			if(t.isAlive()) alive++; else dead++;
-//		}
-//		System.out.print("Alive: "+alive+" .. dead: "+dead);
-//		alive=dead=0;
-//		for(Tet t: alphaTets){
-//			if(t.isAlive()) alive++; else dead++;
-//		}
-//		System.out.println(" -- Alive: "+alive+" .. dead: "+dead);
 		heap.clear();
 		angleTotal = 0;
 		
@@ -2565,16 +2547,16 @@ public class KineticACD {
 	/** Displays alpha complex for given alpha */
 	public void toScene(J3DScene scene, double alpha) {
 		scene.removeAllShapes();
-		Color blue_tr = new Color(0,0,255,50);
-		Color green_tr = Color.green;
+//		Color blue_tr = new Color(0,0,255,50);
+//		Color green_tr = Color.green;
 //		Color green_tr = new Color(0,128,0,50);
-		Color red_tr = new Color(255,0,0,50);
+//		Color red_tr = new Color(255,0,0,50);
 		Vector tr = new Vector (0.02, 0.02, 0.02);
-		int nrTetrahedra = 0;
+//		int nrTetrahedra = 0;
 		for (Tet tet : tets) { 
-			nrTetrahedra++;
+//			nrTetrahedra++;
 //			System.out.println(nrTetrahedra);
-			tet.getCircumSphere();
+//			tet.getCircumSphere();
 			if (tet.circumRadius() <= alpha) tet.toSceneFaces(scene, Color.red);
 			else {
 /*				Circle c;
@@ -2595,14 +2577,14 @@ public class KineticACD {
 				if (tet.corners[2].distance(tet.corners[3]) <= alpha2) new LineSegment(tet.corners[2], tet.corners[3]).toScene(scene, 0.003, Color.black, 1);
 */			}
 		}
-		for (Vertex v : vertices) {
-			if (v.getType() == VertexType.S) v.toScene(scene, 0.01, Color.red);
-			else {
-				v.toScene(scene, 0.01, Color.blue, 1);
-				Circle c = new Circle(new Point(0, 0, v.z()), v, getRotationAxis());
-			}
-			if (this.vertices.size() < 20) scene.addText(String.valueOf(v.getId()), v);
-		}
+//		for (Vertex v : vertices) {
+//			if (v.getType() == VertexType.S) v.toScene(scene, 0.01, Color.BLACK, 5);
+//			else {
+//				v.toScene(scene, 0.01, Color.RED, 5);
+////				Circle c = new Circle(new Point(0, 0, v.z()), v, getRotationAxis());
+//			}
+//			if (this.vertices.size() < 20) scene.addText(String.valueOf(v.getId()), v);
+//		}
 	}
 	
 	//Daisy:

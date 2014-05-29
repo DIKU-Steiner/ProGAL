@@ -2,6 +2,7 @@ package ProGAL.io;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -27,6 +28,15 @@ import java.util.zip.GZIPOutputStream;
  * @author R.Fonseca
  */
 public abstract class IOToolbox {
+	
+	public static boolean createDirectory(String path){
+		  File theDir = new File(path);
+		  if (!theDir.exists()) {
+		    return theDir.mkdir();
+		  }
+		  return true;
+	}
+	
 	/** 
 	 * Writes a string to the specified file-name. 
 	 * 

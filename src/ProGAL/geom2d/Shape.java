@@ -13,4 +13,6 @@ public interface Shape {
 	 * collection of shapes such that scene-viewers can be centered on the scene.
 	 */
 	public Point getCenter();
+	
+	public boolean contains(Point p);
 }

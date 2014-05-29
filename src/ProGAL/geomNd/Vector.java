@@ -2,6 +2,7 @@ package ProGAL.geomNd;
 
 import ProGAL.math.Constants;
 import ProGAL.math.Matrix;
+import ProGAL.math.Randomization;
 
 /** 
  *  A vector in metric space represented with double precision.
@@ -211,6 +212,18 @@ public class Vector {
 
 	/** Get the angle between vector u and v. */
 	public static double getAngle(Vector u, Vector v) { return u.angle(v); }
+
+	/** Create a vector of length <code>len</code> pointing a random direction */
+	public static Vector randomVector(int dim, double len) {
+		Vector ret = new Vector(dim);
+		do{
+		for(int d=0;d<dim;d++)
+			ret.coords[d] = Randomization.randBetween(-1.0, 1.0);
+		}while(ret.length()>1.0);
+		
+		ret.multiplyThis(len/ret.length());
+		return ret;
+	}
 
 	
 

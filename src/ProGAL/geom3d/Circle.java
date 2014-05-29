@@ -215,8 +215,8 @@ public class Circle implements Shape{
 		double cosAlpha = dist/radius;
 		double cosBeta = (r2 + oco2 - pco2)/(2*radius*dist);
 		Vector oco = new Vector(center, co);
-		LineSegment seg1 = new LineSegment(center, co);      // seg1.toScene(scene,0.03, Color.red);
-		LineSegment seg2 = new LineSegment(center, p);       // seg2.toScene(scene, 0.03, Color.pink);
+//		LineSegment seg1 = new LineSegment(center, co);      // seg1.toScene(scene,0.03, Color.red);
+//		LineSegment seg2 = new LineSegment(center, p);       // seg2.toScene(scene, 0.03, Color.pink);
 		Vector cr = op.cross(oco);
 		cr.divideThis(op.length()*oco.length());
 		double sinBeta = cr.length();

@@ -62,4 +62,9 @@ public class LineSegment implements Shape{
 		double t = v.dot(vP)/v.getSquaredLength();
 		return a.add(v.multiplyThis(Math.min(Math.max(0,t), 1))).distance(p);
 	}
+
+	@Override
+	public boolean contains(Point p) {
+		return false;
+	}
 }

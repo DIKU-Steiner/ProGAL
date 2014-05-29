@@ -124,5 +124,10 @@ public class Line implements Shape {
 	public Point getCenter() {
 		return getPoint(0);
 	}
+
+	@Override
+	public boolean contains(Point p) {
+		return false;
+	}
 	
 }

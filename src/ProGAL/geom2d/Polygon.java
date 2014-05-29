@@ -98,19 +98,49 @@ public class Polygon extends ArrayList<Point> implements Shape {
 	
 	public static void main(String[] args) {
 		Polygon pol = new Polygon();
+//		pol.add(new Point(0,0));
+//		pol.add(new Point(1,-1));
+//		pol.add(new Point(2,-1));		
+//		pol.add(new Point(3,2));
+//		pol.add(new Point(2,2));
+//		pol.add(new Point(1, 1.5));
+//		J2DScene scene = J2DScene.createJ2DSceneInFrame();
+//		pol.draw(scene);
+//		ConvexPolygon cPol = pol.getConvexPolygon();
+//		cPol.draw(scene);
+//		System.out.println(cPol.farthestVertex(0, 3));
+//		cPol.getDiameter();
+		
 		pol.add(new Point(0,0));
-		pol.add(new Point(1,-1));
-		pol.add(new Point(2,-1));		
-		pol.add(new Point(3,2));
-		pol.add(new Point(2,2));
-		pol.add(new Point(1, 1.5));
+		pol.add(new Point(0,1));
+		pol.add(new Point(2,0));
+		pol.add(new Point(2,1));
 		J2DScene scene = J2DScene.createJ2DSceneInFrame();
-		pol.draw(scene);
-		ConvexPolygon cPol = pol.getConvexPolygon();
-		cPol.draw(scene);
-		System.out.println(cPol.farthestVertex(0, 3));
-		cPol.getDiameter();
+		scene.addShape(pol, Color.BLUE, 0, true);
+	}
+
+	@Override
+	public boolean contains(Point p) {
+		//From http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+		boolean result = false;
+		for(int i=0;i<size();i++){
+			Point p0 = get(i);
+			Point p1 = get( (i+1)%size() );
+			if( (p0.y() > p.y()) != (p1.y() > p.y()) && (p.x() < (p1.x() - p0.x()) * (p.y() - p0.y()) / (p1.y()-p0.y()) + p0.x()) ) 
+				result = !result;
+		}
+		
+		return result;
 	}
 	
+	
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("Polygon[");
+		for(Point p: this) {sb.append(p.toString());sb.append(","); }
+		sb.deleteCharAt(sb.length()-1);
+		sb.append("]");
+		return sb.toString();
+	}
 
 }

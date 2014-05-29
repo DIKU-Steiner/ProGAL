@@ -97,8 +97,8 @@ public class ConvexPolygon extends Polygon{
 		double diamLength = seg.getSquaredLength();
 		double lng;
 		do {
-			System.out.println(i + ": " + (get(i)).toString() + ",  " + j +": " + (get(j)).toString() + ",  " + seg.getSquaredLength());
-			System.out.println("Vectors vi and vj: " + vi.toString() + "  " + vj.toString());
+//			System.out.println(i + ": " + (get(i)).toString() + ",  " + j +": " + (get(j)).toString() + ",  " + seg.getSquaredLength());
+//			System.out.println("Vectors vi and vj: " + vi.toString() + "  " + vj.toString());
 			if  (Vector.rightTurn(vi, vj)) {
 				j = jNext;
 				jNext = (j + 1 == n)? 0 : j+1;

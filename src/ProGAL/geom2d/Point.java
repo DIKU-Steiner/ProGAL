@@ -25,6 +25,11 @@ public class Point extends ProGAL.geomNd.Point {
 
 	/** Construct a point with the specified coordinates. */
 	public Point(double[] coords) { super(coords); }
+	
+	/** Construct a point with the same two first coordinates as p. */
+	public Point(ProGAL.geomNd.Point p){
+		this(p.getCoords());
+	}
 
 	/** Return the x-coordinate */
 	public double x(){ return coords[0]; }

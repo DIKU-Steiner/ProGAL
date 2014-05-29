@@ -42,5 +42,11 @@ public class LSC implements Shape{
 	public LSC clone(){
 		return new LSC(segment.clone(), radius);
 	}
+
+	@Override
+	public boolean contains(Point p) {
+		double dist = segment.distance(p);
+		return dist<=radius;
+	}
 	
 }

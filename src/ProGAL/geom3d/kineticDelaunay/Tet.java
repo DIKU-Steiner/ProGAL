@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -23,7 +22,7 @@ import ProGAL.math.Matrix;
 
 public class Tet {
 	private Vertex[] corners = new Vertex[4];
-	private Set<Edge> edges = new LinkedHashSet<Edge>(); // Daisy
+	private Set<Edge> edges = new HashSet<Edge>(); // Daisy
 	private Tri[] tris = new Tri[4]; // Daisy
 	Tet[] neighbors = new Tet[4];
 	Sphere circumSphere = null;

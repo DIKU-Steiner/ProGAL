@@ -76,8 +76,9 @@ import ProGAL.geom2d.*;
  */
 public class J2DScene {
 	public JFrame frame;
-	private PaintPanel canvasPanel;
-	private List<ShapeOptions> shapes = new ArrayList<ShapeOptions>();
+	private final PaintPanel canvasPanel;
+	private final List<ClickListener> clickListeners = new LinkedList<ClickListener>();
+	private final List<ShapeOptions> shapes = new ArrayList<ShapeOptions>();
 	private Point camCenter;
 	double scale;
 	
@@ -172,24 +173,33 @@ public class J2DScene {
 	}
 	public void addShape(Shape s, Color c, double border, boolean fill){
 		shapes.add(new ShapeOptions(s,c,border,fill));
-		repaint();
+//		repaint();
 	}
+	
 	/** Remove the specified shape from the scene */
 	public void removeShape(Shape s) {
 		ShapeOptions opt = null;
 		for(ShapeOptions so: shapes) if(so.shape==s){ opt = so; break; }
 		shapes.remove(opt);
-		repaint();
+//		repaint();
 	}
+	
 	/** Remove all shapes from the scene */
 	public void removeAllShapes() {
 //		while (!shapes.isEmpty()) shapes.remove(0);
 		shapes.clear();
-		repaint();
+//		repaint();
 	}
+	
+	/** Add a click-listener that gets called every time an object or the background is clicked	 */
+	public void addClickListener(ClickListener cl){
+		clickListeners.add(cl);
+	}
+	
 	
 	/** Repaint the scene */
 	public void repaint(){
+//		canvasPanel.paintImmediately(0, 0, canvasPanel.getWidth(), canvasPanel.getHeight());
 		canvasPanel.repaint();
 	}
 	
@@ -258,8 +268,24 @@ public class J2DScene {
 			double pY = -(p.y-h/2)/scale + camCenter.y();
 			return new Point(pX,pY);
 		}
+		
 		public void mouseMoved(MouseEvent e) {	}
-		public void mouseClicked(MouseEvent e) {	}
+		public void mouseClicked(MouseEvent e) {
+			Point p = null;
+			Shape shapeClicked = null;
+			
+			for(ShapeOptions so: new LinkedList<ShapeOptions>(shapes)){
+				if(so.fill){
+					if(p==null)	p = transformPoint(e.getPoint());
+					if(so.shape.contains(p))
+						shapeClicked = so.shape;
+				}
+			}
+			
+			for(ClickListener cl: clickListeners){
+				cl.shapeClicked(shapeClicked, e);
+			}
+		}
 		public void mouseEntered(MouseEvent e) {	}
 		public void mouseExited(MouseEvent e) {		}
 		public void mousePressed(MouseEvent e) { lastPoint = e.getLocationOnScreen(); }
@@ -269,6 +295,25 @@ public class J2DScene {
 			scale*=factor;
 			repaint();
 		}
+	}
+	
+	
+	public java.awt.Point transformPoint(Point p){
+		int w = canvasPanel.getWidth();
+		int h = canvasPanel.getHeight();
+		int gX = (int)(scale*(p.x()-camCenter.x())+w/2);
+		int gY = (int)(-scale*(p.y()-camCenter.y())+h/2);
+		return new java.awt.Point(gX,gY);
+	}
+
+	public Point transformPoint(java.awt.Point p){
+		int w = canvasPanel.getWidth();
+		int h = canvasPanel.getHeight();
+		int gX = p.x;
+		int gY = p.y;
+		double x = ((gX-w/2)/scale)+camCenter.x();
+		double y = ((gY-h/2)/-scale)+camCenter.y(); 
+		return new Point(x,y);
 	}
 	
 	class ShapeOptions{
@@ -283,26 +328,15 @@ public class J2DScene {
 			this.borderWidth = bw;
 			this.fill = f;
 		}
-		
-		
+	
 		java.awt.Point transformPoint(Point p){
-			int w = canvasPanel.getWidth();
-			int h = canvasPanel.getHeight();
-			int gX = (int)(scale*(p.x()-camCenter.x())+w/2);
-			int gY = (int)(-scale*(p.y()-camCenter.y())+h/2);
-			return new java.awt.Point(gX,gY);
+			return J2DScene.this.transformPoint(p);
 		}
 
 		Point transformPoint(java.awt.Point p){
-			int w = canvasPanel.getWidth();
-			int h = canvasPanel.getHeight();
-			int gX = p.x;
-			int gY = p.y;
-			double x = ((gX-w/2)/scale)+camCenter.x();
-			double y = ((gY-h/2)/-scale)+camCenter.y(); 
-			return new Point(x,y);
+			return J2DScene.this.transformPoint(p);
 		}
-		
+
 		
 		double getScale(){ return scale; }
 	}
@@ -335,7 +369,8 @@ public class J2DScene {
 		scene.addShape(new LSC(new Point(0,-0.5), new Point(1,-0.4), 0.2), Color.RED);
 		scene.addShape(new LSC(new Point(0,-0.9), new Point(1,-0.9), 0.1), Color.RED, 0, true);
 
-		scene.addShape(new Triangle(new Point(-1,0), new Point(-1,1), new Point(-2,0)));
+		Point p = new Point(-2,0);
+		scene.addShape(new Triangle(new Point(-1,0), new Point(-1,1), p), Color.GREEN, 0, true);
 		
 		scene.addShape(new Polygon(
 				new Point[]{
@@ -349,6 +384,19 @@ public class J2DScene {
 		scene.addShape(new Line(new Point(3,0), new Vector(0,0.0000001)));
 		
 		scene.centerCamera();
+		
+		while(true){
+			p.addThis(new Vector(0.01,0));
+			scene.repaint();
+			try {
+				Thread.sleep(30);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		
 		
 	}
 

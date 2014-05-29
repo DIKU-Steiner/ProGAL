@@ -22,8 +22,8 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 		super(coords);
 	}
 	/** Construct a point that is a clone of p. */
-	public Point(Point p) { 
-		super(new double[]{p.coords[0],p.coords[1],p.coords[2]});
+	public Point(ProGAL.geomNd.Point p) { 
+		super(p);
 	}
 	/** Construct a point at the coordinates of v. */
 	public Point(Vector v) { 
@@ -470,6 +470,7 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 		double o = Point.orientation(a, c, b, d);
 		System.out.println("orientation of plane through a,b c w.r.t. point d " + o);
 	}
+	
 }
 
 

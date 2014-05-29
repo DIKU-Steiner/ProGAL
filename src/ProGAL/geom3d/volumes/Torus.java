@@ -49,7 +49,7 @@ public class Torus  {
 	/** Find up to four intersection points with circle C(p,n).
 	    See http://ubm.opus.hbz-nrw.de/volltexte/2009/2037/pdf/diss.pdf **/
 	public Point[] getIntersectionCircle(Circle C) {
-		DecimalFormat newFormat = new DecimalFormat("#.#########");
+//		DecimalFormat newFormat = new DecimalFormat("#.#########");
 		/*Vector newCircleNormal = C.getNormal();
 		Point newCircleCenter = C.getCenter();*/
 		Vector e3 = new Vector(0,0,1);
@@ -60,10 +60,10 @@ public class Torus  {
 		double angle = normal.angle(e3);
 		Matrix rotMatrix = Matrix.createRotationMatrix(angle, rotAxis);
 		Vector translate = new Vector(-center.x(),-center.y(),-center.z());
-		Vector newTorusNormal = rotMatrix.multiply(normal).normalize();
-		Vector newCircleNormal = rotMatrix.multiply(C.getNormal()).normalize();
+//		Vector newTorusNormal = rotMatrix.multiply(normal).normalize();
+		Vector newCircleNormal = rotMatrix.multiply(C.getNormal()).normalizeThis();
 		Point CC0 = C.getCenter().add(translate);
-		Point newCircleCenter = rotMatrix.multiply(CC0);
+		Point newCircleCenter = (Point)rotMatrix.multiplyIn(CC0);
 		
 		Point[] intersections = new Point[4];
 		
@@ -88,16 +88,16 @@ public class Torus  {
 			nz = 1;
 		} else {
 			nz = newCircleNormal.get(2);
-			a_ = newCircleNormal.getOrthogonal().normalize();
-			b_ = a_.cross(newCircleNormal).normalize();
+			a_ = newCircleNormal.getOrthogonal().normalizeThis();
+			b_ = a_.cross(newCircleNormal).normalizeThis();
 		}
 		double[] m1 = {a_.get(0), b_.get(0), nx};
 		double[] m2 = {a_.get(1), b_.get(1), ny};
 		double[] m3 = {a_.get(2), b_.get(2), nz};
 		double[][] mlist = {m1, m2, m3};
-		Matrix M = new Matrix(mlist); 
+//		Matrix M = new Matrix(mlist); 
 		//Point p = M.invert().multiply(center.subtract(pPoint));
-		Point p = new Point(0,0,0);
+//		Point p = new Point(0,0,0);
 		double alph = newCircleCenter.dot(newCircleCenter);
 		double gam = newCircleCenter.dot(a_);
 		double del = newCircleCenter.dot(b_);
@@ -161,7 +161,7 @@ public class Torus  {
 			if (r==null) break;
 			System.out.println("root = "+r);
 		}*/
-		Point[] ps = new Point[4];
+//		Point[] ps = new Point[4];
 		
 		if (roots.length == 0) return null;
 		for (int k = 0 ; k<roots.length ; k++) {
@@ -172,10 +172,12 @@ public class Torus  {
 			parameters[1] = (newCircleCenter.y()-C.getRadius()*a_.get(1))*root*root + 2*C.getRadius()*b_.get(1)*root + newCircleCenter.y()+C.getRadius()*a_.get(1);
 			parameters[2] = (newCircleCenter.z()-C.getRadius()*a_.get(2))*root*root + 2*C.getRadius()*b_.get(2)*root + newCircleCenter.z()+C.getRadius()*a_.get(2);
 			parameters[3] = root*root+1;
-			ps[k] = new Point((parameters[0]/parameters[3]), (parameters[1]/parameters[3]), (parameters[2]/parameters[3]));
+//			ps[k] = new Point((parameters[0]/parameters[3]), (parameters[1]/parameters[3]), (parameters[2]/parameters[3]));
+			Point pk = new Point((parameters[0]/parameters[3]), (parameters[1]/parameters[3]), (parameters[2]/parameters[3]));
 			//ps[k].toScene(scene, 0.02, java.awt.Color.CYAN);
-			Point rotPoint = rotMatrix.invert().multiply(ps[k]);
-			intersections[k] = rotPoint.subtract(translate);
+//			Point rotPoint = rotMatrix.invert().multiplyIn(ps[k]);
+			Point rotPoint = (Point)rotMatrix.invert().multiplyIn(pk);
+			intersections[k] = rotPoint.subtractThis(translate);
 		}
 		return intersections;
 	}

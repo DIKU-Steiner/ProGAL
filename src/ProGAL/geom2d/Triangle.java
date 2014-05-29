@@ -14,6 +14,22 @@ public class Triangle implements Shape{
 		Line line  = new Line(points[(i+1)%3], points[(i+2)%3]);
 		return line.getDistance(points[i]);
 	}
+	
+	/** Calculate the area from the three side-lengths of a triangle */
+	public static double calculateArea(double a, double b, double c){
+		//http://www.mathsisfun.com/geometry/herons-formula.html
+		double s = (a+b+c)*0.5;
+		return Math.sqrt(s*(s-a)*(s-b)*(s-c));
+	}
+	
+	/** 
+	 * Calculate the height from the the endpoint of a and b down to the c-edge based on the 
+	 * lengths of the edges.
+	 */
+	public static double calculateHeight(double a, double b, double c) {
+		double A = calculateArea(a,b,c);
+		return 2*A/c;
+	}
 
 	public Point getCenter() { return points[0].clone(); }
 
@@ -78,5 +94,14 @@ public class Triangle implements Shape{
 		Triangle tr = new Triangle(new Point(-3.2,-1.5), new Point(-1,3), new Point(3.1,0));
 		if (tr.inCircumCircle(new Point(0,-4))) System.out.println("TRUE"); else System.out.println("FALSE");
 	}
+
+	@Override
+	public boolean contains(Point p) {
+		boolean l1 = Point.leftTurn(points[0], points[1], p); 
+		boolean l2 = Point.leftTurn(points[1], points[2], p);
+		boolean l3 = Point.leftTurn(points[2], points[0], p);
+		return l1==l2 && l1==l3;
+	}
+
 
 }
