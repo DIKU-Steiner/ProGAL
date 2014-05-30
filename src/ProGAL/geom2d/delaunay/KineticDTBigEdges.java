@@ -51,7 +51,8 @@ public class KineticDTBigEdges extends Triangulation {
 	private boolean circleAnimation = false;
 	private boolean printLabels = true;
 	
-	private double alpha = 2000000; //0.35;
+	private double alpha = 2000000;
+//	private double alpha = 0.35;
 	
 	private class HeapItem {
 		private Double[] angles;

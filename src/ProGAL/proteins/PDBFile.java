@@ -2,6 +2,9 @@ package ProGAL.proteins;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +40,7 @@ import ProGAL.proteins.structure.generators.HeavyAtomAminoAcidGenerator;
 public class PDBFile extends File{
 	private static final long serialVersionUID = 1791445213018199901L;
 	
-	private boolean includeHydrogens = false;
+	private boolean includeHydrogens = true;
 	private boolean includeHetAtms = false;
 	private int standardModel = 0;
 	private int standardChain = 0;
@@ -185,8 +188,10 @@ public class PDBFile extends File{
 		return new PDBFile(WebIOToolbox.downloadFile("http://www.pdb.org/pdb/files/"+pdbId.toUpperCase()+".pdb"), hydro);
 	}
 
-	public void setStandardModel(int m){ this.standardModel = m; }
-	public void setStandardChain(int c){ this.standardChain = c; }
+	public int  getStandardModel()      { return this.standardModel; }
+	public void setStandardModel(int m) { this.standardModel = m; }
+	public int  getStandardChain()      { return this.standardChain; }
+	public void setStandardChain(int c) { this.standardChain = c; }
 	public void setIncludeHydrogens(boolean b){ this.includeHydrogens=b; }
 	public void setIncludeHetatms(boolean b){ this.includeHetAtms=b; }
 	public void setStandardChain(char c){
@@ -249,15 +254,49 @@ public class PDBFile extends File{
 		return ret;
 	}
 
+	public void writeAtomCoords(String fileName, List<Point> atoms) throws FileNotFoundException, UnsupportedEncodingException {
+		PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+		for (Point p: atoms) writer.println(p.x() + " " + p.y() + " " + p.z());
+		writer.close();
+	}
+	
 	/** Returns the ATOM-records of the specified model and chain. */
 	public List<AtomRecord> getAtomRecords(int modelNum, int chainNum){
+		int counter = 0;
 		List<AtomRecord> ret = new ArrayList<AtomRecord>();
-		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
-//			if(!ar.isOnBackbone()) continue;       // to be removed if all atoms are to be included
-			if(!includeHydrogens && ar.isHydrogen()) continue;
-			if(!includeHetAtms && ar instanceof HetatmRecord) continue;
-			
-			ret.add(ar);
+		for(AtomRecord a: models.get(modelNum).chains.get(chainNum).atomRecords){
+			counter++;
+			if (counter == 179)
+				System.out.println("STOP");
+//			if(!a.isOnBackbone()) continue;       // to be removed if all atoms are to be included
+			if(!includeHydrogens && a.isHydrogen()) continue;
+			if(!includeHetAtms && a instanceof HetatmRecord) continue;
+			if (a.atomType.equals("H2") || a.atomType.equals("H3") || a.atomType.equals("OXT")) {
+				System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
+				continue; //get rid of H_2 in the first amino acid and O in the last amino acid
+			}
+			if (a.aaType.equals("HIS")) {
+				if (a.atomType.equals("HD1")) {
+					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
+					continue; //get rid of HD1 if present in histamine
+				}	
+				if (a.atomType.equals("HE2")) {
+					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
+					continue; //get rid of HE2 if present in histamine
+				}	
+			}
+			if (a.aaType.equals("CYS")) {
+				if (a.atomType.equals("HG")) {
+					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
+					continue; //get rid of HG if present in cystine
+				}	
+			}
+//		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
+////			if(!ar.isOnBackbone()) continue;       // to be removed if all atoms are to be included
+//			if(!includeHydrogens && ar.isHydrogen()) continue;
+//			if(!includeHetAtms && ar instanceof HetatmRecord) continue;
+//			
+//			ret.add(a);
 		}
 		return ret;
 	}
@@ -308,10 +347,35 @@ public class PDBFile extends File{
 
 	/** Returns all atom-coordinates of the specified model and chain. */
 	public List<Point> getAtomCoords(int modelNum, int chainNum){
+		int counter = 0;
 		List<Point> coords = new ArrayList<Point>();
 		for(AtomRecord a: getAtomRecords(modelNum,chainNum)) {
+			counter++;
+			if (counter == 178)
+				System.out.println("STOP");
 			if(!includeHydrogens && a.isHydrogen()) continue;
 			if(!includeHetAtms && a instanceof HetatmRecord) continue;
+			if (a.atomType.equals("H2") || a.atomType.equals("H3") || a.atomType.equals("OXT")) {
+				System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
+				continue; //get rid of H_2 in the first amino acid and O in the last amino acid
+			}
+			if (a.aaType.equals("HIS")) {
+				if (a.atomType.equals("HD1")) {
+					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
+					continue; //get rid of HD1 if present in histamine
+				}	
+				if (a.atomType.equals("HE2")) {
+					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
+					continue; //get rid of HE2 if present in histamine
+				}	
+			}
+			if (a.aaType.equals("CYS")) {
+				if (a.atomType.equals("HG")) {
+					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
+					continue; //get rid of HG if present in cystine
+				}	
+			}
+
 			coords.add(a.coords);
 		}
 //		for(HetatmRecord a: getHetatmRecords(modelNum, chainNum)){
@@ -504,7 +568,7 @@ public class PDBFile extends File{
 		AtomRecord(String pdbLine){
 			try{
 			atomNumber = Integer.parseInt(pdbLine.substring(6,11).trim());
-			atomType = pdbLine.substring(13,16).trim();
+			atomType = pdbLine.substring(12,16).trim();
 			aaType = pdbLine.substring(17, 20).trim();
 			chain = pdbLine.charAt(21);
 			residueNumber = Integer.parseInt(pdbLine.substring(22,26).trim());
@@ -782,7 +846,7 @@ public class PDBFile extends File{
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
 		
 		PDBFile f = new PDBFile("/home/daisy/Downloads/2oed_cs_244_samples/sample_000267200000_2_91.576430.pdb", true);//folded
 //		PDBFile f = new PDBFile("/home/daisy/Downloads/2oed_cs_244_samples/sample_000000200000_2_284.178215.pdb", true);
@@ -803,11 +867,16 @@ public class PDBFile extends File{
 		int indexAA = (int)Math.ceil(maxAA*0.5);
 		System.out.println("IndexAA = "+indexAA);
 		
+<<<<<<< .mine
+		f.writeAtomCoords("/Users/pawel/Downloads/1X0O_Coordinates.tex", points);
+		
+=======
 		int j = 0;
 		for (j=0 ; j<AR.size() ; j++) {
 			if (AR.get(j).residueNumber==indexAA ) break;
 		}
 		Line l = new Line(points.get(80), points.get(83));
+>>>>>>> .r843
 		System.out.println(points.size());
 //		AlphaComplex ac = new AlphaComplex(points, 2.0);
 		

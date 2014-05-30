@@ -685,22 +685,20 @@ public class Triangulation {
 	}
 	
 	/** draw the triangulation */
-	public void draw(J2DScene scene) { draw(scene,false); }
+	public void draw(J2DScene scene) { draw(scene, false); }
 	
 	/** draw the triangulation together with the vertex names */
 	public void draw(J2DScene scene, boolean printLabels) {
 		scene.removeAllShapes();
 		// draw vertices
-		for (TriangulationVertex v : vertices) 	v.toScene(scene, 0.03, Color.blue);
+		for (TriangulationVertex v : vertices) 	v.toScene(scene, 0.005, Color.blue);
 		// add vertex lables
 		if (printLabels && (vertices.size() < 100))
-			for (TriangulationVertex v: vertices) scene.addShape(new TextShape(String.valueOf(v.id), v, 0.2));
+			for (TriangulationVertex v: vertices) scene.addShape(new TextShape(String.valueOf(v.id), v, 0.05));
 
 		for (TriangulationFace t : triangulationFaces) {
-			if (t.isAlive() && t.isShort()) t.draw(scene);
+			if (t.isAlive() && !t.isBigFace()) t.draw(scene);
 		}
-		if (printLabels && (vertices.size() < 100))
-			for (TriangulationVertex v: vertices) scene.addShape(new TextShape(String.valueOf(v.id), v, 0.1));
 	}
 	/** draw the alpha complex */
 	public void draw(J2DScene scene, double alpha, boolean printLabels) {
@@ -731,10 +729,10 @@ public class Triangulation {
 	}
 	
 	public static void main(String[] args) {
-		PointSet points = new PointSet(150);
+		PointSet points = new PointSet(50);
 		J2DScene scene = J2DScene.createJ2DSceneInFrame();
 		Triangulation tr = new Triangulation(points, TriangulationAlgorithm.Delaunay);
-		tr.draw(tr.scene, false);
+		tr.draw(scene, true);
 		tr.print();
 		
 	}

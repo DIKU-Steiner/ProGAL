@@ -4,6 +4,7 @@ package ProGAL.geom2d;
 import java.awt.Color;
 
 import ProGAL.geom2d.viewer.J2DScene;
+import ProGAL.geom2d.Line;
 import ProGAL.math.Constants;
 import ProGAL.math.Functions;
 
@@ -137,7 +138,12 @@ public class Point extends ProGAL.geomNd.Point {
 		if (!p.equals(q)) return new Line(midPoint(p,q), p.vectorTo(q)); 
 		return null;
 	}
-		
+	
+	/** Returns the line y = ax + b() where the coordinates of this point are (a,b) */
+	public Line getDualLine() { return new Line(x(), y()); }
+
+
+	
 	/** Return true iff <code>o</code> is a Point that has the same same coordinates as this. */ 
 	public boolean equals(Object o){
 		if(o instanceof Point) return equals((Point)o);
@@ -179,17 +185,29 @@ public class Point extends ProGAL.geomNd.Point {
 	}
 	
 	public void toScene(J2DScene scene, double rad, Color col) { scene.addShape(new Circle(this, rad), col); }
+	public void toScene(J2DScene scene, double rad, Color col, double width) { scene.addShape(new Circle(this, rad), col, width); }
 
 	public static void main(String[] args) {
-		Point rotationPoint = new Point(0.0, 0.0);
-		Point p = new Point(3.38, 6.79);
-		rotationPoint.rotation(p, Math.PI/2);
-		System.out.println(p);
-//		double dist2 = p.x()*p.x() + p.y()*p.y();
-//		double dist = Math.sqrt(dist2);
-//		double angle = Math.atan2(p.y()/dist, p.x()/dist);
-//		double angle = Math.atan2(-1,-1);
-		System.out.println(Functions.toDeg(p.polarAngle()));
+		Line l1 = new Line(new LineSegment(new Point(-4,10), new Point(-3,6)));
+		Line l2 = new Line(new LineSegment(new Point(-3,6),  new Point(0,4)));
+		Line l3 = new Line(new LineSegment(new Point(0,4),   new Point(4,3)));
+		Line l4 = new Line(new LineSegment(new Point(4,3),   new Point(7,5)));
+		Line l5 = new Line(new LineSegment(new Point(7,5),   new Point(9,9)));
+		Line l6 = new Line(new LineSegment(new Point(9,9),   new Point(10,14)));
+		Line l7 = new Line(new LineSegment(new Point(-2,-5), new Point(3,-6)));
+		Line l8 = new Line(new LineSegment(new Point(6,-7),  new Point(12,4)));
+
+		J2DScene scene = J2DScene.createJ2DSceneInFrame();
+		l1.toScene(scene, 50, Color.black,  0.15);
+		l3.toScene(scene, 50, Color.black,  0.15);
+		l5.toScene(scene, 50, Color.black,  0.15);
+		l7.toScene(scene, 50, Color.black,  0.15);
+		l2.toScene(scene, 50, Color.black,  0.15);
+		l4.toScene(scene, 50, Color.black,  0.15);
+		l6.toScene(scene, 50, Color.black,  0.15);
+		l8.toScene(scene, 50, Color.black,  0.15);
+
+		
 	}
 
 }

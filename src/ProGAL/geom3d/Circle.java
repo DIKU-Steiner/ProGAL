@@ -5,10 +5,12 @@ package ProGAL.geom3d;
 import java.awt.Color;
 
 
+import ProGAL.Function;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.Cylinder;
 import ProGAL.math.Constants;
 import ProGAL.math.Functions;
+import ProGAL.math.RootFinding;
 
 /*
  * If the circle has center c, radius r, and unit-length normal vector n, compute unit-length vectors 
@@ -102,10 +104,71 @@ public class Circle implements Shape{
 	/** Sets the center of the circle */
 	public void setCenter(Point p) { center = p; }
 	
+	/** return a point on the circle */
+	public Point getPoint() {
+		return center.add(normal.getOrthonormal().scaleToLength(radius));		
+	}
+	
 	/** returns plane through this circle */
 	public Plane getPlane() {
 		return new Plane(center, normal);
 	}
+	
+	/** returns the point on the circle closets to the query point p. If p is equidistant to all points on the circle, 
+	 * an arbitrary point of the circle is returned.
+	 */
+	public Point getClosestPoint(Point p) {
+		Point pr = new Plane(center, normal).projectPoint(p);
+		if (center.distanceSquared(pr) <= Constants.EPSILON) return getPoint();
+		else return center.add(new Vector(center, pr).scaleToLength(radius));
+	}
+
+	/** returns the point on the circle farthest from the query point p. If p is equidistant to all points on the circle, 
+	 * an arbitrary point of the circle is returned.
+	 */
+	public Point getFarthestPoint(Point p) {
+		Point pr = new Plane(center, normal).projectPoint(p);
+		if (center.distanceSquared(pr) <= Constants.EPSILON) return getPoint();
+		else return center.add(new Vector(center, pr).scaleToLength(radius).multiply(-1));
+	}
+
+	public double getClosestDistance(Circle cb) {
+		Vector u = cb.normal.getOrthonormal();
+		Vector v = cb.normal.cross(u);
+		double ra2 = radius*radius;
+		double ca2 = center.dot(center);
+		double cacb = center.dot(cb.center);
+		double cau = center.dot(u);
+		double cav = center.dot(v);
+		double naca = normal.dot(center);
+		double nacb = normal.dot(cb.center);
+		double nau = normal.dot(u);
+		double nav = normal.dot(v);
+		double rb2 = cb.radius*cb.radius;
+		double cb2 = cb.center.dot(cb.center);
+		double cbu = cb.center.dot(u);
+		double cbv = cb.center.dot(v);
+		double a0 = rb2 + cb2 + ca2 - 2*cacb - (nacb - naca)*(nacb - naca);
+		double a1 = -2*rb2*nau*nav;
+		double a2 = 2*cb.radius*(cbv - cav - (nacb - naca)*nav);
+		double a3 = 2*cb.radius*(cbu - cau - (nacb - naca)*nau);
+		double a4 = -rb2*nav*nav;
+		double a5 = -rb2*nau*nau;
+		double a6 = -2*radius;
+		double a7 = ra2 + rb2 + ca2 + cb2 - 2*cacb;
+		double a8 = 2*cb.radius*(cbv - cav);
+		double a9 = 2*cb.radius*(cbu - cau);
+		double[] c = new double[5];
+		c[0] = a9*a9-a6*a6*a5 + 2*a7*a9 - a6*a6*a3 + a7*a7 - a6*a6*a0;
+		c[1] = 2*(2*a7*a8 - a6*a6*a2) + 2*(2*a8*a9 - a6*a6*a1);
+		c[2] = 2*(a6*a6*a5 - a9*a9) + 4*(a8*a8 -a6*a6*a4) + 2*(a7*a7 - a6*a6*a0);
+		c[3] = 2*(2*a7*a8 - a6*a6*a2) - 2*(2*a8*a9 - a6*a6*a1);
+		c[4] = a9*a9-a6*a6*a5 - 2*a7*a9 + a6*a6*a3 + a7*a7 -a6*a6*a0;
+		Function f = new Function(c);
+		double root = RootFinding.brent(f, 0.5, 0.8, 0.000001, 0.00001, 1000);
+		return root;
+	}
+	
 	
 	/** Create the equilateral circle of two points. */
 	public static Circle getEquilateralCircle(Point a, Point b) {
@@ -269,16 +332,42 @@ public class Circle implements Shape{
 		}
 	}
 	
+	/** Draws the circle as 360 dots */
 	public void toScene(J3DScene scene, double width, Color clr) {
 		double step = Math.PI/180;
+		double cosI;
+		double sinI;
+		double angle = -step;
 		Vector u = normal.getOrthonormal().scaleToLength(radius);
 		Vector nxu = normal.cross(u);
 		for (int i = 0; i < 360; i++) {
-			new Point(u.x()*Math.cos(i*step) + nxu.x()*Math.sin(i*step) + center.x(),
-					  u.y()*Math.cos(i*step) + nxu.y()*Math.sin(i*step) + center.y(),
-					  u.z()*Math.cos(i*step) + nxu.z()*Math.sin(i*step) + center.z()).toScene(scene, width, clr);
+			angle += step;
+			cosI = Math.cos(angle);
+			sinI = Math.sin(angle);
+			new Point(u.x()*cosI + nxu.x()*sinI + center.x(),
+					  u.y()*cosI + nxu.y()*sinI + center.y(),
+					  u.z()*cosI + nxu.z()*sinI + center.z()).toScene(scene, width, clr);
 		}
 	}
+	
+	/** Draws an arc as series of dots 1 degree apart*/
+	public void toSceneArc(J3DScene scene, double width, Color clr, int degree, Point start) {
+		double step = Math.PI/180;
+		double cosI;
+		double sinI;
+		double angle = -step;
+		Vector u = new Vector(center, start).scaleToLength(radius);
+		Vector nxu = normal.cross(u);
+		for (int i = 0; i < degree; i++) {
+			angle += step;
+			cosI = Math.cos(angle);
+			sinI = Math.sin(angle);
+			new Point(u.x()*cosI + nxu.x()*sinI + center.x(),
+					  u.y()*cosI + nxu.y()*sinI + center.y(),
+					  u.z()*cosI + nxu.z()*sinI + center.z()).toScene(scene, width, clr);
+		}
+	}
+	
 	
 	public Cylinder[] toScene(J3DScene scene, double width, int res, Color clr) {
 		double step = 2*Math.PI/res;
@@ -290,7 +379,7 @@ public class Circle implements Shape{
 		Point q;
 		LineSegment seg;
 		Cylinder cyl[] = new Cylinder[res];
-		for (int i = 0; i < res-1; i++) {
+		for (int i = 0; i < res; i++) {
 			alpha += step; 
 			double cosAlpha = Math.cos(alpha);
 			double sinAlpha = Math.sin(alpha);
@@ -301,9 +390,6 @@ public class Circle implements Shape{
 			cyl[i] = seg.toScene(scene, width, clr);
 			p = q;
 		}
-		q = new Point(center.x() + radius*a.x(), center.y() + radius*a.y(), center.z() + radius*a.z());
-		seg = new LineSegment(p,q);
-		cyl[res-1] = seg.toScene(scene, width, clr);	
 		return cyl;
 	}
 	
@@ -357,18 +443,21 @@ public class Circle implements Shape{
 
 	}
 	public static void main(String[] args) {
-		intersectionsInSpace();		
-/*		Point p = new Point (0, -3, 0);
+	
+		Point p = new Point (4, 1, 4);
 		J3DScene scene = J3DScene.createJ3DSceneInFrame();
 		p.toScene(scene,0.03,Color.black);
-		Double angle = c1.getFirstIntersection(c2, p, c1.getNormal().multiply(-1));
-		if (angle != null) {
-			Line line = new Line(c1.getCenter(), c1.getNormal());
-		    q = line.rotate(p, -angle);
-			q.toScene(scene, 0.03, Color.red);
-		}
-		*/
-	}
+		Circle c = new Circle(new Point(0, 2, 0), 1, new Vector(1,3,1).normalize());
+		c.toScene(scene, 0.02, Color.red);
+		Circle cb = new Circle(new Point(3, 2, 1), 1, new Vector(2, 1, 3).normalize());
+		cb.toScene(scene, 0.02, Color.blue);
+		c.getClosestDistance(cb);
+
+/*		Point q = c.getFarthestPoint(p);
+		q.toScene(scene,0.03,Color.blue);
+		LineSegment s = new LineSegment(p,q);
+		s.toScene(scene, 0.01, Color.blue);
+*/	}
 
 }
 

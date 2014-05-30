@@ -185,7 +185,7 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 
 	/** Returns a point translated from this one by (x,y,z) */
 	public Point add(double x, double y, double z) { return new Point(coords[0]+x, coords[1]+y, coords[2]+z); }
-
+	public Point add(Point p) { return new Point(coords[0]+p.x(), coords[1]+p.y(), coords[2]+p.z()); }
 	
 	/** Returns p subtracted from this (changing this object). */
 	public Point subtractThis(Vector p) { coords[0] -= p.x(); coords[1] -= p.y(); coords[2] -= p.z(); return this; }
@@ -373,16 +373,27 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	}
 	
 	
-	/* Returns equilateral point of 2 points a and b in the plane through point c */
+	/* Returns equilateral point of 2 points a and b in the plane through a, b and c */
 	public static Point getEquilateralPoint(Point a, Point b, Point c) {
 		Point e = a.clone();
 		Vector ba = new Vector(b, a);
 		Vector normal = ba.cross(new Vector(b,c));
-		normal.normalize();
+		normal.normalizeThis();
 		e.rotation(normal, -Math.PI/3,b);	
 		return e;
 	}
-
+ 
+	/* Returns the equilateral circle of a and b in the plane through a, b, and c */
+	public static Circle getEquilateralCircle(Point a, Point b, Point c) {
+		return new Circle(a, b, Point.getEquilateralPoint(a, b, c));
+	}
+	
+	public static Circle getEquilateralPoints(Point a, Point b) {
+		Point center = Point.getMidpoint(a, b);
+		double radius = Math.sqrt(3)*a.distance(b)/2;
+		Vector normal = new Vector(a,b).normalizeThis();
+		return new Circle(center, radius, normal);
+	}
 	
 	/* Returns Steiner point of 3 points */
 	public static Point getSteinerPoint(Point a, Point b, Point c) {
@@ -449,26 +460,35 @@ public class Point extends ProGAL.geomNd.Point implements Simplex{
 	public void toConsole(int dec) { System.out.println(toString(dec)); }
 
 	public static void main(String[] args) {
+		
 		J3DScene scene  = J3DScene.createJ3DSceneInFrame();
-		final Color transp1 = new Color(255,0,0,50);
-
 		Point a = new Point(-1, 0, 0);
 		Point b = new Point(1, 0, 0);
-		Point c = new Point(0, 1, 0);
-		Point d = new Point(0, 0, -1);
 		a.toScene(scene, 0.03, Color.blue);
 		b.toScene(scene, 0.03, Color.blue);
-		c.toScene(scene, 0.03, Color.blue);
-		d.toScene(scene, 0.03, Color.magenta);
-		Sphere sphere = new Sphere(a,b,d,c);
-		sphere.toScene(scene, transp1);
-		Point e = new Point(0,-1,0);
-		e.toScene(scene, 0.03, Color.red);
-		if (sphere.contains(e)) System.out.println("e is inside");
-		double w = Point.inSphere(a, b, c, d, e);
-		System.out.println(w);
-		double o = Point.orientation(a, c, b, d);
-		System.out.println("orientation of plane through a,b c w.r.t. point d " + o);
+		Circle cab = Point.getEquilateralPoints(a, b);
+		cab.toScene(scene, 0.01, Color.blue);
+		Point e = cab.getPoint();
+		for (int i = 0; i < 36; i++) {
+			e.rotation(cab.getNormal(), Math.PI/18, cab.getCenter());
+			Circle eqCircle = new Circle(a, b, e);
+			eqCircle.toSceneArc(scene, 0.01, Color.blue, 120, a);
+		}
+		Point c = new Point(0, 1, 5);
+		Point d = new Point(0, 2, 4);
+		c.toScene(scene, 0.03, Color.red);
+		d.toScene(scene, 0.03, Color.red);
+		Circle ccd = Point.getEquilateralPoints(c, d);
+		ccd.toScene(scene, 0.01, Color.red);
+		Point f = ccd.getPoint();
+		for (int i = 0; i < 36; i++) {
+			f.rotation(ccd.getNormal(), Math.PI/18, ccd.getCenter());
+			Circle fqCircle = new Circle(c, d, f);
+			fqCircle.toSceneArc(scene, 0.01, Color.red, 120, c);
+			e = cab.getFarthestPoint(f);
+			LineSegment ef = new LineSegment(e, f);
+			ef.toScene(scene, 0.01, Color.cyan);
+		}
 	}
 	
 }

@@ -253,15 +253,9 @@ public class Plane implements Shape{
 		double dist = this.getDistance(sphere.getCenter());
 		double rad = sphere.getRadius();
 		if (dist - rad > Constants.EPSILON) return null;
-		else {
-			Point center = projectPoint(sphere.getCenter());
-			if (dist - rad > -Constants.EPSILON) {
-				return new Circle(center, 0, null);
-			}
-			else {
-				return new Circle(center, Math.sqrt(rad*rad - center.distanceSquared(sphere.getCenter())), normal); 
-			}
-		}
+		Point center = projectPoint(sphere.getCenter());
+		if (dist - rad > -Constants.EPSILON) return new Circle(center, 0, null);
+		return new Circle(center, Math.sqrt(rad*rad - center.distanceSquared(sphere.getCenter())), normal); 
 	}
 	
 	/** Returns the defining point for this plane. The center of a plane is not well-defined, so  
@@ -322,6 +316,7 @@ public class Plane implements Shape{
 
 	
 	private static void testing22() {
+		Sphere sphere;
 		double alpha = 1.1;
 		Point a = new Point(0.6, -0.1,  0.41);
 		Point b = new Point(0.4, 0.3, -0.11);
@@ -331,7 +326,7 @@ public class Plane implements Shape{
 			System.exit(0);
 		}
 
-		Point c = new Point(0.4, 0.4, 0.2);  
+		Point c = new Point(0.4, -0.4, 0.2);  
 		Point d = new Point(0.3, -0.2, -0.4);  
 		System.out.println("square radius of the green circle " + (alpha*alpha - c.distanceSquared(d)/4));
 		if (c.distanceSquared(d) > alpha*alpha) {
@@ -374,7 +369,8 @@ public class Plane implements Shape{
 		Cylinder cyl[] = circleCD.toScene(scene,  0.005, 32, Color.green);
 		
 
-		int steps = 100;
+		int steps = 200;
+		double angle = 0.0;
 		double delta = (2*Math.PI)/steps;
 
 		for (int i = 0; i < steps; i++) {
@@ -396,7 +392,7 @@ public class Plane implements Shape{
 			
 			circleCD = new Circle(midPointCD, Math.sqrt(alpha*alpha - c.distanceSquared(d)/4), planeCD.normal);
 //			circleCD.fromScene(scene, cyl);
-			cyl = circleCD.toScene(scene,  0.001, 32, new Color(i,100, 0));
+			cyl = circleCD.toScene(scene,  0.001, 32, new Color(i%256,100, 0));
 			Point[] intersections = planeAB.getIntersection(circleCD);
 			if (intersections != null) {
 				new Sphere(intersections[0], 0.01).toScene(scene, Color.blue);
@@ -406,6 +402,9 @@ public class Plane implements Shape{
 					System.out.println("   " + (intersections[1].distance(circleAB.getCenter()) - alpha));
 				}
 			}
+			sphere = new Sphere(a, b, c, d);
+			angle += delta;
+			new Point(angle, sphere.getRadius(), 0.0).toScene(scene, 0.02, Color.black, 32);
 			scene.repaint();
 		}
 	}
@@ -985,15 +984,16 @@ public class Plane implements Shape{
 	}
 	public static void main(String[] args) {		
 		Point S1 = new Point(0.4, 0.4, -0.1);
-		Point S2 = new Point(-0.2, 1, 0.4);       // hyperbola
+//		Point S2 = new Point(-0.2, 1, 0.4);       // hyperbola
 //		Point S2 = new Point(0.2, 0.1, 0.4);      // ellipse
-//		Point S2 = new Point(0.4, 0.4, 0.4);       // hyperbola 2 intersection
-		Point R1 = new Point(1, 0.0, 0.0);
+		Point S2 = new Point(0.4, 0.4, 0.4);       // hyperbola 2 intersection
+		Point R1 = new Point(1.0, 0.0, 0.4);
 		double angle = 0.2*Math.PI;
 		double r2 = 1;
 		Point R2 = new Point(r2*Math.cos(angle), r2*Math.sin(angle), 1);
 		Line L = new Line(new Point(0,0,0), new Vector(0, 0, 1));
-		Plane.testing21(S1, S2, R1, R2);
+		Plane.testing22();
+//		Plane.testing21(S1, S2, R1, R2);
 //		Plane.testOnceAgain(S1, S2, R1, R2, L);
 //		Plane.fourSpheres(S1,  S2, R1, R2);
 

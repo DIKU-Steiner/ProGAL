@@ -119,4 +119,54 @@ public class AminoAcid {
 		return "Unk";
 
 	}
+	
+	public static int getSize(char c) {
+		if (c == 'A') return 10;
+		if (c == 'R') return 24;
+		if (c == 'N') return 14;
+		if (c == 'D') return 12;
+		if (c == 'C') return 10;
+		if (c == 'E') return 15;
+		if (c == 'Q') return 17;
+		if (c == 'G') return 7;
+		if (c == 'H') return 16;
+		if (c == 'I') return 19;
+		if (c == 'L') return 19;
+		if (c == 'K') return 22;
+		if (c == 'M') return 17;
+		if (c == 'F') return 20;
+		if (c == 'P') return 14;
+		if (c == 'S') return 11;
+		if (c == 'T') return 14;
+		if (c == 'W') return 24;
+		if (c == 'Y') return 21;
+		if (c == 'V') return 16;
+		return -1;
+	}
+	
+	public static int getSize(String str) {
+		if (str.equals("ALA") ) return 10;
+		if (str.equals("ARG") ) return 24;
+		if (str.equals("ASN") ) return 14;
+		if (str.equals("ASP") ) return 12;
+		if (str.equals("CYS") ) return 10;
+		if (str.equals("GLU") ) return 15;
+		if (str.equals("GLN") ) return 17;
+		if (str.equals("GLY") ) return 7;
+		if (str.equals("HIS") ) return 16;
+		if (str.equals("ILE") ) return 19;
+		if (str.equals("LEU") ) return 19;
+		if (str.equals("LYS") ) return 22;
+		if (str.equals("MET") ) return 17;
+		if (str.equals("PHE") ) return 20;
+		if (str.equals("PRO") ) return 14;
+		if (str.equals("SER") ) return 11;
+		if (str.equals("THR") ) return 14;
+		if (str.equals("TRP") ) return 24;
+		if (str.equals("TYR") ) return 21;
+		if (str.equals("VAL") ) return 16;
+		return -1;
+	
+	}
+
 }

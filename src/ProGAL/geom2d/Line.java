@@ -1,6 +1,8 @@
 
 package ProGAL.geom2d;
 
+import java.awt.Color;
+
 import ProGAL.geom2d.viewer.J2DScene;
 import ProGAL.math.Constants;
 
@@ -34,6 +36,13 @@ public class Line implements Shape {
 		n.normalizeThis();
 		if (b != 0.0) p = new Point(0.0,-c/b); else p = new Point(-c/a,0.0);
 	}
+	
+	/** creates a line y = ax + c */
+	public Line(double a, double c) { 
+		n = new Vector(-a, 1);
+		n.normalizeThis();	
+		p = new Point(0.0, c);
+	}
 
 	/** Creates a bisector line between points p and q */
 	public static Line getBisectorLine(Point p, Point q) {
@@ -52,13 +61,30 @@ public class Line implements Shape {
 	
 	public boolean isParallelWith(Line l) { return Math.abs(Vector.crossProduct(n, l.n)) < Constants.EPSILON; }
 	
+	public boolean isAbove(Point q) {
+		return Point.leftTurn(p, p.add(this.getDirection()), q);
+	}
+	
+	public boolean isBelow(Point q) {
+		return Point.leftTurn(p, p.subtract(this.getDirection()), q);
+	}
+	
+	
 	public static boolean areParallel(Line l1, Line l2) {
 		return Vector.crossProduct(l1.n, l2.n) == 0.0;
 	}
 	
-	/*
-	 * project point p onto this line
+	/** 
+	 * translates the line so it goes through the point <<tt>p</tt>
+	 * @param p
 	 */
+	public void translateTo(Point p) { this.p = p; }
+	
+	/** 
+	 * projects point <tt>p</tt> onto <em>THIS</em> line 
+	 * @param <tt>q</tt> point to be projected
+	 * @return projection on the line 
+	 * */
 	public Point projectPoint(Point q) {
 		double t = n.y()*(q.x()-p.x()) - n.x()*(q.y()-p.y());
 		return new Point(n.y()*t+p.x(), p.y()-n.x()*t);
@@ -92,13 +118,27 @@ public class Line implements Shape {
 	public void toConsole(String name) { System.out.println(toString(name)); }
 	public void toConsole() { System.out.println(toString("")); }
 	
-	/** draws the line on a scene */
 	public void toScene(J2DScene scene, double length) {
+		toScene(scene, length, Color.black);
+	}
+	
+	/** draws the line on a scene */
+	public void toScene(J2DScene scene, double length, Color clr) {
 		Vector dir = getDirection();
 		LineSegment seg = new LineSegment(p.add(dir.scaleToLength(length/2)), p.subtract(dir.scaleToLength(length/2)));
-		seg.toScene(scene);
+		seg.toScene(scene, clr);
+
 	}
 
+	/** draws the line on a scene */
+	public void toScene(J2DScene scene, double length, Color clr, double width) {
+		Vector dir = getDirection();
+		LineSegment seg = new LineSegment(p.add(dir.scaleToLength(length/2)), p.subtract(dir.scaleToLength(length/2)));
+		seg.toScene(scene, clr, width);
+
+	}
+
+	
 	/** returns the point on the line at distance d from the line-defining point p */
 	public Point getPoint(double d) {
 		Vector dir = this.getDirection();
@@ -123,6 +163,18 @@ public class Line implements Shape {
 	@Override
 	public Point getCenter() {
 		return getPoint(0);
+	}
+
+	public static void main(String[] args) {
+		J2DScene scene = J2DScene.createJ2DSceneInFrame();
+		Line l1 = new Line(1, 2);
+		Line l2 = new Line(1, 3);
+		Line l3 = new Line(2, 2);
+		Line l4 = new Line(2, 3);
+		l1.toScene(scene, 100);
+		l2.toScene(scene, 100, Color.red);
+		l3.toScene(scene, 100);
+		l4.toScene(scene, 100, Color.red);
 	}
 
 	@Override

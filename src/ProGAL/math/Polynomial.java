@@ -6,13 +6,10 @@ import static java.lang.Math.cos;
 import static java.lang.Math.acos;
 import static java.lang.Math.PI;
 
-import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /** 
  * A representation of a variable sized polynomial. To find the roots of the 
@@ -32,61 +29,204 @@ public class Polynomial {
 	public final double[] coeff;
 	private int deg;
 	
+//	private class PairOfPolynomials {
+//		private Polynomial p;
+//		private Polynomial q;
+//		
+//		private PairOfPolynomials(Polynomial p, Polynomial q) {
+//			this.p = p;
+//			this.q = q;
+//		}
+//	}
+	
+	/** 
+	 * creates a zero polynomial
+	 */
+	Polynomial() {
+		coeff = new double[1];
+		deg = 0;
+	}
+	
+	/**
+	 * creates a polynomal
+	 * @param pars
+	 */
 	// Daisy: Made it public from nothing
 	public Polynomial(double[] pars){
 		coeff = pars;
 		deg = pars.length-1;
 	}
 	
+	/** returns a copy of the polynomial p
+	 * @return copy of the polynomial p
+	 */
+	public Polynomial clone() {
+		double[] coefficients = new double[coeff.length];
+		for (int i = 0; i < coefficients.length; i++) coefficients[i] = coeff[i];
+		return new Polynomial(coefficients);
+	}
+	
+	/** returns TRUE if this polynomial is a zero polynomial 
+	 * 
+	 * @return
+	 */
+	public boolean isZeroPolynomial() { return ((deg == 0) && (coeff[0] == 0.0)); }
+	
+	public boolean dominates(Polynomial p) {
+		if (this.deg > p.deg) return true;
+		if (this.deg < p.deg) return false;
+		for (int i = deg; i >= 0; i--) {
+			if (this.coeff[i] > p.coeff[i]) return true;
+			if (this.coeff[i] < p.coeff[i]) return false;
+		}
+		return false;
+	}
+	
+	public Polynomial leadingTerm() {
+		double[] coefficients = new double[deg+1];
+		coefficients[deg] = coeff[deg];
+		return new Polynomial(coefficients);
+	}
+	
 	// Daisy
 	public int getDeg() { return deg; }
 	
-	
     // returns a + b
     public Polynomial plus(Polynomial b) {
-    	double[] coeff = new double[Math.max(deg+1, b.deg+1)];
-        for (int i = 0; i <= deg; i++) coeff[i] = this.coeff[i];
-        for (int i = 0; i <= b.deg; i++) {
-        	coeff[i] += b.coeff[i];
-        	if (Math.abs(coeff[i]) <= Constants.EPSILON ) coeff[i] = 0;
-        }
-        while ((deg != 0) && (coeff[deg] == 0.0)) deg--;
+    	int degree = Math.max(deg,  b.deg);
+    	while ((degree != -1) && (degree <= deg) && (degree <= b.deg) && (coeff[degree] == -b.coeff[degree])) degree--;
+    	if (degree == -1) return new Polynomial(new double[1]);
+   	
+    	
+    	double[] coeff = new double[degree + 1];
+        for (int i = 0; i <= this.deg; i++) 
+        	if (i <= degree) coeff[i] = this.coeff[i];
+        for (int i = 0; i <= b.deg; i++) 
+        	if (i <= degree) coeff[i] += b.coeff[i];
+        
+        //Daisys version put in corner for now
+//    	double[] coeff = new double[Math.max(deg+1, b.deg+1)];
+//        for (int i = 0; i <= deg; i++) coeff[i] = this.coeff[i];
+//        for (int i = 0; i <= b.deg; i++) {
+//        	coeff[i] += b.coeff[i];
+//        	if (Math.abs(coeff[i]) <= Constants.EPSILON ) coeff[i] = 0;
+//        }
+//        while ((deg != 0) && (coeff[deg] == 0.0)) deg--;
         return new Polynomial(coeff);
     }
 
     // returns a - b
     public Polynomial minus(Polynomial b) {
-    	int maxDeg = Math.max(deg, b.deg);
-    	double[] coeff = new double[maxDeg+1];
-        for (int i = 0; i <= deg; i++) coeff[i] = this.coeff[i];
-        for (int i = 0; i <= b.deg; i++) {
-        	coeff[i] -= b.coeff[i];
-        	if (Math.abs(coeff[i]) <= Constants.EPSILON ) coeff[i] = 0;
-        }
-        int tmpDeg = maxDeg;
-        while ((tmpDeg != 0) && (coeff[tmpDeg] == 0.0)) { tmpDeg--; }
-        if (tmpDeg != maxDeg) {
-        	double[] coeff2 = new double[tmpDeg+1];
-        	for (int i = 0; i <= tmpDeg ; i++) {
-        		coeff2[i] = coeff[i];
-        	}
-        	return new Polynomial(coeff2);
-        } else {
-        	return new Polynomial(coeff);
-        }
+    	int degree = Math.max(deg, b.deg);
+    	while ((degree != -1) && (degree <= deg) && (degree <= b.deg) && (coeff[degree] == b.coeff[degree])) degree--;
+    	if (degree == -1) return new Polynomial(new double[1]);
+    	double[] coeff = new double[degree + 1];
+        for (int i = 0; i <= this.deg; i++) 
+        	if (i <= degree) coeff[i] = this.coeff[i];
+        for (int i = 0; i <= b.deg; i++) 
+        	if (i <= degree) coeff[i] -= b.coeff[i];
+        return new Polynomial(coeff);
+
+//		Daisys version put in corner
+//    	int maxDeg = Math.max(deg, b.deg);
+//    	double[] coeff = new double[maxDeg+1];
+//        for (int i = 0; i <= deg; i++) coeff[i] = this.coeff[i];
+//        for (int i = 0; i <= b.deg; i++) {
+//        	coeff[i] -= b.coeff[i];
+//        	if (Math.abs(coeff[i]) <= Constants.EPSILON ) coeff[i] = 0;
+//        }
+//        int tmpDeg = maxDeg;
+//        while ((tmpDeg != 0) && (coeff[tmpDeg] == 0.0)) { tmpDeg--; }
+//        if (tmpDeg != maxDeg) {
+//        	double[] coeff2 = new double[tmpDeg+1];
+//        	for (int i = 0; i <= tmpDeg ; i++) {
+//        		coeff2[i] = coeff[i];
+//        	}
+//        	return new Polynomial(coeff2);
+//        } else {
+//        	return new Polynomial(coeff);
+//        }
     }
 
     // returns a * b
     public Polynomial times(Polynomial b) {
+// 		Pawel put in corner
+//    	double[] coeff = new double[deg + b.deg + 1];
     	double[] coeffZero = {0};
     	Polynomial zero = new Polynomial(coeffZero);
     	if (this.equal(zero) || b.equal(zero)) return zero;
     	double[] coeff = new double[deg + b.deg+1];
-        for (int i = 0; i <= deg; i++)
+
+    	for (int i = 0; i <= deg; i++)
             for (int j = 0; j <= b.deg; j++) coeff[i+j] += this.coeff[i] * b.coeff[j];
         return new Polynomial(coeff);
     }
-
+    
+// Daisy put in corner
+//    /**
+//     * dividing a polynomial by another polynomial of the same or lower degree
+//     * @param d
+//     * @return
+//     */
+//    public PairOfPolynomials longDivision(Polynomial d) {
+//    	if (d.isZeroPolynomial())  throw new IllegalArgumentException("Divisor is a zero polynomial");
+//    	Polynomial q = new Polynomial();
+//    	Polynomial r = clone();
+//    	while (!r.isZeroPolynomial() && (r.deg >= d.deg)) {
+//    		double[] coefficients = new double[r.deg - d.deg + 1];
+//    		coefficients[r.deg - d.deg] = r.coeff[r.deg]/d.coeff[d.deg];
+//    		Polynomial t = new Polynomial(coefficients);
+//    		q = q.plus(t);
+//    		r = r.minus(t.times(d));    		
+//    	}
+//    	return new PairOfPolynomials(q, r);
+//    }
+//
+//    public Polynomial greatestCommonDivisor(Polynomial b) {
+//       	if (b.deg == 0) return this;
+//       	if (b.dominates(this)) return this.greatestCommonDivisor(b.longDivision(this).q);
+//       	else return b.greatestCommonDivisor(this.longDivision(b).q.toMonic());
+//    }
+//    
+//    public ArrayList<Polynomial> squareFreeFactorizationTH() {
+//    	ArrayList<Polynomial> p = new ArrayList<Polynomial>();
+//    	Polynomial c, cN, d, dN;
+//    	c = this.greatestCommonDivisor(this.differentiate());
+//    	d = this.longDivision(c).p;
+//    	while (c.deg != 0) {
+//    		cN = c.greatestCommonDivisor(c.differentiate());
+//    		dN = c.longDivision(cN).p;
+//    		p.add(d.longDivision(dN).p);
+//    		c = cN;
+//    		d = dN;
+//    	} 
+//    	return p;
+//    }
+//    
+//    public ArrayList<Polynomial> squareFreeFactorization() {
+//    	Polynomial deriv = this.differentiate();
+//    	deriv.makeMonic();
+//    	ArrayList<Polynomial> a = new ArrayList<Polynomial>();
+//    	Polynomial b;
+//    	Polynomial c;
+//    	Polynomial d;
+//    	a.add(0, this.greatestCommonDivisor(deriv));
+//    	b = this.longDivision(a.get(0)).p;
+//    	c = deriv.longDivision(a.get(0)).p;
+//    	d = c.minus(b).differentiate();
+//    	int i = 1;
+//    	do {
+//    		a.add(i, b.greatestCommonDivisor(d));
+//    		b = b.longDivision(a.get(i)).p;
+//    		c = d.longDivision(a.get(i)).p;
+//    		d = c.minus(b.differentiate());
+//    		i++;
+//    	} while (b.deg != 0); 
+//    	a.remove(0);
+//    	return a;
+//    }
+    
+    
     // returns a(b(x)) 
     public Polynomial compose(Polynomial b) {
     	double[] coeff = new double[deg + b.deg];
@@ -113,12 +253,24 @@ public class Polynomial {
         return p;
     }
 
+//    public void makeMonic() {
+//    	for (int i = 0; i <= deg; i++) this.coeff[i] = coeff[i]/coeff[deg];
+//    }
+    
+    public Polynomial toMonic() {
+    	Polynomial p = this.clone();
+       	for (int i = 0; i <= deg; i++) p.coeff[i] = p.coeff[i]/p.coeff[deg];
+       	return p;
+    }
+    
     // differentiate this polynomial and return it
     public Polynomial differentiate() {
-    	if ( deg == 0) return new Polynomial(new double[1]);
+    	if (deg == 0) return new Polynomial(new double[1]);
     	double[] par = new double[deg];
-    	for (int i = 1; i <= deg; i++) {
-    		par[i-1] = i * coeff[i];
+    	for (int i = 0; i < deg; i++) {
+    		par[i] = (i+1) * coeff[i+1];
+//    	for (int i = 1; i <= deg; i++) {
+//    		par[i-1] = i * coeff[i];
     	}
     	return new Polynomial(par);
     }
@@ -191,6 +343,23 @@ public class Polynomial {
 		for(int i=0;i<3;i++) if(!Double.isNaN(roots[i]) && (i==0||roots[i-1]!=roots[i])) ret[l++] = roots[i];
 		Arrays.sort(ret);
 		return ret;
+	}
+	
+	/** 
+	 * TODO: Pawel siger .. mŒske ikke f¾rdig 
+	 */
+	private static double[] solveQuadric(double p2, double p1, double p0) {
+		double b = p1/p2;
+		double c = p0/p2;
+		double D = b*b - 4*c;
+		if (D > 0.0) {
+			double sqrtD = Math.sqrt(D);
+			return new double[]{(sqrtD - b)/2, (-sqrtD - b)/2};
+		}
+		else {
+			if (D < 0.0) return new double[]{};
+			else return new double[]{-b/2};
+		}
 	}
 	
 	// Daisy
@@ -272,6 +441,57 @@ public class Polynomial {
 		}
 		return new double[]{root1,root2, root3, im};
 	}
+
+	private static double[] depressQuarticEquation(double[] parameters) {
+		double a = parameters[0];
+		double b = parameters[1];
+		double c = parameters[2];
+		double d = parameters[3];
+		double e = parameters[4];
+		return new double[]{a, 
+						0, 
+						-3*b*b/(8*a) + c, 
+						b*b*b/(8*a*a) - b*c/(2*a) + d,
+						-3*b*b*b*b/(256*a*a*a) + b*b*c/(16*a*a) - b*d/(4*a) + e};
+	}
+	
+	private static double[] solveDepressedQuartic(double[] parameters) {
+		double A = parameters[2];
+		double B = parameters[3];
+		double C = parameters[4];
+		double[] thirdDegree = solveThirdDegree(new double[]{-8, 
+									  4*A - 24*Math.sqrt(C),
+									  8*A*Math.sqrt(C) - 16*C,
+									  B*B});
+		return thirdDegree;
+		
+	}
+	
+	private static double[] solveFourthDegree(double[] parameters){
+		if(parameters[0]==0) return solveThirdDegree(new double[]{parameters[1],parameters[2],parameters[3],parameters[4]});
+
+		double a1 = parameters[1]/parameters[0];
+		double a2 = parameters[2]/parameters[0];
+		double a3 = parameters[3]/parameters[0];
+		double a4 = parameters[4]/parameters[0];
+		
+		double b1 = -a2;
+		double b2 = a1*a3 - 4*a4;
+		double b3 = 4*a2*a4 - a3*a3 - a1*a1*a4;
+		double[] cubicRoots = solveThirdDegree(new double[]{1, b1, b2, b3});
+		
+		double y1 = cubicRoots[0];
+		double d1 = Math.sqrt(a1*a1 - 4*a2 + 4*y1);
+		double d2 = Math.sqrt(y1 -4*a4);
+		double c1 = (a1 + d1)/2;
+		double c2 = (y1*y1 - d2)/2;
+		double[] firstPair = solveSecondDegree(new double[]{1, c1, c2});
+		c1 = (a1 - d1)/2;
+		c2 = (y1*y1 + d2)/2;
+		double[] secondPair = solveSecondDegree(new double[]{1, c1, c2});
+		return new double[]{firstPair[0], firstPair[1], secondPair[0], secondPair[1]};
+	}
+	
 
 	public static Double[] solveQuartic(double[] c) {
 		DecimalFormat newFormat = new DecimalFormat("#.#########");
@@ -638,6 +858,7 @@ public class Polynomial {
 		}
 		return a.makeMonic();
 	}
+	
 	/* Returns either the quotient (0) or remainder (1) of this/d */
 	private Polynomial[] longDivision(Polynomial d) {
 		if (d == null) { System.out.println("d is null!"); return null; }
@@ -669,6 +890,7 @@ public class Polynomial {
 		ret[1] = r;
 		return ret;
 	}
+	
 	private Polynomial leadDiv(Polynomial r, Polynomial d) {
 		int rDeg = r.deg;
 		int dDeg = d.deg;
@@ -715,13 +937,14 @@ public class Polynomial {
 		if (!f.equal(one)) {
 			ret.add(f);
 		}
-		if (ret == null) {
-			ret.add(this);
-		}
+//		if (ret == null) {
+//			ret.add(this);
+//		}
 		return ret;
 	}
 	// Daisy ends
 
+	
 	private static double sign(double n){	return n<0?-1:1;	}
 	
 	/* Descarte's Rule of Signs: The number of positive roots is either equal to the number of changes in 
@@ -788,42 +1011,79 @@ public class Polynomial {
 	}
 
 	public static void main(String[] args){
-		
+		double[] solution = Polynomial.solveQuadric(3, -2, -5);
+		double[] depressedQuartic = Polynomial.depressQuarticEquation(new double[] {1,8,12,2*Math.sqrt(30)-16, 4*Math.sqrt(30)-28});
+		Polynomial.solveDepressedQuartic(depressedQuartic);
+		Polynomial.solveFourthDegree(new double[]{3.0, 6.0, -123.0, -126.0, 1080.0});
+/*		double[] a = new double[6];
+		a[0] = 6; a[1] = 5; a[2] = 4; a[3] = 3; a[4] = 2; a[5] = 1;
+		double root = Polynomial.solveHighDegree(a);
+		*/
+
+		//TODO: Move to test
 //		double[] a = new double[12];
-		double[] b = new double[4];
-		double[] b2 = new double[4];
-		double[] c = new double[5];
-		double[] c2 = new double[4];
-		double[] d = new double[7];
-		/*b[0] = -2.5750749675480734E14;
-		b[1]= 1.2142986273055004E10;
-		b[2] = -190866.11854848347;
-		b[3] = 1;*/
-		b[0] = -75;
-		b[1]= 49;
-		b[2] = -11;
-		b[3] = 1;
-		b2[0] = 1;
-		b2[1]= -11;
-		b2[2] = 49;
-		b2[3] = -75;
-		//5.71868E-4x^4 + 0.574504513x^3 - 1.867761297x^2 - 0.758281783x - 0.059311159
-		c[4] = 5.71868E-4;
-		c[3]= 0.574504513;
-		c[2] = - 1.867761297;
-		c[1] = - 0.758281783;
-		c[0] = - 0.059311159;
-		Double[] quarroots = solveQuartic(c);
-		for (double root : quarroots) {
-			System.out.println("Qaud root : "+root);
-		}
-		
-		//c[0] = -228.14885350604553; c[1]= 284.5029410954643; c[2] = -31.343804547815083; c[3] = 1;
-		System.out.println("poly = "+b[3]+"x^3 + "+b[2]+"x^2 + "+b[1]+"x + "+b[0]);
-		//Complex[] cubroots = solveCubic(b);
-		Double[] cubroots = solveCubic(b);
-		for (Double r : cubroots) {
-			System.out.println("cubroot: "+r.toString());
-		}
-	}
+//		double[] b = new double[4];
+//		double[] b2 = new double[4];
+//		double[] c = new double[5];
+//		double[] c2 = new double[4];
+//		double[] d = new double[7];
+//		/*b[0] = -2.5750749675480734E14;
+//		b[1]= 1.2142986273055004E10;
+//		b[2] = -190866.11854848347;
+//		b[3] = 1;*/
+//		b[0] = -75;
+//		b[1]= 49;
+//		b[2] = -11;
+//		b[3] = 1;
+//		b2[0] = 1;
+//		b2[1]= -11;
+//		b2[2] = 49;
+//		b2[3] = -75;
+//		//5.71868E-4x^4 + 0.574504513x^3 - 1.867761297x^2 - 0.758281783x - 0.059311159
+//		c[4] = 5.71868E-4;
+//		c[3]= 0.574504513;
+//		c[2] = - 1.867761297;
+//		c[1] = - 0.758281783;
+//		c[0] = - 0.059311159;
+//		Double[] quarroots = solveQuartic(c);
+//		for (double root : quarroots) {
+//			System.out.println("Qaud root : "+root);
+//		}
+//		
+//		//c[0] = -228.14885350604553; c[1]= 284.5029410954643; c[2] = -31.343804547815083; c[3] = 1;
+//		System.out.println("poly = "+b[3]+"x^3 + "+b[2]+"x^2 + "+b[1]+"x + "+b[0]);
+//		//Complex[] cubroots = solveCubic(b);
+//		Double[] cubroots = solveCubic(b);
+//		for (Double r : cubroots) {
+//			System.out.println("cubroot: "+r.toString());
+//		}
+
+		/*		double[] pC = new double[3];
+		pC[2] = 1; pC[1] = -9; pC[0] = -10;
+		double[] qC = new double[2];
+		qC[1] = -9; qC[0] = -10;
+		Polynomial p = new Polynomial(pC);
+		Polynomial q = new Polynomial(qC);
+		PairOfPolynomials pair = p.longDivision(q);
+		System.out.println("(" + pair.p.toString() +" , " + pair.q + ")");
+*/
+/*		double[] pC = new double[3];
+		pC[2] = 1; pC[1] = 0; pC[0] = 2;
+		double[] qC = new double[3];
+		qC[2] = 2; qC[1] = 0; qC[0] = 2;
+		Polynomial p = new Polynomial(pC).toMonic();
+		Polynomial q = new Polynomial(qC).toMonic();
+		Polynomial gcd = p.greatestCommonDivisor(q);
+		System.out.println(gcd.toString());
+*/		
+/*		double[] pC = new double[12];
+		pC[11] = 1; pC[10] = 4; pC[9] = -9; pC[8] = -46; pC[7] = 23; pC[6] = 192; pC[5] = -7; pC[4] = -358; pC[3] = -24; pC[2] = 304; pC[1] = 16; pC[0] = 96;
+		Polynomial p = new Polynomial(pC);
+		ArrayList<Polynomial> a = p.squareFreeFactorization();
+*/
+/*		double[] pC = new double[9];
+		pC[8] = 1; pC[7] = 0; pC[6] = 6; pC[5] = 0; pC[4] = 12; pC[3] = 0; pC[2] = 8; pC[1] = 0; pC[0] = 0;
+		Polynomial p = new Polynomial(pC);
+		ArrayList<Polynomial> a = p.squareFreeFactorizationTH();
+*/	}
 }

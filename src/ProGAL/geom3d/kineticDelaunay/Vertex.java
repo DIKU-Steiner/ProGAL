@@ -2,7 +2,6 @@ package ProGAL.geom3d.kineticDelaunay;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Stack;
 
@@ -13,6 +12,7 @@ import ProGAL.geom3d.volumes.Sphere;
 public class Vertex extends Point implements Comparable<Vertex>{
 	private static final long serialVersionUID = 1L;
 	public static enum VertexType { S, R };
+
 	private VertexType type;
 	private double polarAngle;
 	private double initAngle = -1.0;
@@ -21,16 +21,22 @@ public class Vertex extends Point implements Comparable<Vertex>{
 	private double polarRadius;
 	private double squaredPolarRadius;
 	private Tet tet;
+	private int depth = 999999;
 	private Sphere sphere;
-	private Integer depth = null;
 	public boolean flag = false;
+	public String atomName;
+	public int atomType;
+	public char aaType;
+	public double e;
+//	private static ArrayList<Vertex> adjacentVerticesList = new ArrayList<Vertex>();
 	
 	public HashSet<Vertex> adjacentVertices = null; 
 	private ArrayList<Vertex> adjacentVerticesFast = new ArrayList<Vertex>();
 	private ArrayList<Tet> processedTetsFast = new ArrayList<Tet>(); 
 	
 	private int index;
-	private static int indexCounter = 0;
+	public int atomId;
+	public static int indexCounter = 0;
 	
 	public Vertex(Point p) {
 		super(p);
@@ -40,8 +46,8 @@ public class Vertex extends Point implements Comparable<Vertex>{
     public int getId()                               { return index; }
 	public void setId(int index)                     { this.index = index; }
 
-	public VertexType getType() { return type; }
-	public void setType(VertexType type) { this.type = type; }
+	public VertexType getType()                      { return type; }
+	public void setType(VertexType type)             { this.type = type; }
 	public double getPolarRadius()                   { return polarRadius; }
 	public void   setPolarRadius(double polarRadius) { this.polarRadius = polarRadius; }
 	public double getSquaredPolarRadius()            { return squaredPolarRadius; }
@@ -112,7 +118,91 @@ public class Vertex extends Point implements Comparable<Vertex>{
     	}
     }
 
-      
+    public ArrayList<Vertex> computeAdjVertices(J3DScene scene) {
+    	ArrayList<Vertex> adjList = new ArrayList<Vertex>();
+    	flag = true;
+    	tet.flag = true;
+    	for (int i = 0; i < 4; i++) {
+    		Vertex v = tet.corners[i];
+    		if (v != this) {
+    			if (!v.isBig() && !v.flag) {
+    				adjList.add(v);
+    				v.flag = true;
+    			}
+    			Tet toTet = tet.neighbors[i];
+    			if (!toTet.flag) computeAdjVertices(toTet, tet.getOppVertex(toTet), adjList, scene);
+    		}
+    		else {
+    			if (scene != null) tet.toSceneEdges(scene, Color.black, 0.01);
+    			if (scene != null) tet.toSceneFace(scene, i, Color.yellow);
+    		}
+    	}
+    	return adjList;
+    }
+  
+    public void computeAdjVertices(Tet tet, Vertex v, ArrayList<Vertex> adjList, J3DScene scene) {
+    	tet.flag = true;
+    	if (!v.isBig() && !v.flag) {
+    		adjList.add(v);
+    		v.flag = true;
+    	}
+    	for (int i = 0; i < 4; i++) {
+    		Vertex u = tet.corners[i]; 
+    		if (u == this) {
+    			if (!tet.isBig() && (scene != null)) {
+    				tet.toSceneEdges(scene, Color.black, 0.01);
+    				tet.toSceneFace(scene, i, Color.yellow);
+    			}
+    		}
+    		else {
+    			if (u != v) {
+    				Tet nTet = tet.neighbors[i];
+    				if ((nTet != null) && !nTet.flag) computeAdjVertices(nTet, tet.getOppVertex(nTet), adjList, scene);
+    			}
+    		}
+    	}
+    }
+
+ /*   public ArrayList<Vertex> computeAdjVertices() {
+    	ArrayList<Vertex> adjList = new ArrayList<Vertex>();
+    	adjList.add(this);
+    	tet.flag = true;
+    	computeAdjVertices(tet, adjList); 
+    	adjList.remove(0);
+    	return adjList;
+    }
+    
+    public void computeAdjVertices(Tet tet, ArrayList<Vertex> adjList) {
+    	for (int i = 0; i < 4; i++) {
+    		Vertex v = tet.corners[i];
+    		if (v != this) {
+    			if (!adjList.contains(v)) adjList.add(v);
+    			Tet toTet = tet.neighbors[i];
+    			if (!toTet.getFlag()) computeAdjVertices(toTet, tet, adjList);
+    		}
+    	}
+    }
+    
+    
+    public void computeAdjVertices(Tet tet, Tet fromTet, ArrayList<Vertex> adjList) {
+    	for (int i = 0; i < 4; i++) {
+    		Vertex v = tet.corners[i]; 
+    		if (this != v) {
+    			Tet nTet = tet.neighbors[i];
+    			if (nTet != null) {
+    				if (fromTet != nTet) {
+    					if (!nTet.flag) {
+    						nTet.flag = true;
+    						computeAdjVertices(nTet, tet, adjList);
+    					}
+    				}
+    				else 
+    					if (!v.isBig() && !adjList.contains(v)) adjList.add(v);
+    			}
+    		}
+    	}
+    }
+*/      
 	public boolean isBig() { return index < 4; }
     
 	public int compareTo(Vertex arg0) {

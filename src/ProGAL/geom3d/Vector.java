@@ -152,6 +152,22 @@ public class Vector extends ProGAL.geomNd.Vector{
 		return this;
 	}
 	
+	/** rotates (clockwise) the vector around the line through the  origo with the direction unit vector v.
+	 * For counterclockwise rotation change signs within parentheses in non-diagonal terms. */
+	public void rotation(Vector v, double alpha) {
+		double c = Math.cos(alpha);
+		double d = 1.0-c;
+		double s = Math.sin(alpha);
+		double vxyd = v.x()*v.y()*d, vxzd = v.x()*v.z()*d, vyzd = v.y()*v.z()*d;
+		double vxs = v.x()*s, vys = v.y()*s, vzs = v.z()*s; 
+		double xNew = (v.x()*v.x()*d+c)*x() + (vxyd-vzs)*y()    + (vxzd+vys)*z();
+		double yNew = (vxyd+vzs)*x()    + (v.y()*v.y()*d+c)*y() + (vyzd-vxs)*z();
+		setZ((vxzd-vys)*x()    + (vyzd+vxs)*y()    + (v.z()*v.z()*d+c)*z());
+		setX(xNew);
+		setY(yNew);
+	}
+
+	
 	/** 
 	 * Perform a right-handed rotation of v around this vector. 
 	 * TODO: Test

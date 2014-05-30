@@ -228,10 +228,10 @@ public class TriangulationFace {
 			for (int i = 0; i < 3; i++) {
 				scene.removeShape(edgeShape[i]);
 				edgeShape[i] = new LineSegment(corners[i], corners[(i+1)%3]);
-				scene.addShape(edgeShape[i], clr, 0.01);
+				scene.addShape(edgeShape[i], clr, 0.002);
 				if (!isShort()) {
 					oppT = getOppFace(getCorner((i+2)%3));
-					if (oppT.isShort()) {
+					if ((oppT != null) && oppT.isShort()) {
 						indxOppT = oppT.getIndex(getCorner((i+1)%3));
 						scene.removeShape(oppT.edgeShape[indxOppT]);
 						scene.addShape(oppT.edgeShape[indxOppT]);
@@ -259,7 +259,7 @@ public class TriangulationFace {
 			for (int i = 0; i < 3; i++) {
 				scene.removeShape(edgeShape[i]);
 				edgeShape[i] = new LineSegment(corners[i], corners[(i+1)%3]);
-				scene.addShape(edgeShape[i], Color.black, 0.01);
+				scene.addShape(edgeShape[i], Color.black, 0.001);
 			}
 		}
 	}

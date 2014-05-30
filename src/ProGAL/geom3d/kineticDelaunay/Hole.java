@@ -118,7 +118,8 @@ public class Hole {
 			oppTet = tet.neighbors[indx];
 			if (oppTet == null) 
 				System.out.println("oppTet does not exist");
-			Face face = new Face(tet.getCorner((indx+1)%4), tet.getCorner((indx+2)%4), tet.getCorner((indx+3)%4), oppTet.getCorner(oppTet.apex(tet)), tet, oppTet);
+			Face face = new Face(tet.corners[(indx+1)%4], tet.corners[(indx+2)%4], tet.corners[(indx+3)%4], oppTet.corners[oppTet.apex(tet)], tet, oppTet);
+//			Face face = new Face(tet.getCorner((indx+1)%4), tet.getCorner((indx+2)%4), tet.getCorner((indx+3)%4), oppTet.getCorner(oppTet.apex(tet)), tet, oppTet);
 			tet.selectedFace = face;
 			faces.add(face);
 			if (testing) face.shape = tet.toSceneFace(scene, indx, Color.red);

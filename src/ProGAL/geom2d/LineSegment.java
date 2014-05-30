@@ -53,6 +53,7 @@ public class LineSegment implements Shape{
 	
 	public void toScene(J2DScene scene) { scene.addShape(this, Color.black); }
 	public void toScene(J2DScene scene, Color clr) { scene.addShape(this, clr); }
+	public void toScene(J2DScene scene, Color clr, double width) { scene.addShape(this, clr, width); }
 	
 
 	

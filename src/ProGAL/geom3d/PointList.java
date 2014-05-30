@@ -17,7 +17,7 @@ public class PointList extends ArrayList<Point> {
 	public PointList() { super(); }
 	
 	
-	/** Construc a point-list from an array of points. */
+	/** Construct a point-list from an array of points. */
 	public PointList(Point[] elements) { 
 		this();
 		for(Point p: elements) add(p);

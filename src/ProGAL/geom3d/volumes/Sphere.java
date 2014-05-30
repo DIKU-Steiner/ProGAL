@@ -336,6 +336,31 @@ public class Sphere implements Volume{
 	public void toScene(J3DScene scene, Color clr) {
 		scene.addShape(this, clr);
 	}
+
+	public void toScene(J3DScene scene, Color clr, int res) {
+		scene.addShape(this, clr, res);
+	}
+
+	public void toSceneSpiral(J3DScene scene, Color clr, int s, int step, double width) {
+		double alpha;
+		double delta;
+		double t;
+		double iPI;
+		double tStep = 2.0/step;
+		double r2 = radius * radius;
+		for (int i = 1; i <= s; i++) {
+			iPI = i*Math.PI;
+			t = -1;
+			for (int j = 0; j < step; j++) {
+				delta = Math.sqrt(r2 - r2 * t * t);
+				alpha = t * iPI;
+				new Point(delta*Math.cos(alpha) + center.x(), delta*Math.sin(alpha) + center.y(), radius*t + center.z()).toScene(scene, width, clr);
+
+				t += tStep;
+			}
+		}
+		
+	}
 	
 	/** Returns true if the sphere overlaps with <code>vol</code>. TODO: Implement for all volumes. */
 	public boolean overlaps(Volume vol) {
@@ -619,30 +644,18 @@ public class Sphere implements Volume{
 		
 	public static void main(String[] args){
 		J3DScene scene = J3DScene.createJ3DSceneInFrame();
-//		Vertex C = new Vertex(new Point(0.0, 0.0, 0.0));
-//		Sphere sphere = new Sphere(C, 1.5);
-//		sphere.toScene(scene, new Color(0,0,255,255));
-//		Plane p = new Plane(new Point(2.5,0.0,0.0), new Vector(1,0,0));
-//		p.toScene(scene, new Color(255,0,0,100), 7);
-		
-		Point p0 = new Point(2.78348, 8.9871278, 1.79812);
-		Point p1 = new Point(5.8549, 9.32698, 17.9819);
-		Point p2 = new Point(21.25148, 19.278, 11.712);
-		Point p3 = new Point(6.876786, 5.11526, 2.00036);
-		double r0 = p3.distance(p0);
-		double r1 = p3.distance(p1);
-		double r2 = p3.distance(p2);
-		Sphere s0 = new Sphere(p0, r0);
-		Sphere s1 = new Sphere(p1, r1);
-		Sphere s2 = new Sphere(p2, r2);
-		scene.addShape(s0, new Color(200,0,0,200));
-		scene.addShape(s1, new Color(0,200,0,200));
-		scene.addShape(s2, new Color(0,0,200,200));
-		Point[] intersections = Sphere.getIntersections(s0, s1, s2);
-		
-		for(Point point : intersections){
-			scene.addShape(new Sphere(point, 2.0));
-			System.out.println(point.x() + " " + point.y() + " " + point.z());
+		Sphere s1 = new Sphere( new Point(0,0,0), 1);
+		s1.toSceneSpiral(scene, Color.blue, 10, 360, 0.003);
+		Sphere s2 = new Sphere( new Point(0,0,0), 1.2);
+		Sphere s3 = new Sphere( new Point(1,1,0), 1);
+		scene.addShape(s1, new Color(200,0,0));
+		scene.addShape(s2, new Color(0,200,0));
+		scene.addShape(s3, new Color(0,0,200));
+		Point[] intersections = Sphere.getIntersections(s1, s2, s3);
+		for(Point p: intersections){
+			p.toConsole();
+			scene.addShape(new Sphere(p,0.1), Color.GRAY.darker());
+
 		}
 	}
 

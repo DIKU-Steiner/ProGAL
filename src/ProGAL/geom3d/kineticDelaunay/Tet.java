@@ -21,10 +21,11 @@ import ProGAL.math.Constants;
 import ProGAL.math.Matrix;
 
 public class Tet {
-	private Vertex[] corners = new Vertex[4];
+	Vertex[] corners = new Vertex[4];
 	private Set<Edge> edges = new HashSet<Edge>(); // Daisy
 	private Tri[] tris = new Tri[4]; // Daisy
 	Tet[] neighbors = new Tet[4];
+	int[] oppIndex = new int[4];
 	Sphere circumSphere = null;
 	Integer count = null;
 	boolean dAlive = true;
@@ -38,6 +39,8 @@ public class Tet {
 	private boolean centerInside;
 	boolean flag = false;
 	Integer depth = null;
+	int helper;
+	boolean inAlphaComplex = false;
 	int alph = 0;
 	
 	public Tet(Vertex[] corners){
@@ -101,6 +104,8 @@ public class Tet {
 //	}
 	
 	public Vertex getCorner(int i) { return corners[i]; }
+	
+	public Tet getNeighbor(int i) { return neighbors[i]; }
 	
 	
 	public boolean getFlag() { return flag; }
@@ -188,8 +193,7 @@ public class Tet {
 	}
 	
 	public boolean hasVertex(Vertex v) {
-		for (int i = 0; i < 4; i++) 
-			if (corners[i] == v) return true;
+		for (int i = 0; i < 4; i++) if (corners[i] == v) return true;
 		return false;
 	}
 	//Daisy :
@@ -210,8 +214,7 @@ public class Tet {
 	}
 
 	public boolean hasNeighbor(Tet t) {
-		for (int i = 0; i < 4; i++) 
-			if (neighbors[i] == t) return true;
+		for (int i = 0; i < 4; i++) if (neighbors[i] == t) return true;
 		return false;
 	}
 
@@ -264,15 +267,24 @@ public class Tet {
 		return ret;
 	}
 	
-	/** Returns the vertex not in the facet-sharing tetrahedron tet */
-	public Vertex getOppVertex(Tet tet) {
-		for (int k = 0; k < 4; k++) {
-			if (!hasVertex(tet.corners[k])) return tet.corners[k];
-		}
+	/** Returns the vertex of tetrahedron TET not in this tetrahedron. */
+	public Vertex getOppVertexSlow(Tet tet) {
+		for (int k = 0; k < 4; k++) if (!hasVertex(tet.corners[k])) return tet.corners[k]; 
 		return null;
 	}
+	/** Returns the vertex of tetrahedron TET not in this tetrahedron.
+	 *  Exploits the fact that vertices of each tetrahedron are sorted by their index.
+	 */
+	public Vertex getOppVertex(Tet tet) {
+		int i = 0;
+		while (corners[i].getId() == tet.corners[i].getId()) i++;
+		if (tet.corners[i].getId() < corners[i].getId()) return tet.corners[i];		
+		
+		while ((i < 3) && (corners[i+1].getId() == tet.corners[i].getId())) i++; 
+		return tet.corners[i];
+	}
 	
-	/** Returns face sharing tetrahedra */
+	/** Returns face sharing tetrahedra - big tetrahedra are omitted */
 	public List<Tet> getFaceSharingTetrahedra() {
 		List<Tet> nList = new ArrayList<Tet>();
 		for (int k = 0; k < 4; k++) {
@@ -392,8 +404,9 @@ public class Tet {
 	}
 	
 
-	public int apex(Tet c){
-		for(int i=0;i<4;i++) if(neighbors[i].equals(c)) return i;
+	/** Returns index of a vertex facing tetrahedron tet */
+	public int apex(Tet tet){
+		for (int i = 0; i < 4; i++) if (neighbors[i] == tet) return i;
 		return -1;
 	}
 	
@@ -536,21 +549,22 @@ public class Tet {
 	}
 
 	public ArrayList<Tet> breadthFirstTetrahedra(int maxDepth) {
-		Queue queue = new Queue();
 		ArrayList<Tet> tets = new ArrayList<Tet>();
 		depth = 0;
-		queue.push(this);
+		int i = 0;
+		tets.add(this);
+		int sz = 1;
 		
-		while (!queue.isEmpty()) {
-			Tet tet = (Tet)queue.pop();
-			tets.add(tet);
+		while (i < sz) {
+			Tet tet = tets.get(i);
 			for (int k = 0; k < 4; k++) {
 				Tet nTet = tet.neighbors[k];
 				if (nTet.depth == null) {
 					nTet.depth = tet.depth + 1;
-					if (nTet.depth < maxDepth) queue.push(nTet);
+					if (nTet.depth < maxDepth)  { tets.add(nTet); sz++; }
 				}
 			}
+			i++;
 		}
 		for (Tet tet : tets) tet.depth = null;
 		return tets;
@@ -565,35 +579,53 @@ public class Tet {
 	}
 	
 	public ArrayList<Vertex> breadthFirstVertices(int maxDepth) {
-		Queue queue = new Queue();
+//		Queue queue = new Queue();
 //		Queue queue2 = new Queue();
 		ArrayList<Tet> tets = new ArrayList<Tet>();
 		ArrayList<Vertex> vertices = new ArrayList<Vertex>();
-		Tet tet, nTet;
-		Vertex v;
+		Tet nTet;
+		int sz = 0;
 		depth = 0;
-		queue.push(this);
-		
-		while (!queue.isEmpty()) {
-			tet = (Tet)queue.pop();
-			tets.add(tet);
-			for (int k = 0; k < 4; k++) {
-				v = tet.corners[k];
-				if (!v.flag) {
-					v.flag = true;
-					vertices.add(v);
-				}
-				nTet = tet.neighbors[k];
-				if ((!nTet.isBig()) && (nTet.depth == null)) {
-					nTet.depth = tet.depth + 1;
-					if (nTet.depth < maxDepth) queue.push(nTet);
+		for (int i = 0; i < 4; i++) {
+			corners[i].flag = true;
+			vertices.add(corners[i]);
+			nTet = neighbors[i];
+			if (!nTet.isBig()) {
+				nTet.depth = 1;
+				if (maxDepth > 1) { 
+					tets.add(nTet); 
+					nTet.helper = oppIndex[i];
+					sz++; 
 				}
 			}
 		}
-		for (Tet t : tets) {
-			for (int k = 0; k < 4; k++) {
-				v = t.corners[k];
+		Tet tet;
+		Vertex v;
+		int i = 0;
+		int indx, k;
+		
+		while (i < sz) {
+			tet = tets.get(i);
+			k = tet.helper;
+			v = tet.corners[k];
+			if (!v.flag) {
+				v.flag = true;
+				vertices.add(v);
 			}
+			for (int j = 1; j < 4; j++ ) {
+				indx = (k+j)%4;
+				nTet = tet.neighbors[indx];
+				if ((nTet.depth == null) && (!nTet.isBig())) {
+					nTet.depth = tet.depth + 1;
+					if (nTet.depth < maxDepth) { 
+						tets.add(nTet); 
+						nTet.helper = tet.oppIndex[indx];
+						sz++; 
+					}
+				}
+				
+			}
+			i++;
 		}
 		for (Tet t : tets) t.depth = null;
 		return vertices;

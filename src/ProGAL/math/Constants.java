@@ -1,4 +1,5 @@
 package ProGAL.math;
+import java.awt.Color;
 import java.math.BigDecimal;
 
 public class Constants {
@@ -12,4 +13,6 @@ public class Constants {
 	
 	public static double PI = Math.PI;
 	public static double TAU = 2*PI;
+	
+	
 }

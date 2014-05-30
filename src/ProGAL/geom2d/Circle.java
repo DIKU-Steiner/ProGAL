@@ -29,12 +29,12 @@ public class Circle implements Shape{
 		radius = c.radius;
 	}
 
-	
+	/** Constructs a circle through two given points and wth their midpoint as the center*/
 	public Circle(Point p1, Point p2){
 		this( Point.midPoint(p1, p2), p1.distance(p2)/2 );
 	}
 
-	/** Creates circle through 3 given points. */
+	/** Constructs a circle through 3 given points. */
 	public Circle(Point a, Point b, Point c) {
 		if (a.equals(b) || b.equals(c)) {
 			center = Point.midPoint(a, c);
@@ -75,9 +75,7 @@ public class Circle implements Shape{
 //		radius = center.getDistance(c);
 //	}
 //  
-//	/**
-//	 * Creates smallest circle containing two given circles
-//	 */
+	/** Creates smallest circle containing two given circles	 */
 	public Circle(Circle c1, Circle c2){
 		if(c1.contains(c2)){
 			center = c1.center.clone();
@@ -121,6 +119,7 @@ public class Circle implements Shape{
 	public void setCenter(Point p) { center = p; }
 	public void setRadius(double r) { radius = r; }
 	
+	public void translate(Vector v) { center.addThis(v); }
 	
 	public Double enteringAngle(Point p, Circle C, boolean ccw) {
 		double centerDist = center.distance(C.center);

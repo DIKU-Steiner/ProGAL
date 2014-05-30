@@ -3,6 +3,7 @@ package ProGAL.geom2d;
 import java.util.Random;
 
 import ProGAL.dataStructures.Set;
+import ProGAL.math.Constants;
 
 public class PointSet extends Set<Point>{
 
@@ -33,6 +34,26 @@ public class PointSet extends Set<Point>{
 		return new Point(x/sz, y/sz);
 	}
 
+	/** O(n^2) Brute force algorithm for the closest pair */
+	public Point[] getClosestPair() {
+		Point[] closestPair = new Point[2];
+		double minDist = Constants.bigDouble;
+		double dist;
+		Point p;
+		int n = getSize();
+		for (int i = 0; i < n-1; i++) {
+			p = get(i);
+			for (int j = i+1; j < n; j++) {
+				dist = p.distanceSquared(get(j));
+				if (dist < minDist) {
+					minDist = dist;
+					closestPair[0] = p;
+					closestPair[1] = get(j);
+				}
+			}
+		}
+		return closestPair;
+	}
 	
 	/** returns the index of the leftmost point (in case of ties, index of the topmost one is returned) */
 	public int leftExtremePointIndx() {
