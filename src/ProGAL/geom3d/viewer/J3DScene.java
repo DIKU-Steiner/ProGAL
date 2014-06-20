@@ -369,6 +369,22 @@ public class J3DScene {
 
 		tg.setTransform(trans);
 	}
+//	private void updateTorusTransforms(ProGAL.geom3d.volumes.Torus t){
+//		Transform3D trans = new Transform3D();
+//		Vector v1 = new Vector(0,0,1.0001);
+//		Vector v2 = t.getNormal();
+//
+//		if(v2.length()>0.000001 && v1.angle(v2)>0.00001 && v1.angle(v2)<Math.PI-0.00001){ 
+//			Vector v = v1.cross(v2);
+//			v.normalizeThis();
+//			Matrix m4 = Matrix.createRotationMatrix(v1.angle(v2), v);
+//			trans.set(to4x4CoordArray(m4));
+//		}
+//		trans.setScale(new Vector3d(c.getRadius(), v2.length(), c.getRadius()));
+//		trans.setTranslation(toJ3DVec(c.getSegment().getMidPoint().toVector()));
+//
+//		((TransformGroup)shapeTransforms.get(c).getChild(0)).setTransform(trans);
+//	}
 	private void updateLensTransforms(ProGAL.geom3d.volumes.Lens lens){
 		Transform3D trans = new Transform3D();
 		Vector v1 = new Vector(0,1,0);
@@ -945,6 +961,27 @@ public class J3DScene {
 		ret.compile();
 		return ret;
 	}
+//	private Node genTorus(ProGAL.geom3d.volumes.Torus t, Color color, int divisions){
+//		Appearance app = genAppearance(color);
+//
+//		BranchGroup torusGroup = new BranchGroup();
+//		torusGroup.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+//
+//		//First hemisphere
+//		Transform3D trans = new Transform3D();
+//		trans.setTranslation(new Vector3d(0,0.5,0));
+//		TransformGroup tg  = new TransformGroup(trans);
+//		Shape3D shape = new Torus3D(t.getMajorRadius(), t.getMinorRadius(),app,divisions);
+//		enablePicking(shape);
+//		pickMap.put(shape, t);
+//		tg.addChild(shape);
+//		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+//		torusGroup.addChild(tg);
+//
+//		updateTorusTransforms(t);
+//		torusGroup.compile();
+//		return torusGroup;
+//	}
 	private Node genLens(ProGAL.geom3d.volumes.Lens lens, Color color, int divisions){
 		Appearance app = genAppearance(color);
 		BranchGroup capsGroup = new BranchGroup();

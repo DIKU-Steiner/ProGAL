@@ -1,14 +1,6 @@
-package ProGAL.geom3d;
+package ProGAL.geomNd;
 
-import java.awt.Color;
-
-import ProGAL.geom3d.viewer.J3DScene;
-import ProGAL.geom3d.volumes.Cylinder;
-
-/**
- * A line segment spanned by two points, a and b.  
- */
-public class LineSegment implements Simplex{
+public class LineSegment {
 	protected Point a, b;
 
 	/** Constructs a segment between points a and b. */
@@ -16,7 +8,7 @@ public class LineSegment implements Simplex{
 		this.a = a;
 		this.b = b;
 	}
-
+	
 	/** Constructs a segment from a to a+v. */
 	public LineSegment(Point a, Vector v) {
 		this.a = a;
@@ -49,11 +41,11 @@ public class LineSegment implements Simplex{
 	/** Get the point on the segment closest to a given point q. This method always returns 
 	 * a new object.*/
 	public Point getClosestPoint(Point q) {
-		Vector dir = a.vectorTo(b);;
-		Vector aq = a.vectorTo(q);;
+		Vector dir = a.vectorTo(b);
+		Vector aq = a.vectorTo(q);
 		double t = dir.dot(aq)/dir.getLengthSquared();
 		t = Math.min(1, Math.max(0,t));
-		return new Point(a.x() + t*dir.x(), a.y() + t*dir.y(), a.z() + t*dir.z());
+		return a.add(dir.multiplyThis(t));
 	}
 
 	/** Gets the squared distance from q to the nearest point on this segment. */
@@ -115,17 +107,5 @@ public class LineSegment implements Simplex{
 	
 	/** Writes this segment to <code>System.out</code> with <code>dec</code> decimals precision. */
 	public void toConsole(int dec){ System.out.println(toString(dec)); }
-
-	public Cylinder toScene(J3DScene scene, double r, Color clr) { 
-		Cylinder cyl = new Cylinder(this, r);
-		scene.addShape(cyl, clr);
-		return cyl;
-	}
-	public Cylinder toScene(J3DScene scene, double r, Color clr, int detail) { 
-		Cylinder cyl = new Cylinder(this, r);
-		scene.addShape(cyl, clr, detail);
-		return cyl;
-	}
-
 
 }

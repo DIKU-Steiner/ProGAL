@@ -9,7 +9,7 @@ public class CVertex extends Point {
 	private static final long serialVersionUID = 1L;
 	
 	private boolean degenerate=false;	
-	public  enum DegenerateCase { ONFACE, ONEDGE };	
+	public enum DegenerateCase { ONFACE, ONEDGE };	
 	private DegenerateCase degCase;
 	private CVertex degPointOpposite;
 	private CVertex degPointA;

@@ -79,6 +79,11 @@ public class Point implements Serializable{
 		return this;
 	}
 	
+	/** Add the specified vector and return the result without modifying this point. */
+	public Point add(Vector v) {
+		return clone().addThis(v);
+	}
+	
 	/** Add the specified vector to this point. */
 	public Point addThis(Vector v){
 		for(int i=0;i<Math.min(dim, v.dim);i++) coords[i] += v.coords[i];
@@ -206,6 +211,7 @@ public class Point implements Serializable{
 	public void toConsole(int dec) {
 		System.out.println(toString(dec));
 	}
+
 
 
 }

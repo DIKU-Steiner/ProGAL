@@ -8,16 +8,23 @@ public class TextShape implements Shape {
 	private String text;
 	private double height;
 	private Point pos;
+	private double angle;
 	
 	public TextShape(String text, Point pos, double height){
+		this(text, pos, height, 0.0);
+	}
+	
+	public TextShape(String text, Point pos, double height, double angle){
 		this.text = text;
 		this.height = height;
 		this.pos = pos;
+		this.angle = angle;
 	}
 	
 	public double getHeight(){ return height; }
 	public String getText(){ return text; }
 	public Point getPos(){ return pos; }
+	public double getAngle(){ return angle; }
 	
 	@Override
 	public Point getCenter() {

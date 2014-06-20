@@ -26,15 +26,18 @@ import ProGAL.math.Randomization;
  *  the vertices of the complex. The simplices that have one of these 'big points' as corners can not be accessed 
  *  directly via the <code>tessels</code> field, but they will be neighbors of other normal simplices.</p>
  *  
- *  @author Desiree M. S. J¿rgensen
+ *  @author Desiree M. S. Joergensen
  *  @author Annie J. Pinder
  */
 public class BowyerWatson{
 	/** The vertices of the tessellation. These are slightly perturbed compared to the originally added points. */
 	private final List<Vertex> points = new ArrayList<Vertex>();
+	
 	/** The tessels of the tessellation. Includes tessels with 'big points' */
 	private final List<Tessel> tessels = new ArrayList<Tessel>();
+	
 	private List<Tessel> newTets = new ArrayList<Tessel>(); // New tessels created after retesselation
+	
 	/** The dimension of the tessellation */
 	private final int dimension;
 
@@ -44,8 +47,7 @@ public class BowyerWatson{
 		for (Point p: points) {
 			this.points.add(new Vertex(p));
 			if (p.getCoords().length!=dimension) {
-				System.err.println("Mismatch in dimensions of points");
-				System.exit(1);
+				throw new RuntimeException("Mismatch in dimensions of points");
 			}
 		}
 		compute();

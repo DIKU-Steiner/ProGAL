@@ -4,7 +4,6 @@ package ProGAL.geom3d;
 
 import java.awt.Color;
 
-
 import ProGAL.Function;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.volumes.Cylinder;
@@ -213,7 +212,7 @@ public class Circle implements Shape{
 					double fraction = radius/(radius+c.getRadius());
 					intersectionPoints = new Point[1];
 					intersectionPoints[0] = center.addThis(v.multiply(fraction));
-					System.out.println("Scale vector correct in Circle class? "+(center.distance(center.addThis(v.multiply(fraction)))==radius));
+//					System.out.println("Scale vector correct in Circle class? "+(center.distance(center.addThis(v.multiply(fraction)))==radius));
 					return intersectionPoints;
 				}
 				else {
@@ -401,31 +400,32 @@ public class Circle implements Shape{
 		for (int i = 0; i < cyl.length; i++) scene.removeShape(cyl[i]);
 	}
 	
-	private static void intersectionInPlane() {
-		Circle c1 = new Circle(new Point(0,0,0), 0.5, new Vector(0,0,1));
-		Circle c2 = new Circle(new Point(-0.1,0.3,0), 0.6, new Vector(0, 0, 1));
-		J3DScene scene = J3DScene.createJ3DSceneInFrame();
-		c1.toScene(scene, 0.005, Color.blue);
-		c2.toScene(scene, 0.005, Color.red);
-		new LineSegment(c1.center, c2.center).toScene(scene, 0.002, Color.black);
-		double cosg = (c1.center.distanceSquared(c2.center) + c1.radius*c1.radius - c2.radius*c2.radius)/(2*c1.radius*c1.center.distance(c2.center));
-		double alpha = Functions.toDeg(Math.acos(cosg));
-		Vector cc = new Vector(c1.center, c2.center).scaleToLength(c1.radius);
-		cc = c1.normal.rotateIn(cc, Math.acos(cosg));
-		Point q = c1.center.add(cc);
-		q.toScene(scene, 0.03, Color.green);
-		scene.addText("q", q.add(-0.075, 0,0));
-		new LineSegment(c1.center, q).toScene(scene, 0.002, Color.black);
-		new LineSegment(c2.center, q).toScene(scene, 0.002, Color.black);
-		cc = c1.normal.rotateIn(cc, -2*Math.acos(cosg));
-		q = c1.center.add(cc);
-		q.toScene(scene, 0.03, Color.green);
-		scene.addText("c1", c1.center.add(0,-0.075,0));
-		scene.addText("c2", c2.center.add(0,-0.075,0));
+//	private static void intersectionInPlane() {
+//		Circle c1 = new Circle(new Point(0,0,0), 0.5, new Vector(0,0,1));
+//		Circle c2 = new Circle(new Point(-0.1,0.3,0), 0.6, new Vector(0, 0, 1));
+//		J3DScene scene = J3DScene.createJ3DSceneInFrame();
+//		c1.toScene(scene, 0.005, Color.blue);
+//		c2.toScene(scene, 0.005, Color.red);
+//		new LineSegment(c1.center, c2.center).toScene(scene, 0.002, Color.black);
+//		double cosg = (c1.center.distanceSquared(c2.center) + c1.radius*c1.radius - c2.radius*c2.radius)/(2*c1.radius*c1.center.distance(c2.center));
+//		double alpha = Functions.toDeg(Math.acos(cosg));
+//		Vector cc = new Vector(c1.center, c2.center).scaleToLength(c1.radius);
+//		cc = c1.normal.rotateIn(cc, Math.acos(cosg));
+//		Point q = c1.center.add(cc);
+//		q.toScene(scene, 0.03, Color.green);
+//		scene.addText("q", q.add(-0.075, 0,0));
+//		new LineSegment(c1.center, q).toScene(scene, 0.002, Color.black);
+//		new LineSegment(c2.center, q).toScene(scene, 0.002, Color.black);
+//		cc = c1.normal.rotateIn(cc, -2*Math.acos(cosg));
+//		q = c1.center.add(cc);
+//		q.toScene(scene, 0.03, Color.green);
+//		scene.addText("c1", c1.center.add(0,-0.075,0));
+//		scene.addText("c2", c2.center.add(0,-0.075,0));
+//	
+//	}
 	
-	}
 	
-	
+	@SuppressWarnings("unused")
 	private static void intersectionsInSpace() {
 		Circle c1 = new Circle(new Point(1,1,0), 0.5, new Vector(0,0,1));
 		Circle c2 = new Circle(new Point(-0.1,-0.3,-0.4), 0.6, new Vector(1,0-5,0.5));
@@ -442,6 +442,91 @@ public class Circle implements Shape{
 		new LineSegment(c1.center, c2.center).toScene(scene, 0.002, Color.black);
 
 	}
+	
+	public static LineSegment getFurthestDistance_centers(Circle c1, Circle c2) {
+		Vector v = c1.center.vectorTo(c2.center);
+		Vector y2 = c2.normal.cross(v);
+		Vector x2 = c2.normal.cross(y2); x2.multiplyThis(c2.radius/x2.length());
+		Point p21 = c2.center.add(x2);
+		Point p22 = c2.center.subtract(x2);
+
+		Vector y1 = c1.normal.cross(v).normalizeThis();
+		Vector x1 = c1.normal.cross(y1);  x1.multiplyThis(c1.radius/x1.length());
+		Point p11 = c1.center.add(x1);
+		Point p12 = c1.center.subtract(x1);
+
+		double d11_21 = p11.distanceSquared(p21);
+		double d12_21 = p12.distanceSquared(p21);
+		double d11_22 = p11.distanceSquared(p22);
+		double d12_22 = p12.distanceSquared(p22);
+		if(d11_21>d12_21 && d11_21>d11_22 && d11_21>d12_22) return new LineSegment(p11, p21);
+		if(d12_21>d11_22 && d12_21>d12_22) return new LineSegment(p12, p21);
+		if(d11_22>d12_22) return new LineSegment(p11, p22);
+		return new LineSegment(p12, p22);
+	}
+	
+	public static Point getFurthestPoint_bruteForce(Circle c, Point p){
+		if(c.radius<Constants.EPSILON)
+			return c.center;
+		
+		int divisions = 8;
+		Vector x = new Vector(1.001,1.002,1.003).crossThis(c.normal).normalizeThis();
+		Vector y = c.normal.cross(x);
+		
+		double range = 2*Math.PI;
+		double maxT = 0; 
+		double maxDist = 0;
+		while(range>Math.PI/10){
+			for(double t=maxT-range/2;t<maxT+range/2;t+=range/divisions){
+				Point pc = c.center.add(  x.multiply(c.radius*Math.cos(t)).addThis(y.multiply(c.radius*Math.sin(t)))  );
+				double dist = p.distanceSquared(pc);
+				if(dist>maxDist){
+					maxT = t;
+					maxDist = dist;
+				}
+			}
+			range/=8;
+		}
+		Point pc = c.center.add(  x.multiply(c.radius*Math.cos(maxT)).addThis(y.multiply(c.radius*Math.sin(maxT)))  );
+		return pc;
+	}
+
+	public static LineSegment getFurthestDistance_bruteForce(Circle c1, Circle c2) {
+		if(c1.radius<Constants.EPSILON) 
+			return new LineSegment(c1.center, getFurthestPoint_bruteForce(c2, c1.center));
+		
+		int divisions = 8;
+		Vector x1 = new Vector(1.001,1.002,1.003).crossThis(c1.normal).normalizeThis();
+		Vector y1 = c1.normal.cross(x1);
+		Vector x2 = new Vector(1.001,1.002,1.003).crossThis(c2.normal).normalizeThis();
+		Vector y2 = c2.normal.cross(x2);
+		
+		double range = 2*Math.PI;
+		double maxT1 = 0; 
+		double maxT2 = 0;
+		double maxDist = 0;
+		while(range>Math.PI/10){
+			for(double t1=maxT1-range/2;t1<maxT1+range/2;t1+=range/divisions){
+				Point p1 = c1.center.add(  x1.multiply(c1.radius*Math.cos(t1)).addThis(y1.multiply(c1.radius*Math.sin(t1)))  );
+				for(double t2=maxT2-range/2;t2<maxT2+range/2;t2+=range/divisions){
+					Point p2 = c2.center.add(  x2.multiply(c2.radius*Math.cos(t2)).addThis(y2.multiply(c2.radius*Math.sin(t2)))  );
+					double dist = p1.distanceSquared(p2);
+					if(dist>maxDist){
+						maxT1 = t1;
+						maxT2 = t2;
+						maxDist = dist;
+					}
+				}
+			}
+			range/=8;
+		}
+		Point p1 = c1.center.add(  x1.multiply(c1.radius*Math.cos(maxT1)).addThis(y1.multiply(c1.radius*Math.sin(maxT1)))  );
+		Point p2 = c2.center.add(  x2.multiply(c2.radius*Math.cos(maxT2)).addThis(y2.multiply(c2.radius*Math.sin(maxT2)))  );
+		
+		return new LineSegment(p1, p2);
+	}
+	
+	
 	public static void main(String[] args) {
 	
 		Point p = new Point (4, 1, 4);

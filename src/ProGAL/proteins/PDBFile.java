@@ -262,41 +262,13 @@ public class PDBFile extends File{
 	
 	/** Returns the ATOM-records of the specified model and chain. */
 	public List<AtomRecord> getAtomRecords(int modelNum, int chainNum){
-		int counter = 0;
 		List<AtomRecord> ret = new ArrayList<AtomRecord>();
-		for(AtomRecord a: models.get(modelNum).chains.get(chainNum).atomRecords){
-			counter++;
-			if (counter == 179)
-				System.out.println("STOP");
-//			if(!a.isOnBackbone()) continue;       // to be removed if all atoms are to be included
-			if(!includeHydrogens && a.isHydrogen()) continue;
-			if(!includeHetAtms && a instanceof HetatmRecord) continue;
-			if (a.atomType.equals("H2") || a.atomType.equals("H3") || a.atomType.equals("OXT")) {
-				System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
-				continue; //get rid of H_2 in the first amino acid and O in the last amino acid
-			}
-			if (a.aaType.equals("HIS")) {
-				if (a.atomType.equals("HD1")) {
-					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
-					continue; //get rid of HD1 if present in histamine
-				}	
-				if (a.atomType.equals("HE2")) {
-					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
-					continue; //get rid of HE2 if present in histamine
-				}	
-			}
-			if (a.aaType.equals("CYS")) {
-				if (a.atomType.equals("HG")) {
-					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
-					continue; //get rid of HG if present in cystine
-				}	
-			}
-//		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
-////			if(!ar.isOnBackbone()) continue;       // to be removed if all atoms are to be included
-//			if(!includeHydrogens && ar.isHydrogen()) continue;
-//			if(!includeHetAtms && ar instanceof HetatmRecord) continue;
-//			
-//			ret.add(a);
+		for(AtomRecord ar: models.get(modelNum).chains.get(chainNum).atomRecords){
+//			if(!ar.isOnBackbone()) continue;       // to be removed if all atoms are to be included
+			if(!includeHydrogens && ar.isHydrogen()) continue;
+			if(!includeHetAtms && ar instanceof HetatmRecord) continue;
+			
+			ret.add(ar);
 		}
 		return ret;
 	}
@@ -347,35 +319,10 @@ public class PDBFile extends File{
 
 	/** Returns all atom-coordinates of the specified model and chain. */
 	public List<Point> getAtomCoords(int modelNum, int chainNum){
-		int counter = 0;
 		List<Point> coords = new ArrayList<Point>();
 		for(AtomRecord a: getAtomRecords(modelNum,chainNum)) {
-			counter++;
-			if (counter == 178)
-				System.out.println("STOP");
 			if(!includeHydrogens && a.isHydrogen()) continue;
 			if(!includeHetAtms && a instanceof HetatmRecord) continue;
-			if (a.atomType.equals("H2") || a.atomType.equals("H3") || a.atomType.equals("OXT")) {
-				System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
-				continue; //get rid of H_2 in the first amino acid and O in the last amino acid
-			}
-			if (a.aaType.equals("HIS")) {
-				if (a.atomType.equals("HD1")) {
-					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
-					continue; //get rid of HD1 if present in histamine
-				}	
-				if (a.atomType.equals("HE2")) {
-					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
-					continue; //get rid of HE2 if present in histamine
-				}	
-			}
-			if (a.aaType.equals("CYS")) {
-				if (a.atomType.equals("HG")) {
-					System.out.println("Disregarding " + a.atomType + " of " + a.residueNumber + ". amino acid" );
-					continue; //get rid of HG if present in cystine
-				}	
-			}
-
 			coords.add(a.coords);
 		}
 //		for(HetatmRecord a: getHetatmRecords(modelNum, chainNum)){
@@ -678,7 +625,7 @@ public class PDBFile extends File{
          * 79 - 80        LString(2)    charge       Charge  on the atom.
 		 */
 		public String toString(){
-			return String.format("%6s%5d  %-3s%c%3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f          %2s%2s",
+			return String.format("%6s%5d %-4s%c%3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f          %2s%2s",
 					(this instanceof HetatmRecord)?"HETATM":"ATOM  ",
 					atomNumber, 
 					atomType,
@@ -867,16 +814,13 @@ public class PDBFile extends File{
 		int indexAA = (int)Math.ceil(maxAA*0.5);
 		System.out.println("IndexAA = "+indexAA);
 		
-<<<<<<< .mine
 		f.writeAtomCoords("/Users/pawel/Downloads/1X0O_Coordinates.tex", points);
 		
-=======
-		int j = 0;
-		for (j=0 ; j<AR.size() ; j++) {
-			if (AR.get(j).residueNumber==indexAA ) break;
-		}
-		Line l = new Line(points.get(80), points.get(83));
->>>>>>> .r843
+		//int j = 0;
+		//for (j=0 ; j<AR.size() ; j++) {
+		//	if (AR.get(j).residueNumber==indexAA ) break;
+		//}
+		//Line l = new Line(points.get(80), points.get(83));
 		System.out.println(points.size());
 //		AlphaComplex ac = new AlphaComplex(points, 2.0);
 		

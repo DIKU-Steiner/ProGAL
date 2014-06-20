@@ -1,10 +1,22 @@
 package ProGAL.dataStructures;
 
-public class DisjointSet {
+import java.util.HashMap;
+import java.util.Map;
 
+public class DisjointSet {
+	private final Map<Object,DSNode> nodeMap = new HashMap<Object,DSNode>();
+	
 	public DisjointSet() {}
 	
-	public DSNode makeSet(Object object) { return new DSNode(object); }
+	public DSNode makeSet(Object object) {
+		nodeMap.put(object, new DSNode(object));
+		return nodeMap.get(object); 
+	}
+	
+	public DSNode find(Object o) {
+		if(nodeMap.containsKey(o)) return find(nodeMap.get(o)); 
+		return null;
+	}
 	
 	public DSNode find(DSNode node) {
 		DSNode nd = node;

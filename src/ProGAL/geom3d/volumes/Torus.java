@@ -1,23 +1,17 @@
 package ProGAL.geom3d.volumes;
 
 import java.awt.Color;
-import java.text.DecimalFormat;
-import java.util.List;
 
 import ProGAL.geom3d.Circle;
-import ProGAL.geom3d.Line;
-import ProGAL.geom3d.LineSegment;
 import ProGAL.geom3d.Plane;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Vector;
-import ProGAL.geom3d.kineticDelaunay.Tri;
-import ProGAL.geom3d.kineticDelaunay.Vertex;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.math.Constants;
 import ProGAL.math.Matrix;
 import ProGAL.math.Polynomial;
 
-/*
+/**
  * Let the radius from the center of the hole to the center of the torus tube be R, and the radius of 
  * the tube be r. Then the equation in Cartesian coordinates for a torus azimuthally symmetric about 
  * the z-axis is 
@@ -91,6 +85,16 @@ public class Torus  {
 		by slopes of r/R and -r/R and offset from the center by minor radius distance r */
 	public Circle[] getVillarceauCircles () {
 		return null;
+	}
+	
+	public double getMajorRadius(){ return R; }
+	
+	public double getMinorRadius(){ return r; }
+	
+	public Vector getNormal(){ return normal; }
+	
+	public Point getCenter() {
+		return center;
 	}
 	
 	// Daisy
@@ -247,7 +251,7 @@ public class Torus  {
 		p.setZ(0);
 		Vector m = new Vector(0,1,0);
 		for (int u = 0; u < uStep; u++) {
-			p.rotation(n, uAngle, new Point(0,0,0));//TODO: Origo tilf¿jet. Check om korrekt
+			p.rotation(n, uAngle, new Point(0,0,0));//TODO: Origo tilfï¿½jet. Check om korrekt
 			m.rotation(n, uAngle);
 			Circle c = new Circle(p,r,m);
 			c.toScene(scene,  0.002, 32, clr);
@@ -472,4 +476,5 @@ public class Torus  {
 //			j += 1;
 //		}*/
 	}
+
 }

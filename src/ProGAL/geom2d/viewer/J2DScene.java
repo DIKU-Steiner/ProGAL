@@ -13,10 +13,14 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -81,7 +85,7 @@ public class J2DScene {
 	private final List<ShapeOptions> shapes = new ArrayList<ShapeOptions>();
 	private Point camCenter;
 	double scale;
-	
+
 	/**
 	 * Construct a representation of a 2D scene. 
 	 */
@@ -89,13 +93,14 @@ public class J2DScene {
 		canvasPanel = new PaintPanel();
 		camCenter = new Point(0,0);
 		scale = 100;
-		
+
 		canvasPanel.addKeyListener(new KeyListener() {
 			public void keyTyped(KeyEvent e) {}
 			public void keyReleased(KeyEvent e) {}
 			public void keyPressed(KeyEvent e) {
 				if(e.getKeyCode()==KeyEvent.VK_C)	centerCamera();
 				if(e.getKeyCode()==KeyEvent.VK_Z)	autoZoom();
+				if(e.getKeyCode()==KeyEvent.VK_S)	savePng("J2DSnapshot.png");
 			}
 		});
 		canvasPanel.addMouseListener(canvasPanel);
@@ -108,7 +113,7 @@ public class J2DScene {
 	public JPanel getCanvas(){
 		return canvasPanel;
 	}
-	
+
 	/** Center the view on the objects in the scene */
 	public void centerCamera(){
 		double minX=Double.POSITIVE_INFINITY;
@@ -125,7 +130,7 @@ public class J2DScene {
 		camCenter = new Point((minX+maxX)/2, (minY+maxY)/2);
 		repaint();
 	}
-	
+
 	/** Zoom the view to enclose all the objects in the scene. */
 	public void autoZoom(){
 		double minX=Double.POSITIVE_INFINITY;
@@ -146,7 +151,7 @@ public class J2DScene {
 		scale = Math.min(w/(maxX-minX), h/(maxY-minY))*0.9;
 		repaint();
 	}
-	
+
 	/** Add a shape to this scene. Currently, 
 	 * <ul><li><code>ProGAL.geom2d.Circle</code></li>
 	 * <li><code>ProGAL.geom2d.LineSegment</code> and </li>
@@ -157,7 +162,7 @@ public class J2DScene {
 	public void addShape(Shape s){
 		addShape(s,Color.GRAY,0.01,false);
 	}
-	
+
 	/** Add a shape to this scene with the specified color. Currently, 
 	 * <ul><li><code>ProGAL.geom2d.Circle</code></li>
 	 * <li><code>ProGAL.geom2d.LineSegment</code> and </li>
@@ -173,36 +178,54 @@ public class J2DScene {
 	}
 	public void addShape(Shape s, Color c, double border, boolean fill){
 		shapes.add(new ShapeOptions(s,c,border,fill));
-//		repaint();
+		//		repaint();
 	}
-	
+
+
+	public void savePng(String fName)
+	{
+		
+		BufferedImage bImg = new BufferedImage(canvasPanel.getWidth(), canvasPanel.getHeight(), BufferedImage.TYPE_INT_RGB);
+		Graphics2D cg = bImg.createGraphics();
+		canvasPanel.paintAll(cg);
+		try {
+			if (ImageIO.write(bImg, "png", new File(fName)))
+			{
+				System.out.println("Successfully wrote "+fName);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+
 	/** Remove the specified shape from the scene */
 	public void removeShape(Shape s) {
 		ShapeOptions opt = null;
 		for(ShapeOptions so: shapes) if(so.shape==s){ opt = so; break; }
 		shapes.remove(opt);
-//		repaint();
+		//		repaint();
 	}
-	
+
 	/** Remove all shapes from the scene */
 	public void removeAllShapes() {
-//		while (!shapes.isEmpty()) shapes.remove(0);
+		//		while (!shapes.isEmpty()) shapes.remove(0);
 		shapes.clear();
-//		repaint();
+		//		repaint();
 	}
-	
+
 	/** Add a click-listener that gets called every time an object or the background is clicked	 */
 	public void addClickListener(ClickListener cl){
 		clickListeners.add(cl);
 	}
-	
-	
+
+
 	/** Repaint the scene */
 	public void repaint(){
-//		canvasPanel.paintImmediately(0, 0, canvasPanel.getWidth(), canvasPanel.getHeight());
+		//		canvasPanel.paintImmediately(0, 0, canvasPanel.getWidth(), canvasPanel.getHeight());
 		canvasPanel.repaint();
 	}
-	
+
 	private final static ShapePainter[] shapePainters = {
 		new CirclePainter(),
 		new LineSegmentPainter(),
@@ -223,8 +246,8 @@ public class J2DScene {
 		return null;
 	}
 
-	
-	
+
+
 	private class PaintPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener{
 		private static final long serialVersionUID = 1L;
 
@@ -242,7 +265,8 @@ public class J2DScene {
 						(float)(scale*so.borderWidth),
 						BasicStroke.CAP_ROUND, 
 						BasicStroke.JOIN_ROUND)  );
-				g2d.setColor(so.color);
+//				g2d.setColor(so.color);
+				g2d.setPaint(so.color);
 				ShapePainter sp = getShapePainter(so.shape);
 				if(sp==null) System.err.println("J2DScene: ShapePainter not implemented for "+so.shape.getClass().getSimpleName());
 				else sp.paintShape(so, g2d);
@@ -253,14 +277,14 @@ public class J2DScene {
 		java.awt.Point lastPoint = null;
 		public void mouseDragged(MouseEvent e) {
 			java.awt.Point p = e.getLocationOnScreen();
-//			java.awt.Point dP = new java.awt.Point(p.x-lastPoint.x, p.y-lastPoint.y);
+			//			java.awt.Point dP = new java.awt.Point(p.x-lastPoint.x, p.y-lastPoint.y);
 			Point p0 = transformPoint(lastPoint);
 			Point p1 = transformPoint(p);
 			camCenter.addThis(new Vector(p0.x()-p1.x(), p0.y()-p1.y()));
 			repaint();
 			lastPoint = p;
 		}
-		
+
 		Point transformPoint(java.awt.Point p){
 			int w = getWidth();
 			int h = getHeight();
@@ -268,12 +292,12 @@ public class J2DScene {
 			double pY = -(p.y-h/2)/scale + camCenter.y();
 			return new Point(pX,pY);
 		}
-		
+
 		public void mouseMoved(MouseEvent e) {	}
 		public void mouseClicked(MouseEvent e) {
 			Point p = null;
 			Shape shapeClicked = null;
-			
+
 			for(ShapeOptions so: new LinkedList<ShapeOptions>(shapes)){
 				if(so.fill){
 					if(p==null)	p = transformPoint(e.getPoint());
@@ -281,7 +305,7 @@ public class J2DScene {
 						shapeClicked = so.shape;
 				}
 			}
-			
+
 			for(ClickListener cl: clickListeners){
 				cl.shapeClicked(shapeClicked, e);
 			}
@@ -296,8 +320,8 @@ public class J2DScene {
 			repaint();
 		}
 	}
-	
-	
+
+
 	public java.awt.Point transformPoint(Point p){
 		int w = canvasPanel.getWidth();
 		int h = canvasPanel.getHeight();
@@ -315,20 +339,20 @@ public class J2DScene {
 		double y = ((gY-h/2)/-scale)+camCenter.y(); 
 		return new Point(x,y);
 	}
-	
+
 	class ShapeOptions{
 		Shape shape;
 		Color color;
 		double borderWidth;
 		boolean fill;
-	
+
 		ShapeOptions(Shape s, Color c, double bw, boolean f){
 			this.shape = s;
 			this.color = c;
 			this.borderWidth = bw;
 			this.fill = f;
 		}
-	
+
 		java.awt.Point transformPoint(Point p){
 			return J2DScene.this.transformPoint(p);
 		}
@@ -337,10 +361,10 @@ public class J2DScene {
 			return J2DScene.this.transformPoint(p);
 		}
 
-		
+
 		double getScale(){ return scale; }
 	}
-	
+
 	/** 
 	 * Create a frame containing a canvas, display it and return the J2DScene object shown in the frame. 
 	 * The frame can be retrieved using the <code>J2DScene.frame</code> field.  
@@ -354,8 +378,8 @@ public class J2DScene {
 		scene.frame = frame;
 		return scene;
 	}
-	
-	
+
+
 	public static void main(String[] args){
 		J2DScene scene = J2DScene.createJ2DSceneInFrame();
 		scene.addShape(new LineSegment(new Point(0,0), new Point(1,0)), Color.BLACK);
@@ -371,20 +395,20 @@ public class J2DScene {
 
 		Point p = new Point(-2,0);
 		scene.addShape(new Triangle(new Point(-1,0), new Point(-1,1), p), Color.GREEN, 0, true);
-		
+
 		scene.addShape(new Polygon(
 				new Point[]{
 						new Point(-1,2), 
 						new Point(-1,2.4), 
 						new Point(-1.4,2.1),
 						new Point(-1.6,2.8),
-						}
+				}
 				), Color.BLUE,0,true);
-		
-		scene.addShape(new Line(new Point(3,0), new Vector(0,0.0000001)));
-		
+
+		scene.addShape(new Line(new Point(3,0), new Vector(0.01,-0.03)));
+
 		scene.centerCamera();
-		
+
 		while(true){
 			p.addThis(new Vector(0.01,0));
 			scene.repaint();
@@ -394,10 +418,10 @@ public class J2DScene {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 		}
-		
-		
+
+
 	}
 
 }

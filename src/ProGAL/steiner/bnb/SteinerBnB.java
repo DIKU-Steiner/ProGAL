@@ -3,6 +3,7 @@ package ProGAL.steiner.bnb;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
+import ProGAL.math.Constants;
 import ProGAL.steiner.bnb.branchers.FollowSiteOrder;
 import ProGAL.steiner.bnb.lowerBounds.PartialMST;
 import ProGAL.steiner.bnb.nodePrioritizers.DepthFirst;
@@ -25,7 +26,7 @@ public class SteinerBnB {
 	}
 	
 	public Topology solve(int N, double upperBound){
-		
+		upperBound+=0.00001;
 		nodesVisited = 0;
 		
 		Node bestNode = null;
