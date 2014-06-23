@@ -1356,7 +1356,13 @@ public class KineticACD {
 	    double coefCos = M13*(e*D.z()*eCos - E.z()*d*dCos) + M14*(ee*d*dCos - e*dd*eCos) + M15*(e*eCos - d*dCos) + M23*(E.z()*d*dSin - e*D.z()*eSin) + M24*(e*dd*eSin - ee*d*dSin) + M25*(d*dSin - e*eSin);
 	    double coef    = d*e*M12*(eSin*dCos - eCos*dSin) + M34*(ee*D.z() -E.z()*dd) + M35*(E.z() - D.z()) + M45*(dd - ee);
 	    angles = Trigonometry.solveAsinXPlusBcosXplusC(coefSin, coefCos, coef);
-	    return getRotAngle(angles, dir);
+	    angles = getRotAngle(angles, dir);
+	    if (angles!=null) {
+	    	if (A.getId()==408 && B.getId()==417 && C.getId()==417 && D.getId()==415 && E.getId()==491) {
+	    		System.out.println("Tets 408,410,415,417,491 angle : "+angles[0]);
+	    	}
+	    }
+	    return angles;
 	}
 
 	public Double[] getRotAngle(Double[] angles, int dir) {
@@ -1522,7 +1528,7 @@ public class KineticACD {
 			}
 			if (count <= 21) {
 				if (count == 20) return getRootSSSRR(t.getCorner(0), t.getCorner(1), t.getCorner(3), t.getCorner(2), oppV, 0);
-				return getRootSSSRR(t.getCorner(1), t.getCorner(3), oppV, t.getCorner(0), t.getCorner(2), 0);
+				return getRootSSSRR(t.getCorner(0), t.getCorner(2), oppV, t.getCorner(1), t.getCorner(3), 1);
 			}
 			if (count == 22) return getRootSSSRR(t.getCorner(1), t.getCorner(2), oppV, t.getCorner(0), t.getCorner(3), 1);					
 			return getRootSSSSR(t.getCorner(0), t.getCorner(1), t.getCorner(2), oppV, t.getCorner(3), 1);
@@ -1738,7 +1744,6 @@ public class KineticACD {
 				t.setAlph(1);
 				alphaTets.add(t);
 			} else t.setAlph(0);
-
 			angles = getRoot(t.getCorner(0), t.getCorner(1), t.getCorner(2), t.getCorner(3), t.getCount());
 			if (angles!=null && angles[0]< angleLimit) {
 				addToHeap(angles, t);
@@ -1871,6 +1876,10 @@ public class KineticACD {
 			}
 		}
 		flipTime += (System.nanoTime() - start)/1000000.0;
+/*		boolean isDT = isDelaunay();
+		if (!isDT) {
+			throw new RuntimeException("Flip failed between "+t0+" and "+t1);
+		}*/
 		return newTets;
 	}
 
@@ -2179,12 +2188,19 @@ public class KineticACD {
 			if ((nti != null) && (nti != nt0)) {
 				angles = getRoot(nt1, nti);
 				if ((angles != null) && (angles[0] < angleLimit)) {
+					if ((nt1.toString().equals("[408, 410, 491, 972]")) && nti.toString().equals("[408, 415, 491, 972]")) {
+						System.out.println("Tets checked and results in: "+angles[0]);
+					}
 					addToHeap(angles, nt1, nti);
 					if (testingPrint) System.out.println(nt1 + " " + nti + " " + Functions.toDeg(angles[0]) + " " + Functions.toDeg(angles[1]));
 				}
 			}
 		}
 		flipTime += (System.nanoTime() - start)/1000000.0;
+/*		boolean isDT = isDelaunay();
+		if (!isDT) {
+			throw new RuntimeException("Flip failed between "+t0+" and "+t1+" and "+t2);
+		}*/
 		return newTets;
 	}
 	
@@ -2310,7 +2326,22 @@ public class KineticACD {
 							}
 							else { 
 								System.out.println(" not convex but tt = null");
-								System.out.println("t= "+t+" nt = "+nt);
+/*								System.out.println("t = "+t+" count = "+t.getCount()+" nt = "+nt+" count = "+nt.getCount());
+								System.out.println("radius t = "+t.getCircumSphereRadius()+" radius nt = "+nt.getCircumSphereRadius());
+								J3DScene scene = J3DScene.createJ3DSceneInFrame();
+								t.toSceneFaces(scene, new Color(200,0,0,100));
+								nt.toSceneFaces(scene, new Color(0,0,200,100));
+								System.out.println("t's neighbours :");
+								for (int i = 0 ; i<4 ; i++) {
+									System.out.println(i+" = "+t.getNeighbour(i));
+								}
+								System.out.println("nt's neighbours :");
+								for (int i = 0 ; i<4 ; i++) {
+									System.out.println(i+" = "+nt.getNeighbour(i));
+								}
+								vertices.get(972).toScene(scene, 0.1, new Color(0,0,0,255));
+								System.out.println("point id : "+vertices.get(972).toString()+" type = "+vertices.get(972).getType());
+								throw new RuntimeException("WuaaaaH");*/
 //								break;
 							}
 						}

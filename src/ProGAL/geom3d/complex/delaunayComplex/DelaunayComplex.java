@@ -147,7 +147,7 @@ public class DelaunayComplex implements SimplicialComplex{
 	public CVertex getVertex(int i) { return points.get(i); }
 	
 	protected void compute() {
-		double max = 100;//TODO find a more meaningful max
+		double max = 1000;//TODO find a more meaningful max
 		
 		//TODO: Take care of degeneracies in a better way than perturbation
 		for(CVertex v: points){

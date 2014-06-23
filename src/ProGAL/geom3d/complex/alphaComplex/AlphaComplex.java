@@ -9,6 +9,7 @@ import java.util.Stack;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Simplex;
 import ProGAL.geom3d.complex.*;
+import ProGAL.geom3d.complex.delaunayComplex.DelaunayComplex;
 import ProGAL.geom3d.complex.delaunayComplex.RegularComplex;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.proteins.PDBFile;
@@ -35,7 +36,7 @@ public class AlphaComplex extends AlphaFiltration implements SimplicialComplex{
 	}
 
 	/** Build the alpha-complex of the specified Delaunay complex. */
-	public AlphaComplex(RegularComplex d3d, double alpha){
+	public AlphaComplex(DelaunayComplex d3d, double alpha){
 		super(d3d);
 		this.alpha = alpha;
 	}

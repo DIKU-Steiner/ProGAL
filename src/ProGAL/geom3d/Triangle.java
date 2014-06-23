@@ -155,7 +155,7 @@ public class Triangle implements Simplex{
 			else { System.out.println("a is not zero"); return null; } // ray is not intersecting the plane
 		}
 		double r = a/b;
-		if (r < 0.0) { System.out.println("r is less than zero"); return null; } // ray goes away from the triangle plane, no intersection
+		if (r < 0.0) { /*System.out.println("r is less than zero");*/ return null; } // ray goes away from the triangle plane, no intersection
 		// for a segment, also test if r > 1.0. if so, no intersection
 		
 		Point intersection = new Point(p.x() + r*dir.x(), p.y() + r*dir.y(), p.z() + r*dir.z());

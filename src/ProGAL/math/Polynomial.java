@@ -57,6 +57,7 @@ public class Polynomial {
 		deg = pars.length-1;
 	}
 	
+	
 	/** returns a copy of the polynomial p
 	 * @return copy of the polynomial p
 	 */
@@ -345,8 +346,9 @@ public class Polynomial {
 		return ret;
 	}
 	
-	/** 
-	 * TODO: Pawel siger .. mŒske ikke f¾rdig 
+
+	/* 
+	 * TODO: Pawel siger .. mï¿½ske ikke fï¿½rdig 
 	 */
 	private static double[] solveQuadric(double p2, double p1, double p0) {
 		double b = p1/p2;
@@ -441,6 +443,7 @@ public class Polynomial {
 		}
 		return new double[]{root1,root2, root3, im};
 	}
+
 
 	private static double[] depressQuarticEquation(double[] parameters) {
 		double a = parameters[0];

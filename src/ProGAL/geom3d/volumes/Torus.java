@@ -1,11 +1,17 @@
 package ProGAL.geom3d.volumes;
 
 import java.awt.Color;
+import java.text.DecimalFormat;
+import java.util.List;
 
 import ProGAL.geom3d.Circle;
+import ProGAL.geom3d.Line;
+import ProGAL.geom3d.LineSegment;
 import ProGAL.geom3d.Plane;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.Vector;
+import ProGAL.geom3d.kineticDelaunay.Tri;
+import ProGAL.geom3d.kineticDelaunay.Vertex;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.math.Constants;
 import ProGAL.math.Matrix;
@@ -265,6 +271,7 @@ public class Torus  {
 		Vector v = normal.getOrthonormal();
 		Point p = center.add(v.scaleToLength(R));
 		for (int i = 0; i < iMax; i++) {
+
 			new Circle(p, r, v.cross(normal)).toScene(scene, 0.01, 16, clr);
 //			new Sphere(p, r).toScene(scene, clr);
 //			new Circle(p, r, v.cross(normal)).toScene(scene, 0.01, 32);
@@ -349,6 +356,7 @@ public class Torus  {
 		double R = 0.5;
 		double r = 0.2;
 		Torus torus = new Torus(center, normal, R, r);
+
 	//	Point p = new Point(0.45, -0.30, 0.01);
 	//	if (torus.contains(p)) System.out.println("inside"); else System.out.println("outside");
 		torus.toScene(scene, Color.blue, 36, 72);
