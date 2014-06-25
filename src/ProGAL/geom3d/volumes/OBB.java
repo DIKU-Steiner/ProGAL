@@ -5,7 +5,6 @@ import java.util.List;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.Vector;
-import ProGAL.math.Matrix;
 import ProGAL.math.Matrix.EigenvalueDecomposition;
 import ProGAL.math.Matrix3x3;
 
@@ -150,7 +149,7 @@ public class OBB implements Volume{
 		double[][] R = new double[3][3], AbsR = new double[3][3];
 		double[] ae = extents, be = b.extents;
 
-		// Compute rotation matrix expressing b in aÕs coordinate frame
+		// Compute rotation matrix expressing b in aï¿½s coordinate frame
 		for (int i = 0; i < 3; i++)
 			for (int j = 0; j < 3; j++)
 				R[i][j] = bases[i].dot(b.bases[j]);	
@@ -159,7 +158,7 @@ public class OBB implements Volume{
 		// Compute translation vector t
 		Vector tmp = this.anchor.vectorTo(b.anchor);
 
-		// Bring translation into aÕs coordinate frame
+		// Bring translation into aï¿½s coordinate frame
 		tmp = new Vector(tmp.dot(bases[0]), tmp.dot(bases[1]), tmp.dot(bases[2]));//9HOps
 		double[] t = new double[]{tmp.x(), tmp.y(), tmp.z()};
 

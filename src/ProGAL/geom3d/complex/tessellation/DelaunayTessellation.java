@@ -1,24 +1,15 @@
 package ProGAL.geom3d.complex.tessellation;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import ProGAL.geom3d.Point;
-import ProGAL.geom3d.PointList;
 import ProGAL.geom3d.PointWeighted;
 import ProGAL.geom3d.Vector;
-import ProGAL.geom3d.complex.CEdge;
 import ProGAL.geom3d.complex.CTetrahedron;
-import ProGAL.geom3d.complex.CTriangle;
 import ProGAL.geom3d.complex.CVertex;
-import ProGAL.geom3d.complex.SimplicialComplex;
 import ProGAL.geom3d.predicates.*;
-import ProGAL.geom3d.predicates.Predicates.SphereConfig;
 import ProGAL.math.Randomization;
 
 /** <p>
@@ -92,7 +83,8 @@ public class DelaunayTessellation{
 	
 	protected DelaunayTessellation(List<Point> points, Predicates predicates){
 		this.points = new ArrayList<CVertex>(points.size());
-		for(Point p: points) this.points.add(new CVertex(p));
+		int i=0;
+		for(Point p: points) this.points.add(new CVertex(p,i++));
 		this.tetrahedra = new ArrayList<CTetrahedron>(points.size()*6);
 		
 		this.predicates = predicates;

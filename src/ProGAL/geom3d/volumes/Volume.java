@@ -8,7 +8,9 @@ import ProGAL.geom3d.Shape;
  * that two spheres overlap when the distance between their center-points is <b>equal to or  
  * less</b> than their combined radii. 
  * 
- * If only the shell should be considered use the VolumeShell3d interface.
+ * If only the shell should be considered then subclasses with adequate overriding methods should 
+ * be created.
+ * @author R.Fonseca
  */
 public interface Volume extends Shape{
 	

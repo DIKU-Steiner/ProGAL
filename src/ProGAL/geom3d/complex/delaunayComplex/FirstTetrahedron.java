@@ -13,10 +13,10 @@ class FirstTetrahedron extends CTetrahedron{
 		
 //		m = 30;
 		
-		setPoint(new CVertex(new Point( m, 0,-m),true), 0 );
-		setPoint(new CVertex(new Point( 0, m,-m),true), 1 );
-		setPoint(new CVertex(new Point(-m,-m,-m),true), 2 );
-		setPoint(new CVertex(new Point( 0, 0, m),true), 3 );
+		setPoint(new CVertex(new Point( m, 0,-m),true, -4), 0 );
+		setPoint(new CVertex(new Point( 0, m,-m),true, -3), 1 );
+		setPoint(new CVertex(new Point(-m,-m,-m),true, -2), 2 );
+		setPoint(new CVertex(new Point( 0, 0, m),true, -1), 3 );
 	}
 
 }

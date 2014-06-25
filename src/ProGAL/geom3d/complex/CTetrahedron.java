@@ -92,7 +92,7 @@ public class CTetrahedron extends Tetrahedron{
 		int n = 0;
 		for (int i = 0; i < 4; i++) {
 			if (tetr.containsPoint(getPoint(i))) {
-				points[n] = new CVertex(getPoint(i));
+				points[n] = new CVertex(getPoint(i), getPoint(i).idx);
 				for (int k = 0; k < 3; k++) if (Math.abs(points[n].get(k)) > 100.0) points[n].set(k, points[n].get(k)/1);	
 				n++;
 			}

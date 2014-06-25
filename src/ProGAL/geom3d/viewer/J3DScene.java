@@ -19,6 +19,7 @@ import java.util.Map.Entry;
 import javax.media.j3d.*;
 import javax.swing.*;
 import javax.vecmath.Color3f;
+import javax.vecmath.Matrix3f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
@@ -155,7 +156,7 @@ public class J3DScene {
 
 	/** Add a volume object with a specified color */
 	public void addShape(Shape v, Color c){	
-		addShape(v,c,30);
+		addShape(v,c,12);
 	}
 
 	/** Add a volume object with a specified color and detail-level */
@@ -435,18 +436,18 @@ public class J3DScene {
 	private void updateConeTransforms(ProGAL.geom3d.volumes.Cone c){
 
 		Transform3D trans = new Transform3D();
-		Vector v1 = new Vector(0,1,0);
-		Vector v2 = c.p1.vectorTo(c.p2);
+		Vector v1 = new Vector(0,-1,0);
+		Vector v2 = c.getAxis();//c.p1.vectorTo(c.p2);
 
 		if(v2.length()>0.000001 && v1.angle(v2)>0.00001){ 
 			//Matrix m = Matrix.createRotationMatrix(v1.angle(v2), v1.cross(v2).normIn());
 			//trans.set(m.getCoordArray());
-			Vector v = v1.cross(v2);
-			v.scaleToLength(1);
+			Vector v = v1.cross(v2).normalizeThis();
 			Matrix m4 = Matrix.createRotationMatrix(v1.angle(v2), v);
-			trans.set(to4x4CoordArray(m4));
+//			trans.set(to4x4CoordArray(m4));
+			trans.setRotation(new Matrix3f(to3x3CoordArray(m4)));
 		}
-		trans.setScale(new javax.vecmath.Vector3d(c.rad, v2.length(), c.rad));
+		trans.setScale(new javax.vecmath.Vector3d(c.getBaseRadius(), c.getAxisLength(), c.getBaseRadius()));
 		trans.setTranslation(toJ3DVec(c.getCenter().toVector()));
 
 		((TransformGroup)shapeTransforms.get(c).getChild(0)).setTransform(trans);
@@ -907,11 +908,17 @@ public class J3DScene {
 	//		updateCylinderTransforms(c);
 	//		return ret;
 	//	}
-	private Node genCone(ProGAL.geom3d.volumes.Cone c, Color color){
+	private Node genCone(ProGAL.geom3d.volumes.Cone c, Color color, int divisions){
 		Appearance app = genAppearance(color);
 
 		//Cylinder cyl = new Cylinder(c.rad, c.p1.distance(c.p2), app);
-		com.sun.j3d.utils.geometry.Cone cone = new com.sun.j3d.utils.geometry.Cone(1, 1, app);
+		com.sun.j3d.utils.geometry.Cone cone = new com.sun.j3d.utils.geometry.Cone(
+				1,//Radius
+				1,//Height
+				com.sun.j3d.utils.geometry.Cone.GENERATE_NORMALS,//primflags
+				divisions,//xDivisions
+				1,//yDivisions
+				app);
 		enablePicking(cone);
 		pickMap.put(cone, c);
 
@@ -1095,7 +1102,7 @@ public class J3DScene {
 		else if(v instanceof ProGAL.geom3d.volumes.LSS)		return genLSS((ProGAL.geom3d.volumes.LSS)v, c, divisions);
 		else if(v instanceof ProGAL.geom3d.volumes.RSS)		return genRSS((ProGAL.geom3d.volumes.RSS)v, c, divisions);
 		else if(v instanceof ProGAL.geom3d.volumes.Cylinder)		return genCylinder((ProGAL.geom3d.volumes.Cylinder)v, c, divisions);
-		else if(v instanceof ProGAL.geom3d.volumes.Cone)			return genCone((ProGAL.geom3d.volumes.Cone)v, c);
+		else if(v instanceof ProGAL.geom3d.volumes.Cone)			return genCone((ProGAL.geom3d.volumes.Cone)v, c, divisions);
 		else if(v instanceof ProGAL.geom3d.volumes.OBB)				return genBox((ProGAL.geom3d.volumes.OBB)v, c);
 		else if(v instanceof ProGAL.geom3d.Triangle)				return genTriangle((ProGAL.geom3d.Triangle)v, c);
 		else if(v instanceof ProGAL.geom3d.volumes.Tetrahedron)		return genTetrahedron((ProGAL.geom3d.volumes.Tetrahedron)v, c);
@@ -1420,6 +1427,14 @@ public class J3DScene {
 				ret[r*4+c]=(float)m.get(r, c);
 
 		ret[15] = 1; 
+		return ret;
+	}
+	private static float[] to3x3CoordArray(Matrix m){
+		float[] ret = new float[9];
+		for(int r=0;r<m.getM();r++) 
+			for(int c=0;c<m.getN();c++)
+				ret[r*3+c]=(float)m.get(r, c);
+
 		return ret;
 	}
 

@@ -15,6 +15,7 @@ public class CVertex extends Point {
 	private CVertex degPointA;
 	private CVertex degPointB;
 	private final boolean bigPoint;
+	public final int idx;
 	
 	private final List<CEdge> adjacentEdges = new ArrayList<CEdge>();
 
@@ -56,13 +57,14 @@ public class CVertex extends Point {
 	}
 
 	
-	public CVertex(Point p){
-		this(p, false);
+	public CVertex(Point p, int idx){
+		this(p, false, idx);
 	}
-	public CVertex(Point p, boolean bigpoint){ 	
+	public CVertex(Point p, boolean bigpoint, int idx){ 	
 		super(p);
 		setDegenerate(false);
 		this.bigPoint = bigpoint;
+		this.idx = idx;
 	}
 
 	public CVertex getDegPointOpposite() {

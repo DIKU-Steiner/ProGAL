@@ -268,10 +268,10 @@ public class Plane implements Shape{
 		Line line = new Line(point, normal);
 		Vector dir = normal.getOrthonormal();
 		dir.multiplyThis(size);
-		CVertex p1 = new CVertex(point.add(dir)); 
-		CVertex p2 = new CVertex(line.rotate(p1, Math.PI/2));
-		CVertex p3 = new CVertex(line.rotate(p2, Math.PI/2));
-		CVertex p4 = new CVertex(line.rotate(p3, Math.PI/2));
+		CVertex p1 = new CVertex(point.add(dir), 0); 
+		CVertex p2 = new CVertex(line.rotate(p1, Math.PI/2), 0);
+		CVertex p3 = new CVertex(line.rotate(p2, Math.PI/2), 0);
+		CVertex p4 = new CVertex(line.rotate(p3, Math.PI/2), 0);
 		p4.addThis(normal.multiply(0.01));
 		CTetrahedron tetr = new CTetrahedron(p1, p2, p3, p4);
 		scene.addShape(tetr, clr);	

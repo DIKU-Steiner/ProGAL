@@ -77,8 +77,8 @@ public class DelaunayComplex implements SimplicialComplex{
 	public DelaunayComplex(List<Point> points) {
 		this.points = new ArrayList<CVertex>(points.size());
 		
-		
-		for(Point p: points) this.points.add(new CVertex(p));
+		int i=0;
+		for(Point p: points) this.points.add(new CVertex(p, i++));
 		this.edges = new ArrayList<CEdge>(points.size()*6);
 		this.triangles = new ArrayList<CTriangle>(points.size()*6);
 		this.tetrahedra = new ArrayList<CTetrahedron>(points.size()*6);

@@ -179,11 +179,15 @@ public class Sphere implements Volume{
 	public double getSurfaceArea() { return 4*Math.PI*radius*radius; }
 	/** Get the volume */
 	public double getVolume() { return getSurfaceArea()*radius/3; }
+	
 	/** Returns true if the point is inside this sphere */
 	public boolean isInside(Point p) { 
 		return center.distanceSquared(p) < getRadiusSquared(); 
 	}
 	
+	/** Returns true iff the squared distance from the point to the sphere center is less than the squared 
+	 * radius minus <code>eps</code> 
+	 */
 	public boolean isInside(Point p, double eps) { return center.distanceSquared(p) < radius*radius - eps; }
 	
 	public boolean isEmpty(Point[] points, double eps) {
