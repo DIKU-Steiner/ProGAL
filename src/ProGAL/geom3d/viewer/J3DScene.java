@@ -438,8 +438,8 @@ public class J3DScene {
 		Transform3D trans = new Transform3D();
 		Vector v1 = new Vector(0,-1,0);
 		Vector v2 = c.getAxis();//c.p1.vectorTo(c.p2);
-
-		if(v2.length()>0.000001 && v1.angle(v2)>0.00001){ 
+		if(v2.length()>0.000001 && v1.angle(v2)>0.00001)
+		{ 
 			//Matrix m = Matrix.createRotationMatrix(v1.angle(v2), v1.cross(v2).normIn());
 			//trans.set(m.getCoordArray());
 			Vector v = v1.cross(v2).normalizeThis();
@@ -1172,9 +1172,12 @@ public class J3DScene {
 			axisElements.add(new ProGAL.geom3d.volumes.Cylinder(new Point(0,0,0),new Point(1-2*rad,0,0), rad));
 			axisElements.add(new ProGAL.geom3d.volumes.Cylinder(new Point(0,0,0),new Point(0,1-2*rad,0), rad));
 			axisElements.add(new ProGAL.geom3d.volumes.Cylinder(new Point(0,0,0),new Point(0,0,1-2*rad), rad));
-			axisElements.add(new ProGAL.geom3d.volumes.Cone(new Point(1-2*rad,0,0),new Point(1,0,0), 2*rad));
-			axisElements.add(new ProGAL.geom3d.volumes.Cone(new Point(0,0,1-2*rad),new Point(0,0,1), 2*rad));
-			axisElements.add(new ProGAL.geom3d.volumes.Cone(new Point(0,1-2*rad,0),new Point(0,1,0), 2*rad));
+			axisElements.add(new ProGAL.geom3d.volumes.Cone(new Point(1,0,0), new Point(1-2*rad,0,0), 2*rad));
+			axisElements.add(new ProGAL.geom3d.volumes.Cone(new Point(0,0,1), new Point(0,0,1-2*rad), 2*rad));
+			axisElements.add(new ProGAL.geom3d.volumes.Cone(new Point(0,1,0), new Point(0,1-2*rad,0), 2*rad));
+//			axisElements.add(new ProGAL.geom3d.volumes.Cone(new Point(1-2*rad,0,0),new Point(1,0,0), 2*rad));
+//			axisElements.add(new ProGAL.geom3d.volumes.Cone(new Point(0,0,1-2*rad),new Point(0,0,1), 2*rad));
+//			axisElements.add(new ProGAL.geom3d.volumes.Cone(new Point(0,1-2*rad,0),new Point(0,1,0), 2*rad));
 
 			axisElements.add(new TextShape("x", new Point(1,0,0), 0.3));
 			axisElements.add(new TextShape("y", new Point(0,1,0), 0.3));
