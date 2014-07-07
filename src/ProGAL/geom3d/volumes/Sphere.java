@@ -2,6 +2,7 @@ package ProGAL.geom3d.volumes;
 
 
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -499,6 +500,8 @@ public class Sphere implements Volume{
 		
 		double h = ProGAL.geom2d.Triangle.calculateHeight(r1,r2,d);
 		double d1 = Math.sqrt(r1*r1 - h*h);
+		double d2 = Math.sqrt(r2*r2 - h*h);
+		if(d2>d) d1*=-1;
 		Vector normal = s1.center.vectorTo(s2.center).normalizeThis();
 		Point center = s1.center.add(normal.multiply(d1));
 		return new Circle(center, h, normal);
@@ -647,19 +650,29 @@ public class Sphere implements Volume{
 	}
 		
 	public static void main(String[] args){
+		Circle c = new Circle(new Point(61.608,-6.951,5.080), 1.480, new Vector(0.548,0.501,-0.670));
+		Sphere s = new Sphere(new Point(61.648,-9.430,4.846), 1.425);
+		System.out.println(s.getIntersections(c)[0]);
+		System.out.println(s.getIntersections(c)[1]);
+		if(true) return;
+		
 		J3DScene scene = J3DScene.createJ3DSceneInFrame();
-		Sphere s1 = new Sphere( new Point(0,0,0), 1);
-		s1.toSceneSpiral(scene, Color.blue, 10, 360, 0.003);
-		Sphere s2 = new Sphere( new Point(0,0,0), 1.2);
-		Sphere s3 = new Sphere( new Point(1,1,0), 1);
-		scene.addShape(s1, new Color(200,0,0));
-		scene.addShape(s2, new Color(0,200,0));
-		scene.addShape(s3, new Color(0,0,200));
+//		Sphere s1 = new Sphere( new Point(46.29, 7.24,79.23),31.929843);
+//		Sphere s2 = new Sphere( new Point(44.33,31.27,72.11),44.430195);
+//		Sphere s3 = new Sphere( new Point(17.73,16.28,56.71),35.639535);
+		Sphere s1 = new Sphere( new Point(4.5,0.7,8.0),3.0);
+		Sphere s2 = new Sphere( new Point(4.0,3.0,7.0),4.0);
+		Sphere s3 = new Sphere( new Point(1.5,1.6,5.5),3.5);
+//		Sphere s1 = new Sphere( new Point(2,0,0), 1);
+//		Sphere s2 = new Sphere( new Point(0,0,0), 1.2);
+//		Sphere s3 = new Sphere( new Point(1,1,0), 1);
+		scene.addShape(s1, new Color(200,0,0), 50);
+		scene.addShape(s2, new Color(0,200,0), 50);
+		scene.addShape(s3, new Color(0,0,200), 50);
 		Point[] intersections = Sphere.getIntersections(s1, s2, s3);
 		for(Point p: intersections){
-			p.toConsole();
+			System.out.println(p);
 			scene.addShape(new Sphere(p,0.1), Color.GRAY.darker());
-
 		}
 	}
 

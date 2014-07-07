@@ -356,7 +356,7 @@ public class BowyerWatson{
 				System.exit(1);
 			}
 		}else{
-			setSize = 100;
+			setSize = 50;
 			dim = 3;
 		}
 		List<Point> points = ProGAL.geomNd.PointList.generatePointsInCube(setSize, dim);
