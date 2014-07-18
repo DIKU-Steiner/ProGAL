@@ -394,7 +394,7 @@ public class KineticACD {
 //	public Set<Tet> getTets() { return tets; }
 
 	/** Returns i-th vertex */
-	public Vertex getVertex(int i) { return vertices.get(i); }
+	public Vertex getVertex(int i) { return vertices.get(i+4); }
 	
 	/** Returns the list of vertices */
 	public List<Vertex> getVertices() { return vertices; }
@@ -1209,8 +1209,8 @@ public class KineticACD {
 		Point Dnew = D.clone();
 //		if (dir == 1) k = -1;
 		double angleSoFar = Math.floor(Math.toDegrees(angleTotal));
-		
-		for (double i = precision ; i<=Math.ceil(Math.toDegrees(angleLimit)-angleSoFar) ; i+=precision) {
+		double max = Math.ceil(Math.toDegrees(angleLimit)-angleSoFar);
+		for (double i = precision ; i<=max ; i+=precision) {
 //			Cnew = C.clone();
 //			Dnew = D.clone();
 			Cnew.set(C);
@@ -1298,6 +1298,7 @@ public class KineticACD {
 	}
 	
 	private Double[] getRootSSSSR(Vertex A, Vertex B, Vertex C, Vertex D, Vertex E, int dir) {
+		Double[] angles = new Double[4];
 		double aa = A.getSquaredPolarRadius(); 
 		double bb = B.getSquaredPolarRadius(); 
 		double cc = C.getSquaredPolarRadius();
@@ -1320,11 +1321,17 @@ public class KineticACD {
 	    double coefSin = -e*(E.getSinAngle()*det40 + E.getCosAngle()*det41);
 	    double coefCos = e*(E.getCosAngle()*det40 - E.getSinAngle()*det41);
 	    double coef    = E.z()*det42 - ee*det43 + det44; 
-	    angles = Trigonometry.solveAsinXPlusBcosXplusC(coefSin, coefCos, coef);
+	    Double[] angles_tmp = Trigonometry.solveAsinXPlusBcosXplusC(coefSin, coefCos, coef);
+	    if (angles_tmp!=null) {
+		    for (int i = 0 ; i < angles_tmp.length ; i++) {
+		    	angles[i] = angles_tmp[i];
+		    }
+	    }
 	    return getRotAngle(angles, dir);
 	}
 
 	private Double[] getRootSSSRR(Vertex A, Vertex B, Vertex C, Vertex D, Vertex E, int dir) {
+		Double[] angles = new Double[4];
 		double aa = A.getSquaredPolarRadius(); 
 		double bb = B.getSquaredPolarRadius(); 
 		double cc = C.getSquaredPolarRadius();
@@ -1355,13 +1362,13 @@ public class KineticACD {
 	    double coefSin = M13*(E.z()*d*dSin - e*D.z()*eSin) + M14*(e*dd*eSin - ee*d*dSin) + M15*(d*dSin - e*eSin) + M23*(E.z()*d*dCos - e*D.z()*eCos) + M24*(e*dd*eCos - ee*d*dCos) + M25*(d*dCos - e*eCos);
 	    double coefCos = M13*(e*D.z()*eCos - E.z()*d*dCos) + M14*(ee*d*dCos - e*dd*eCos) + M15*(e*eCos - d*dCos) + M23*(E.z()*d*dSin - e*D.z()*eSin) + M24*(e*dd*eSin - ee*d*dSin) + M25*(d*dSin - e*eSin);
 	    double coef    = d*e*M12*(eSin*dCos - eCos*dSin) + M34*(ee*D.z() -E.z()*dd) + M35*(E.z() - D.z()) + M45*(dd - ee);
-	    angles = Trigonometry.solveAsinXPlusBcosXplusC(coefSin, coefCos, coef);
-	    angles = getRotAngle(angles, dir);
-	    if (angles!=null) {
-	    	if (A.getId()==408 && B.getId()==417 && C.getId()==417 && D.getId()==415 && E.getId()==491) {
-	    		System.out.println("Tets 408,410,415,417,491 angle : "+angles[0]);
-	    	}
+	    Double[] angles_tmp = Trigonometry.solveAsinXPlusBcosXplusC(coefSin, coefCos, coef);
+	    if (angles_tmp!=null) {
+		    for (int i = 0 ; i < angles_tmp.length ; i++) {
+		    	angles[i] = angles_tmp[i];
+		    }
 	    }
+	    angles = getRotAngle(angles, dir);
 	    return angles;
 	}
 
