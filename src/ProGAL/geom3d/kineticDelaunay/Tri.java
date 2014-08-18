@@ -21,7 +21,7 @@ public class Tri {
 	Integer count = null;
 	boolean dAlive = true;
 	boolean cAlive = true;
-	private List<Tet> tets = new ArrayList<Tet>(2); // Daisy
+//	private List<Tet> tets = new ArrayList<Tet>(2); // Daisy
 	private Shape[] LSSs = new Shape[3];
 	private Triangle triangle;
 	int alph = 0; // Daisy: 0 and 2 = not in alpha complex
@@ -75,15 +75,15 @@ public class Tri {
 		return corners[i];
 	}
 	
-	public void setTet(Tet t) {
-		tets.add(t);
-	}
+//	public void setTet(Tet t) {
+//		tets.add(t);
+//	}
 	
-	public List<Tet> getTets() { return tets; }
+//	public List<Tet> getTets() { return tets; }
 	
-	public boolean hasBigNeighbour() {
-		return (tets.get(0).isBig() || tets.get(1).isBig());
-	}
+//	public boolean hasBigNeighbour() {
+//		return (tets.get(0).isBig() || tets.get(1).isBig());
+//	}
 	
 	// Daisy
 		public void setAlph(int i) {

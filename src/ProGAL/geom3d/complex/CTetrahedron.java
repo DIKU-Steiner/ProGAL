@@ -7,6 +7,7 @@ import ProGAL.geom3d.Plane;
 import ProGAL.geom3d.Point;
 import ProGAL.geom3d.viewer.J3DScene;
 import ProGAL.geom3d.complex.delaunayComplex.RegularComplex;
+import ProGAL.geom3d.kineticDelaunay.Tet;
 import ProGAL.geom3d.volumes.Tetrahedron;
 
 /**
@@ -70,6 +71,11 @@ public class CTetrahedron extends Tetrahedron{
 			if (tetr.containsPoint(v)) return tetr;
 		}
 		return null;
+	}
+	
+	public boolean hasNeighbor(CTetrahedron t) {
+		for (int i = 0; i < 4; i++) if (neighbours[i] == t) return true;
+		return false;
 	}
 	
 	public int getID(CVertex v) {

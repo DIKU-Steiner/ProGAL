@@ -12,7 +12,7 @@ public class Edge {
 	Integer count = null;
 	boolean dAlive = true;
 	boolean cAlive = true;
-	Tet tet = null;
+//	Tet tet = null;
 	private Shape LSSs;
 	boolean alph = false;
 	
@@ -39,11 +39,11 @@ public class Edge {
 		return corners[i];
 	}
 	
-	public void setTet(Tet t) {
-		tet = t;
-	}
+//	public void setTet(Tet t) {
+//		tet = t;
+//	}
 	
-	public Tet getTet() { return tet; }
+//	public Tet getTet() { return tet; }
 	
 	public void setAlph(boolean b) {
 		alph = b;

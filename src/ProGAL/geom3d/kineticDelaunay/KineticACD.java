@@ -147,6 +147,7 @@ public class KineticACD {
 		for (Point p: points) {
 			insertPoint(p);	
 		}
+		lastTet = null;
 //		System.out.println("Initial coords for vertex indexed at 10 = "+vertices.get(10).getCoord(0)+" , "+vertices.get(10).getCoord(1)+" , "+vertices.get(10).getCoord(2));
 		this.setAlpha(alpha);
 		
@@ -508,7 +509,7 @@ public class KineticACD {
 				tri = new Tri(v0, v1, v2);
 				mapTris.put(new TrianglePoints(v0, v1, v2), tri);
 				t.setTri(tri, t.indexOf(v3));
-				tri.setTet(t);
+//				tri.setTet(t);
 				if (tri.isAlpha(alphaVal)) {
 					tri.setAlph(1);
 					if (isGabriel(tri)) {
@@ -517,14 +518,14 @@ public class KineticACD {
 				} else tri.setAlph(0);
 			} else {
 				tri = mapTris.get(new TrianglePoints(v0, v1, v2));
-				tri.setTet(t);
+//				tri.setTet(t);
 				t.setTri(tri, t.indexOf(v3));
 			}
 			if (!mapTris.containsKey(new TrianglePoints(v0, v1, v3))) {
 				tri = new Tri(v0, v1, v3);
 				mapTris.put(new TrianglePoints(v0, v1, v3), tri);
 				t.setTri(tri, t.indexOf(v2));
-				tri.setTet(t);
+//				tri.setTet(t);
 				if (tri.isAlpha(alphaVal)) {
 					tri.setAlph(1);
 					if (isGabriel(tri)) {
@@ -533,14 +534,14 @@ public class KineticACD {
 				} else tri.setAlph(0);
 			} else {
 				tri = mapTris.get(new TrianglePoints(v0, v1, v3));
-				tri.setTet(t);
+//				tri.setTet(t);
 				t.setTri(tri, t.indexOf(v2));
 			}
 			if (!mapTris.containsKey(new TrianglePoints(v1, v2, v3))) {
 				tri = new Tri(v1, v2, v3);
 				mapTris.put(new TrianglePoints(v1, v2, v3), tri);
 				t.setTri(tri, t.indexOf(v0));
-				tri.setTet(t);
+//				tri.setTet(t);
 				if (tri.isAlpha(alphaVal)) {
 					tri.setAlph(1);
 					if (isGabriel(tri)) {
@@ -549,14 +550,14 @@ public class KineticACD {
 				} else tri.setAlph(0);
 			} else {
 				tri = mapTris.get(new TrianglePoints(v1, v2, v3));
-				tri.setTet(t);
+//				tri.setTet(t);
 				t.setTri(tri, t.indexOf(v0));
 			}
 			if (!mapTris.containsKey(new TrianglePoints(v0, v2, v3))) {
 				tri = new Tri(v0, v2, v3);
 				mapTris.put(new TrianglePoints(v0, v2, v3), tri);
 				t.setTri(tri, t.indexOf(v1));
-				tri.setTet(t);
+//				tri.setTet(t);
 				if (tri.isAlpha(alphaVal)) {
 					tri.setAlph(1);
 					if (isGabriel(tri)) {
@@ -565,7 +566,7 @@ public class KineticACD {
 				} else tri.setAlph(0);
 			} else {
 				tri = mapTris.get(new TrianglePoints(v0, v2, v3));
-				tri.setTet(t);
+//				tri.setTet(t);
 				t.setTri(tri, t.indexOf(v1));
 			}
 			
@@ -576,7 +577,7 @@ public class KineticACD {
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v0, v1), tmp);
 				//edges.add(tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -595,7 +596,7 @@ public class KineticACD {
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v0, v2), tmp);
 				//edges.add(tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -613,7 +614,7 @@ public class KineticACD {
 				tmp =  new Edge(v0, v3);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v0, v3), tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -631,7 +632,7 @@ public class KineticACD {
 				tmp =  new Edge(v1, v2);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v1, v2), tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -649,7 +650,7 @@ public class KineticACD {
 				tmp =  new Edge(v1, v3);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v1, v3), tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -667,7 +668,7 @@ public class KineticACD {
 				tmp =  new Edge(v2, v3);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v2, v3), tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -693,7 +694,7 @@ public class KineticACD {
 			tri = new Tri(s0, s1, s2);
 			mapTris.put(new TrianglePoints(s0, s1, s2), tri);
 			t.setTri(tri, t.indexOf(s3));
-			tri.setTet(t);
+//			tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
 				if (isGabriel(tri)) {
@@ -702,14 +703,14 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, s2));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s3));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, s3))) {
 			tri = new Tri(s0, s1, s3);
 			mapTris.put(new TrianglePoints(s0, s1, s3), tri);
 			t.setTri(tri, t.indexOf(s2));
-			tri.setTet(t);
+//			tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
 				if (isGabriel(tri)) {
@@ -718,14 +719,14 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, s3));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s2));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s1, s2, s3))) {
 			tri = new Tri(s1, s2, s3);
 			mapTris.put(new TrianglePoints(s1, s2, s3), tri);
 			t.setTri(tri, t.indexOf(s0));
-			tri.setTet(t);
+//			tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
 				if (isGabriel(tri)) {
@@ -734,14 +735,14 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s1, s2, s3));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, s2, s3))) {
 			tri = new Tri(s0, s2, s3);
 			mapTris.put(new TrianglePoints(s0, s2, s3), tri);
 			t.setTri(tri, t.indexOf(s1));
-			tri.setTet(t);
+//			tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
 				if (isGabriel(tri)) {
@@ -750,7 +751,7 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s2, s3));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 		}
 	}
@@ -775,7 +776,7 @@ public class KineticACD {
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, s2))) {
 			tri = new Tri(s0, s1, s2);
 			mapTris.put(new TrianglePoints(s0, s1, s2), tri);
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf_slow(r));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -785,13 +786,13 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, s2));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(r));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r))) {
 			tri = new Tri(s0, s1, r);
 			mapTris.put(new TrianglePoints(s0, s1, r), tri);
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s2));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -808,13 +809,13 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, r));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s2));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, s2, r))) {
 			tri = new Tri(s0, s2, r);
 			mapTris.put(new TrianglePoints(s0, s2, r), tri);
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -831,13 +832,13 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s2, r));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s1, s2, r))) {
 			tri = new Tri(s1, s2, r);
 			mapTris.put(new TrianglePoints(s1, s2, r), tri);
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -854,7 +855,7 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s1, s2, r));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 		}
 	}
@@ -873,7 +874,7 @@ public class KineticACD {
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r0))) {
 			tri = new Tri(s0, s1, r0);
 			mapTris.put(new TrianglePoints(s0, s1, r0), tri);
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf_slow(r1));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -890,13 +891,13 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, r0));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(r1));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r1))) {
 			tri = new Tri(s0, s1, r1);
 			mapTris.put(new TrianglePoints(s0, s1, r1), tri);
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(r0));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -913,13 +914,13 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, r1));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(r0));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, r0, r1))) {
 			tri = new Tri(s0, r0, r1);
 			mapTris.put(new TrianglePoints(s0, r0, r1), tri);
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -936,13 +937,13 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, r0, r1));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s1, r0, r1))) {
 			tri = new Tri(s1, r0, r1);
 			mapTris.put(new TrianglePoints(s1, r0, r1), tri);
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -959,7 +960,7 @@ public class KineticACD {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s1, r0, r1));
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 		}
 	}
@@ -1691,10 +1692,10 @@ public class KineticACD {
 		for (int i = 0 ; i<3 ; i++) {
 			Tet t = nt[i];
 			Tri tri = new Tri(vns0, vns1, vs[i]);
-			tri.setTet(t);
+//			tri.setTet(t);
 			t.setTri(tri, t.indexOf(vs[(i+1)%3]));
 			Tet n = nt[(i+2)%3];
-			tri.setTet(n);
+//			tri.setTet(n);
 			n.setTri(tri, n.indexOf(vs[(i+2)%3]));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -1741,7 +1742,7 @@ public class KineticACD {
 			}
 		}
 		
-		commonEdge.setTet(nt0);
+//		commonEdge.setTet(nt0);
 		nt0.setEdge(commonEdge);
 		nt1.setEdge(commonEdge);
 		nt2.setEdge(commonEdge);
@@ -1772,13 +1773,13 @@ public class KineticACD {
 		if (!nt1.hasVertex(vs[1])) nt0.neighbors[nt0.indexOf(vs[1])] = nt1; else nt0.neighbors[nt0.indexOf(vs[1])] = nt2;
 		Tet t = t1.neighbors[t1.indexOf(vs[2])];
 		Tri tri = t1.getTri(t1.indexOf(vs[2]));
-		tri.setTet(nt0);
+//		tri.setTet(nt0);
 		nt0.neighbors[nt0.indexOf(vns0)] = t;
 		nt0.setTri(tri, nt0.indexOf(vns0));
 		if (t != null) t.neighbors[t.apex(t1)] = nt0;
 		t = t0.neighbors[t0.indexOf(vs[2])];
 		tri = t0.getTri(t0.indexOf(vs[2]));
-		tri.setTet(nt0);
+//		tri.setTet(nt0);
 		nt0.setTri(tri, nt0.indexOf(vns1));
 		nt0.neighbors[nt0.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt0;
@@ -1788,13 +1789,13 @@ public class KineticACD {
 		if (!nt0.hasVertex(vs[2])) nt1.neighbors[nt1.indexOf(vs[2])] = nt0; else nt1.neighbors[nt1.indexOf(vs[2])] = nt2;
 		t = t1.neighbors[t1.indexOf(vs[0])];
 		tri = t1.getTri(t1.indexOf(vs[0]));
-		tri.setTet(nt1);
+//		tri.setTet(nt1);
 		nt1.setTri(tri, nt1.indexOf(vns0));
 		nt1.neighbors[nt1.indexOf(vns0)] = t;
 		if (t != null) t.neighbors[t.apex(t1)] = nt1;
 		t = t0.neighbors[t0.indexOf(vs[0])];
 		tri = t0.getTri(t0.indexOf(vs[0]));
-		tri.setTet(nt1);
+//		tri.setTet(nt1);
 		nt1.setTri(tri, nt1.indexOf(vns1));
 		nt1.neighbors[nt1.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt1;
@@ -1804,13 +1805,13 @@ public class KineticACD {
 		if (!nt0.hasVertex(vs[0])) nt2.neighbors[nt2.indexOf(vs[0])] = nt0; else nt2.neighbors[nt2.indexOf(vs[0])] = nt1;
 		t = t1.neighbors[t1.indexOf(vs[1])];
 		tri = t1.getTri(t1.indexOf(vs[1]));
-		tri.setTet(nt2);
+//		tri.setTet(nt2);
 		nt2.setTri(tri, nt2.indexOf(vns0));
 		nt2.neighbors[nt2.indexOf(vns0)] = t;
 		if (t != null) t.neighbors[t.apex(t1)] = nt2;
 		t = t0.neighbors[t0.indexOf(vs[1])];
 		tri = t0.getTri(t0.indexOf(vs[1]));
-		tri.setTet(nt2);
+//		tri.setTet(nt2);
 		nt2.setTri(tri, nt2.indexOf(vns1));
 		nt2.neighbors[nt2.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt2;
@@ -1887,6 +1888,13 @@ public class KineticACD {
 		if (!isDT) {
 			throw new RuntimeException("Flip failed between "+t0+" and "+t1);
 		}*/
+		
+//		assert(nt0.getEdges().size()==6) : "flip23, nt0";
+//		assert(nt1.getEdges().size()==6) : "flip23, nt1";
+//		assert(nt2.getEdges().size()==6) : "flip23, nt2";
+		assert(!tets.contains(t0));
+		assert(!tets.contains(t1));
+		
 		return newTets;
 	}
 
@@ -1973,8 +1981,8 @@ public class KineticACD {
 		
 		// New common triangle
 		Tri tri = new Tri(vns[0], vns[1], vns[2]);
-		tri.setTet(nt0);
-		tri.setTet(nt1);
+//		tri.setTet(nt0);
+//		tri.setTet(nt1);
 		nt0.setTri(tri, nt0.indexOf(vs[0]));
 		nt1.setTri(tri, nt1.indexOf(vs[1]));
 		if (tri.isAlpha(alphaVal)) {
@@ -2079,14 +2087,14 @@ public class KineticACD {
 				if (n0.hasVertex(vs[0])) {
 					n0.neighbors[idx] = nt0;
 					triangle = n0.getTri(idx);
-					triangle.setTet(nt0);
+//					triangle.setTet(nt0);
 					nt0.setTri(triangle, nt0.indexOf_slow(vns[0]));
 					nt0.neighbors[nt0.indexOf_slow(vns[0])] = n0;
 				}
 				else {
 					n0.neighbors[idx] = nt1;
 					triangle = n0.getTri(idx);
-					triangle.setTet(nt1);
+//					triangle.setTet(nt1);
 					nt1.setTri(triangle, nt1.indexOf_slow(vns[0]));
 					nt1.neighbors[nt1.indexOf_slow(vns[0])] = n0;
 				}
@@ -2107,14 +2115,14 @@ public class KineticACD {
 				if (n1.hasVertex(vs[0])) {
 					n1.neighbors[idx] = nt0;
 					triangle = n1.getTri(idx);
-					triangle.setTet(nt0);
+//					triangle.setTet(nt0);
 					nt0.setTri(triangle, nt0.indexOf_slow(vns[1]));
 					nt0.neighbors[nt0.indexOf_slow(vns[1])] = n1;
 				}
 				else {
 					n1.neighbors[idx] = nt1;
 					triangle = n1.getTri(idx);
-					triangle.setTet(nt1);
+//					triangle.setTet(nt1);
 					nt1.setTri(triangle, nt1.indexOf_slow(vns[1]));
 					nt1.neighbors[nt1.indexOf_slow(vns[1])] = n1;
 				}
@@ -2135,14 +2143,14 @@ public class KineticACD {
 				if (n2.hasVertex(vs[0])) {
 					n2.neighbors[idx] = nt0;
 					triangle = n2.getTri(idx);
-					triangle.setTet(nt0);
+//					triangle.setTet(nt0);
 					nt0.setTri(triangle, nt0.indexOf_slow(vns[2]));
 					nt0.neighbors[nt0.indexOf_slow(vns[2])] = n2;
 				}
 				else {
 					n2.neighbors[idx] = nt1;
 					triangle = n2.getTri(idx);
-					triangle.setTet(nt1);
+//					triangle.setTet(nt1);
 					nt1.setTri(triangle, nt1.indexOf_slow(vns[2]));
 					nt1.neighbors[nt1.indexOf_slow(vns[2])] = n2;
 				}
@@ -2208,6 +2216,13 @@ public class KineticACD {
 		if (!isDT) {
 			throw new RuntimeException("Flip failed between "+t0+" and "+t1+" and "+t2);
 		}*/
+		
+//		assert(nt0.getEdges().size()==6) : "flip32, nt0";
+//		assert(nt1.getEdges().size()==6) : "flip32, nt1";
+		assert(!tets.contains(t0));
+		assert(!tets.contains(t1));
+		assert(!tets.contains(t2));
+		
 		return newTets;
 	}
 	
@@ -2555,7 +2570,7 @@ public class KineticACD {
 	public J3DScene getScene() { return scene; }
 	
 	/** returns the list of tetrahedra in this kinetic Dalaunay tessellation */
-	public Set<Tet> getTetrahedra(){ return tets; }
+	public Set<Tet> getTetrahedra(){ return new HashSet<Tet>(tets); }
 	
 	/** Displays Delaunay tesselation */
 	public void toScene(J3DScene scene) { toScene(scene, Constants.bigDouble); }
@@ -2639,7 +2654,7 @@ public class KineticACD {
 	public static void main(String[] args){
 		System.out.println(java.lang.Runtime.getRuntime().maxMemory());
 		long start = System.nanoTime();
-		List<Point> points = new PDBFile("/home/daisy/Desktop/KinAlpha/VoidRemover/Experiments/2cro.pdb", false).getAtomCoords();
+		List<Point> points = new PDBFile("/home/daisy/Desktop/KinAlpha/VoidRemover/Experiments/1KT3/start.pdb", false).getAtomCoords();
 		KineticACD kDT = new KineticACD(2.5, points);
 //		vertices.get(28+4), vertices.get(29+4));
 		List<Integer> rotIndices = new ArrayList<Integer>(Arrays.asList(30, 31));

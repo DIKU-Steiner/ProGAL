@@ -5,11 +5,15 @@ import java.util.Map;
 
 public class DisjointSet {
 	private final Map<Object,DSNode> nodeMap = new HashMap<Object,DSNode>();
+	private int size;
 	
-	public DisjointSet() {}
+	public DisjointSet() {
+		this.size = 0;
+	}
 	
 	public DSNode makeSet(Object object) {
 		nodeMap.put(object, new DSNode(object));
+		this.size++;
 		return nodeMap.get(object); 
 	}
 	
@@ -26,6 +30,7 @@ public class DisjointSet {
 	}
 	
 	public DSNode union(DSNode nd1, DSNode nd2) {
+		this.size--;
 		if (nd1.rank > nd2.rank) {
 			nd2.parent = nd1;
 			return nd1;
@@ -51,6 +56,10 @@ public class DisjointSet {
 			nd = ndNext;
 			ndNext = nd.parent;
 		}
+	}
+	
+	public int nrSets() {
+		return size;
 	}
 	
 	public static class DSNode {
