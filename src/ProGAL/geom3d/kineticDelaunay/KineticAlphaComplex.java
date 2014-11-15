@@ -466,7 +466,7 @@ public class KineticAlphaComplex {
 			tri = new Tri(s0, s1, s2);
 			mapTris.put(new TrianglePoints(s0, s1, s2), tri);
 			t.setTri(tri, t.indexOf(s3));
-			tri.setTet(t);
+//			//tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
 				if (isGabriel(tri)) {
@@ -475,14 +475,14 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, s2));
-			tri.setTet(t);
+//			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s3));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, s3))) {
 			tri = new Tri(s0, s1, s3);
 			mapTris.put(new TrianglePoints(s0, s1, s3), tri);
 			t.setTri(tri, t.indexOf(s2));
-			tri.setTet(t);
+//			//tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
 				if (isGabriel(tri)) {
@@ -491,14 +491,14 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, s3));
-			tri.setTet(t);
+//			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s2));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s1, s2, s3))) {
 			tri = new Tri(s1, s2, s3);
 			mapTris.put(new TrianglePoints(s1, s2, s3), tri);
 			t.setTri(tri, t.indexOf(s0));
-			tri.setTet(t);
+//			//tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
 				if (isGabriel(tri)) {
@@ -507,14 +507,14 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s1, s2, s3));
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, s2, s3))) {
 			tri = new Tri(s0, s2, s3);
 			mapTris.put(new TrianglePoints(s0, s2, s3), tri);
 			t.setTri(tri, t.indexOf(s1));
-			tri.setTet(t);
+			////tri.setTet(t);
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
 				if (isGabriel(tri)) {
@@ -523,7 +523,7 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s2, s3));
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 		}
 	}
@@ -548,7 +548,7 @@ public class KineticAlphaComplex {
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, s2))) {
 			tri = new Tri(s0, s1, s2);
 			mapTris.put(new TrianglePoints(s0, s1, s2), tri);
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf_slow(r));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -558,13 +558,13 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, s2));
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(r));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r))) {
 			tri = new Tri(s0, s1, r);
 			mapTris.put(new TrianglePoints(s0, s1, r), tri);
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s2));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -581,13 +581,13 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, r));
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s2));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, s2, r))) {
 			tri = new Tri(s0, s2, r);
 			mapTris.put(new TrianglePoints(s0, s2, r), tri);
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -604,13 +604,13 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s2, r));
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s1, s2, r))) {
 			tri = new Tri(s1, s2, r);
 			mapTris.put(new TrianglePoints(s1, s2, r), tri);
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -627,7 +627,7 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s1, s2, r));
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 		}
 	}
@@ -646,7 +646,7 @@ public class KineticAlphaComplex {
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r0))) {
 			tri = new Tri(s0, s1, r0);
 			mapTris.put(new TrianglePoints(s0, s1, r0), tri);
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf_slow(r1));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -663,13 +663,13 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, r0));
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(r1));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, s1, r1))) {
 			tri = new Tri(s0, s1, r1);
 			mapTris.put(new TrianglePoints(s0, s1, r1), tri);
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(r0));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -686,13 +686,13 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, s1, r1));
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(r0));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s0, r0, r1))) {
 			tri = new Tri(s0, r0, r1);
 			mapTris.put(new TrianglePoints(s0, r0, r1), tri);
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -709,13 +709,13 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s0, r0, r1));
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s1));
 		}
 		if (!mapTris.containsKey(new TrianglePoints(s1, r0, r1))) {
 			tri = new Tri(s1, r0, r1);
 			mapTris.put(new TrianglePoints(s1, r0, r1), tri);
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 			if (tri.isAlpha(alphaVal)) {
 				tri.setAlph(1);
@@ -732,7 +732,7 @@ public class KineticAlphaComplex {
 			}
 		} else {
 			tri = mapTris.get(new TrianglePoints(s1, r0, r1));
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(s0));
 		}
 	}
@@ -1399,10 +1399,10 @@ public class KineticAlphaComplex {
 		for (int i = 0 ; i<3 ; i++) {
 			Tet t = nt[i];
 			Tri tri = new Tri(vns0, vns1, vs[i]);
-			tri.setTet(t);
+			//tri.setTet(t);
 			t.setTri(tri, t.indexOf(vs[(i+1)%3]));
 			Tet n = nt[(i+2)%3];
-			tri.setTet(n);
+			//tri.setTet(n);
 			n.setTri(tri, n.indexOf(vs[(i+2)%3]));
 			int count = tri.getCount();
 			Vertex S0 = tri.getCorner(0);
@@ -1560,13 +1560,13 @@ public class KineticAlphaComplex {
 		if (!nt1.hasVertex(vs[1])) nt0.neighbors[nt0.indexOf(vs[1])] = nt1; else nt0.neighbors[nt0.indexOf(vs[1])] = nt2;
 		Tet t = t1.neighbors[t1.indexOf(vs[2])];
 		Tri tri = t1.getTri(t1.indexOf(vs[2]));
-		tri.setTet(nt0);
+//		tri.setTet(nt0);
 		nt0.neighbors[nt0.indexOf(vns0)] = t;
 		nt0.setTri(tri, nt0.indexOf(vns0));
 		if (t != null) t.neighbors[t.apex(t1)] = nt0;
 		t = t0.neighbors[t0.indexOf(vs[2])];
 		tri = t0.getTri(t0.indexOf(vs[2]));
-		tri.setTet(nt0);
+//		tri.setTet(nt0);
 		nt0.setTri(tri, nt0.indexOf(vns1));
 		nt0.neighbors[nt0.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt0;
@@ -1576,13 +1576,13 @@ public class KineticAlphaComplex {
 		if (!nt0.hasVertex(vs[2])) nt1.neighbors[nt1.indexOf(vs[2])] = nt0; else nt1.neighbors[nt1.indexOf(vs[2])] = nt2;
 		t = t1.neighbors[t1.indexOf(vs[0])];
 		tri = t1.getTri(t1.indexOf(vs[0]));
-		tri.setTet(nt1);
+//		tri.setTet(nt1);
 		nt1.setTri(tri, nt1.indexOf(vns0));
 		nt1.neighbors[nt1.indexOf(vns0)] = t;
 		if (t != null) t.neighbors[t.apex(t1)] = nt1;
 		t = t0.neighbors[t0.indexOf(vs[0])];
 		tri = t0.getTri(t0.indexOf(vs[0]));
-		tri.setTet(nt1);
+//		tri.setTet(nt1);
 		nt1.setTri(tri, nt1.indexOf(vns1));
 		nt1.neighbors[nt1.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt1;
@@ -1592,13 +1592,13 @@ public class KineticAlphaComplex {
 		if (!nt0.hasVertex(vs[0])) nt2.neighbors[nt2.indexOf(vs[0])] = nt0; else nt2.neighbors[nt2.indexOf(vs[0])] = nt1;
 		t = t1.neighbors[t1.indexOf(vs[1])];
 		tri = t1.getTri(t1.indexOf(vs[1]));
-		tri.setTet(nt2);
+//		tri.setTet(nt2);
 		nt2.setTri(tri, nt2.indexOf(vns0));
 		nt2.neighbors[nt2.indexOf(vns0)] = t;
 		if (t != null) t.neighbors[t.apex(t1)] = nt2;
 		t = t0.neighbors[t0.indexOf(vs[1])];
 		tri = t0.getTri(t0.indexOf(vs[1]));
-		tri.setTet(nt2);
+//		tri.setTet(nt2);
 		nt2.setTri(tri, nt2.indexOf(vns1));
 		nt2.neighbors[nt2.indexOf(vns1)] = t;
 		if (t != null) t.neighbors[t.apex(t0)] = nt2;
@@ -1748,8 +1748,8 @@ public class KineticAlphaComplex {
 		
 		// New common triangle
 		Tri tri = new Tri(vns[0], vns[1], vns[2]);
-		tri.setTet(nt0);
-		tri.setTet(nt1);
+//		tri.setTet(nt0);
+//		tri.setTet(nt1);
 		nt0.setTri(tri, nt0.indexOf(vs[0]));
 		nt1.setTri(tri, nt1.indexOf(vs[1]));
 		int count = tri.getCount();
@@ -1937,14 +1937,14 @@ public class KineticAlphaComplex {
 				if (n0.hasVertex(vs[0])) {
 					n0.neighbors[idx] = nt0;
 					triangle = n0.getTri(idx);
-					triangle.setTet(nt0);
+//					triangle.setTet(nt0);
 					nt0.setTri(triangle, nt0.indexOf_slow(vns[0]));
 					nt0.neighbors[nt0.indexOf_slow(vns[0])] = n0;
 				}
 				else {
 					n0.neighbors[idx] = nt1;
 					triangle = n0.getTri(idx);
-					triangle.setTet(nt1);
+//					triangle.setTet(nt1);
 					nt1.setTri(triangle, nt1.indexOf_slow(vns[0]));
 					nt1.neighbors[nt1.indexOf_slow(vns[0])] = n0;
 				}
@@ -1965,14 +1965,14 @@ public class KineticAlphaComplex {
 				if (n1.hasVertex(vs[0])) {
 					n1.neighbors[idx] = nt0;
 					triangle = n1.getTri(idx);
-					triangle.setTet(nt0);
+//					triangle.setTet(nt0);
 					nt0.setTri(triangle, nt0.indexOf_slow(vns[1]));
 					nt0.neighbors[nt0.indexOf_slow(vns[1])] = n1;
 				}
 				else {
 					n1.neighbors[idx] = nt1;
 					triangle = n1.getTri(idx);
-					triangle.setTet(nt1);
+//					triangle.setTet(nt1);
 					nt1.setTri(triangle, nt1.indexOf_slow(vns[1]));
 					nt1.neighbors[nt1.indexOf_slow(vns[1])] = n1;
 				}
@@ -1993,14 +1993,14 @@ public class KineticAlphaComplex {
 				if (n2.hasVertex(vs[0])) {
 					n2.neighbors[idx] = nt0;
 					triangle = n2.getTri(idx);
-					triangle.setTet(nt0);
+//					triangle.setTet(nt0);
 					nt0.setTri(triangle, nt0.indexOf_slow(vns[2]));
 					nt0.neighbors[nt0.indexOf_slow(vns[2])] = n2;
 				}
 				else {
 					n2.neighbors[idx] = nt1;
 					triangle = n2.getTri(idx);
-					triangle.setTet(nt1);
+//					triangle.setTet(nt1);
 					nt1.setTri(triangle, nt1.indexOf_slow(vns[2]));
 					nt1.neighbors[nt1.indexOf_slow(vns[2])] = n2;
 				}
