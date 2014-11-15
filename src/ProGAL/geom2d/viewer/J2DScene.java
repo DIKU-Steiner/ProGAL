@@ -382,6 +382,7 @@ public class J2DScene {
 
 	public static void main(String[] args){
 		J2DScene scene = J2DScene.createJ2DSceneInFrame();
+		
 		scene.addShape(new LineSegment(new Point(0,0), new Point(1,0)), Color.BLACK);
 		scene.addShape(new LineSegment(new Point(0,0), new Point(0,1)), Color.BLACK);
 		scene.addShape( new TextShape("(1,0)", new Point(1,0), 0.2) );

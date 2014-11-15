@@ -349,7 +349,7 @@ public class KineticAlphaComplex {
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v0, v1), tmp);
 				//edges.add(tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -368,7 +368,7 @@ public class KineticAlphaComplex {
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v0, v2), tmp);
 				//edges.add(tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -386,7 +386,7 @@ public class KineticAlphaComplex {
 				tmp =  new Edge(v0, v3);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v0, v3), tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -404,7 +404,7 @@ public class KineticAlphaComplex {
 				tmp =  new Edge(v1, v2);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v1, v2), tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -422,7 +422,7 @@ public class KineticAlphaComplex {
 				tmp =  new Edge(v1, v3);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v1, v3), tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -440,7 +440,7 @@ public class KineticAlphaComplex {
 				tmp =  new Edge(v2, v3);
 				if (tmp.getLength()<shortestEdge) shortestEdge = tmp.getLength();
 				mapEdges.put(new EdgePoints(v2, v3), tmp);
-				tmp.setTet(t);
+//				tmp.setTet(t);
 				t.setEdge(tmp);
 				if (tmp.isAlpha(alphaVal)) {
 					tmp.setAlph(true);
@@ -1477,7 +1477,7 @@ public class KineticAlphaComplex {
 			}
 		}
 		
-		commonEdge.setTet(nt0);
+//		commonEdge.setTet(nt0);
 		nt0.setEdge(commonEdge);
 		nt1.setEdge(commonEdge);
 		nt2.setEdge(commonEdge);

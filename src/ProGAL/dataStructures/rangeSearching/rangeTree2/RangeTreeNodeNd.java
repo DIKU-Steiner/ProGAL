@@ -1,6 +1,5 @@
 package ProGAL.dataStructures.rangeSearching.rangeTree2;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -10,7 +9,7 @@ import ProGAL.geomNd.Point;
  * Class that models a N-dimension Range Tree.
  * When the tree reaches the last two dimensions, a 2DRangeTree
  * is used for modeling these dimensions.
- * @author Søren Lynnerup 11.01.2012
+ * @author Soren Lynnerup 11.01.2012
  */
 public class RangeTreeNodeNd extends RangeTreeNode {
 	

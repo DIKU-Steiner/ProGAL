@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ProGAL.dataStructures.Kruskal;
+import ProGAL.geom2d.delaunay.DTWithBigPoints;
+import ProGAL.geom2d.delaunay.DelaunayTriangulationPawel;
 import ProGAL.geomNd.Point;
 
 public class MinimumSpanningTree{

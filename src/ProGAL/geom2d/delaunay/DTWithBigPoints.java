@@ -24,15 +24,35 @@ public class DTWithBigPoints {
 		this.vertices = new ArrayList<Vertex>(points.size());
 		this.triangles = new ArrayList<Triangle>(points.size());
 		bigPoints = new Vertex[3];
-		bigPoints[0] = new Vertex(new Point(-3,-3)); 
-		bigPoints[1] = new Vertex(new Point( 3, 0));
-		bigPoints[2] = new Vertex(new Point( 0, 3));
+		bigPoints[0] = new Vertex(new Point(-3000,-3000)); 
+		bigPoints[1] = new Vertex(new Point( 3000, 0));
+		bigPoints[2] = new Vertex(new Point( 0, 3000));
 		Triangle bigTri = new Triangle(bigPoints[0], bigPoints[1], bigPoints[2]);
 		triangles.add(bigTri);
 		for(Point p: points) 
 			addPoint(p);
 	}
 
+	public List<Triangle> getTriangles(){ return new ArrayList<Triangle>(triangles); }
+	public List<int[]> getEdges(){
+		ArrayList<int[]> ret = new ArrayList<int[]>();
+		for(Triangle tri: triangles){
+			for(int i=0;i<3;i++){
+				int[] e = new int[]{tri.corners[i].id-3, tri.corners[(i+1)%3].id-3};
+				if(e[0]<0 || e[1]<0) continue;
+				if(e[0]>e[1]){
+					int tmp = e[0];
+					e[0] = e[1];
+					e[1] = tmp;
+				}
+				if( !ret.contains(e) )
+					ret.add(e);
+			}
+			
+		}
+		return ret;
+	}
+	
 	public Triangle walk(Point p){
 		Triangle t = triangles.get(triangles.size()-1);
 		while(true){
