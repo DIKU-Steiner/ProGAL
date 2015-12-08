@@ -1,0 +1,25 @@
+<body>
+	<p>
+	A simplicial complex is a topological space of a particular kind, constructed by "gluing together" points, 
+	line segments, triangles, and their n-dimensional counterparts. [Wikipedia]
+	</p>
+   
+   <p>
+   This package contains classes that are all related to three-dimensional simplicial complexes. The specific types of 
+   complexes (such as the Delaunay-complex) are implemented in their own sub-packages. All specific complexes use the 
+   CVertex, CEdge, CTriangle and CTetrahedron classes as the basic data structure. It is possible to navigate entire 
+   components of a complex from any member of the complex. For instance a breadth-first-search from any edge can collect 
+   all tetrahedra in that component. The relevant methods for traversing a complex are:
+   <table border="1" cellspacing="0" cellpadding="2">
+   <tr><th></th><th>Going down in simplex dimension</th><th>Going up in simplex dimension</th></tr>
+   <tr><td>CVertex  	</td><td>-								</td><td>List<CEdge> getAdjacentEdges()         		</td></tr>
+   <tr><td>CEdge    	</td><td>CVertex getPoint(int i)		</td><td>List<CTriangle> getAdjacentTriangles()     	</td></tr>
+   <tr><td>CTriangle	</td><td>CEdge getEdge(int i) 			</td><td>CTetrahedron getAdjacentTetrahedron(int i)		</td></tr>
+   <tr><td>CTetrahedron	</td><td>CTriangle getTriangle(int i)	</td><td>(CTetrahedron getNeighbor(int i))				</td></tr>
+   </table> 
+   For convenience, CTetrahedron has a <code>CTetrahedron getNeighbor(int i)</code> method that gets returns neighbors 
+   of the same dimension as itself. None of the other simplices has this functionality.
+   </p>
+   
+	   
+</body>

@@ -1,0 +1,40 @@
+<body>
+	ProGAL is a library containing geometric datastructures and algorithms with special emphasis on supporting 
+	representation and analysis of protein structures.
+	
+	TODO index
+	
+	<h2>Goals</h2>
+	TODO write goals and outline of ProGAL
+	
+	<h2>Section title</h2>
+	
+
+	<h2>Implementation conventions</h2>
+	  
+	<h3>Composite geometric objects</h3>
+	The geometric object such as planes and lines are defined by other geometric objects such as points and vectors. The user has full 
+	control of these defining objects and changing the defining object also changes the dependent. For example, a plane is defined 
+	by a point and a normal vector that is typically passed to the plane upon construction. The reference of the point used to construct 
+	the plane is retrievable at any later time, and changing the properties of that reference also changes the plane.    
+
+	<h3>toString and toConsole methods</h3>
+	All classes supplies four methods: toString(), toString(int dec), toConsole() and toConsole(int dec). The toString methods returns a 
+	string representation of an object that clearly specifies the class-type and defining parameters with two decimals precision. The dec 
+	parameter is used to adjust the precision. The toConsole-methods prints the object to System.out using the toString methods.
+	  
+	<h3>Various minor conventions</h3>
+	<ul>
+		<li>Whereever it can be relevant <code>equals</code> methods should be supplied. An <code>equals</code>-method should only return 
+		true if the argument is of the same class-type.</li>
+		
+		
+	</ul>
+	  
+	<h2>References</h2>
+	Throughout this documentation references are made to the following literature
+	<ul>
+		<li>[Ericsson 05] Christer Ericsson, Real-time Collision Detection, Elsevier, 2005.</li>
+	</ul>
+
+</body>
