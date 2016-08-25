@@ -2,8 +2,9 @@
 
 ProGAL is a Java-library containing data structures and implementations of a range of geometric algorithms. Many of the implementations are based on research projects at Department of Computer Science, University of Copenhagen.
 
-[ProGAL.jar](link)
-
+<div style="text-align:center;size:2em">
+[ProGAL.jar](ProGAL.jar)
+</div>
 
 ## Usage
 To use ProGAL include the jar in the class path of your project. For example, let ProGALTest.java have the following contents:
