@@ -11,8 +11,6 @@ import javax.media.j3d.ImageComponent2D;
 import javax.media.j3d.Raster;
 import javax.vecmath.Point3f;
 
-import org.sourceforge.jlibeps.epsgraphics.EpsGraphics2D;
-
 import com.sun.image.codec.jpeg.JPEGCodec;
 import com.sun.image.codec.jpeg.JPEGEncodeParam;
 import com.sun.image.codec.jpeg.JPEGImageEncoder;
@@ -57,33 +55,33 @@ public class J3DImageFileWriter {
 		}
 	}
 	
-	/** Writes the current view in a <code>Canvas3D</code> object to an EPS file */
-	public static void writeEPSFile(String fName, Canvas3D canvas){
-		GraphicsContext3D  ctx = canvas.getGraphicsContext3D();
-		// The raster components need all be set!
-		Raster ras = new Raster(
-				new Point3f(-1.0f,-1.0f,-1.0f),
-				Raster.RASTER_COLOR,
-				0,0,
-				canvas.getWidth(),canvas.getHeight(),
-				new ImageComponent2D( ImageComponent.FORMAT_RGB, new BufferedImage(canvas.getWidth(), canvas.getHeight(), BufferedImage.TYPE_INT_RGB)),
-				null);
-
-		ctx.readRaster(ras);
-
-		// Now strip out the image info
-		BufferedImage img = ras.getImage().getImage();
-
-		// write that to disk....
-		try {
-			FileOutputStream finalImage = new FileOutputStream(fName);
-			EpsGraphics2D g = new EpsGraphics2D("Title", finalImage, 0, 0, canvas.getWidth(), canvas.getHeight());
-			g.drawImage(img, 0, 0, null);
-			g.flush();
-			g.close();
-			finalImage.close();
-		} catch ( IOException e ) {
-			e.printStackTrace();
-		}
-	}
+//	/** Writes the current view in a <code>Canvas3D</code> object to an EPS file */
+//	public static void writeEPSFile(String fName, Canvas3D canvas){
+//		GraphicsContext3D  ctx = canvas.getGraphicsContext3D();
+//		// The raster components need all be set!
+//		Raster ras = new Raster(
+//				new Point3f(-1.0f,-1.0f,-1.0f),
+//				Raster.RASTER_COLOR,
+//				0,0,
+//				canvas.getWidth(),canvas.getHeight(),
+//				new ImageComponent2D( ImageComponent.FORMAT_RGB, new BufferedImage(canvas.getWidth(), canvas.getHeight(), BufferedImage.TYPE_INT_RGB)),
+//				null);
+//
+//		ctx.readRaster(ras);
+//
+//		// Now strip out the image info
+//		BufferedImage img = ras.getImage().getImage();
+//
+//		// write that to disk....
+//		try {
+//			FileOutputStream finalImage = new FileOutputStream(fName);
+//			EpsGraphics2D g = new EpsGraphics2D("Title", finalImage, 0, 0, canvas.getWidth(), canvas.getHeight());
+//			g.drawImage(img, 0, 0, null);
+//			g.flush();
+//			g.close();
+//			finalImage.close();
+//		} catch ( IOException e ) {
+//			e.printStackTrace();
+//		}
+//	}
 }

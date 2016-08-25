@@ -1722,21 +1722,22 @@ public class J3DScene {
 			}	
 		}
 		item.addActionListener(new ExportActionListener(j3ds));
-		view.add(item = new JMenuItem("Export EPS"));
-		class ExportEPSActionListener implements ActionListener{
-			J3DScene j3ds;
-			ExportEPSActionListener(J3DScene j3ds){ this.j3ds = j3ds; }
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				ExampleFileFilter filter = new ExampleFileFilter(new String[]{"eps"}, "Encapsulated Postscript images");
-				chooser.setFileFilter(filter);
-				int returnVal = chooser.showSaveDialog(j3ds.canvas);
-				if(returnVal == JFileChooser.APPROVE_OPTION) {
-					J3DImageFileWriter.writeEPSFile(chooser.getSelectedFile().getAbsolutePath(), j3ds.canvas);
-				}	
-			}
-		}
-		item.addActionListener(new ExportEPSActionListener(j3ds));
+		
+//		view.add(item = new JMenuItem("Export EPS"));
+//		class ExportEPSActionListener implements ActionListener{
+//			J3DScene j3ds;
+//			ExportEPSActionListener(J3DScene j3ds){ this.j3ds = j3ds; }
+//			public void actionPerformed(ActionEvent e) {
+//				JFileChooser chooser = new JFileChooser();
+//				ExampleFileFilter filter = new ExampleFileFilter(new String[]{"eps"}, "Encapsulated Postscript images");
+//				chooser.setFileFilter(filter);
+//				int returnVal = chooser.showSaveDialog(j3ds.canvas);
+//				if(returnVal == JFileChooser.APPROVE_OPTION) {
+//					J3DImageFileWriter.writeEPSFile(chooser.getSelectedFile().getAbsolutePath(), j3ds.canvas);
+//				}	
+//			}
+//		}
+//		item.addActionListener(new ExportEPSActionListener(j3ds));
 		view.addSeparator();
 
 		view.add(item = new JMenuItem("Auto-zoom (z)"));
