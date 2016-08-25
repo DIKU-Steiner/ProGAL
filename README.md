@@ -34,7 +34,7 @@ we're working on an updated 3D viewer using JavaFX.
      
 ## Documentation
 
-Documentation of ProGAL is maintained partly through a [JavaDoc homepage](link) and partly through a [collection of examples](link) that demonstrate the use of the library.
+Documentation of ProGAL is maintained partly through a [JavaDoc homepage](http://www.diku.dk/~rfonseca/ProGAL/doc/) and partly through a [collection of examples](http://www.diku.dk/hjemmesider/ansatte/rfonseca/ProGAL/examples/) that demonstrate the use of the library.
 
 Projects that contributed to ProGAL:
 * Computational Geometry and Bioinformatics. Peter & Henrik Sterner. Masters thesis. 2008
